@@ -933,8 +933,7 @@ fun OrderItemCard(order: Order, staffList: List<Staff>, onStatusUpdate: (String,
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     Text("Order #${order.id.takeLast(6)}", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
                     Text("Room ${order.roomNumber}", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color.Black)
