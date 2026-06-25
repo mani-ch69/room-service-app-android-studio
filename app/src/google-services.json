@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "987842436715",
+    "firebase_url": "https://roomserviceapk-default-rtdb.firebaseio.com",
+    "project_id": "roomserviceapk",
+    "storage_bucket": "roomserviceapk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:987842436715:android:909a31ddbb5f3d351e1b2e",
+        "android_client_info": {
+          "package_name": "com.example.roomservice"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "987842436715-hhbtdvu37v48bp23vb46mlfuplh9vltd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.roomservice",
+            "certificate_hash": "e26621fabf87978a97eb1a9bcb632bead0a73997"
+          }
+        },
+        {
+          "client_id": "987842436715-sfre96juktt65pls8dd1d2mc1jvptkmq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4yT-e0mLrqxoXRaAy7TSdDqMar-in-DY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "987842436715-sfre96juktt65pls8dd1d2mc1jvptkmq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
