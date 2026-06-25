@@ -440,7 +440,7 @@ fun DashboardBookingCardRedesigned(
     ) {
         Column {
             Row(
-                modifier = Modifier.padding(16.dp).fillMaxWidth().clickable { isExpanded = !isExpanded },
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -532,19 +532,7 @@ fun DashboardBookingCardRedesigned(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Icon(
-                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.clickable { isExpanded = !isExpanded }
-                )
-            }
-
-            AnimatedVisibility(visible = isExpanded) {
+            if (booking.status != BookingStatus.COMPLETED) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
                     Spacer(Modifier.height(12.dp))
@@ -865,6 +853,7 @@ fun ActiveRequestCard(
         })
     }
 }
+
 
 @Composable
 fun StaffAssignmentDialog(staffList: List<Staff>, onDismiss: () -> Unit, onAssign: (Staff) -> Unit) {
