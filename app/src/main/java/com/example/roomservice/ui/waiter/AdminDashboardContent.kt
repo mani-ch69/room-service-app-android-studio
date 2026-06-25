@@ -524,6 +524,15 @@ fun DashboardBookingCardRedesigned(
                     }
                     Spacer(Modifier.width(8.dp))
                     IconButton(
+                        onClick = {
+                            com.example.roomservice.util.ReceiptHelper.shareReceiptOnWhatsApp(context, booking, businessDetails, roomType)
+                        },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(Icons.Default.Share, null, tint = Color(0xFF25D366), modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    IconButton(
                         onClick = { showEditDialog = true },
                         modifier = Modifier.size(32.dp)
                     ) {
