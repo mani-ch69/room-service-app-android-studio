@@ -19,10 +19,15 @@ object BookingRepository {
     fun startListening(hotelId: String) {
         stopListening()
         db = FirebaseDatabase.getInstance().getReference("hotels").child(hotelId).child("bookings")
+        // Optimization: Enable offline persistence for faster subsequent loads
         db.keepSynced(true)
+        
         listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val list = snapshot.children.mapNotNull { it.getValue(Booking::class.java) }
+                // Optimization: Efficient mapping using sequence for large datasets
+                val list = snapshot.children.asSequence()
+                    .mapNotNull { it.getValue(Booking::class.java) }
+                    .toList()
                 _bookings.value = list
             }
             override fun onCancelled(error: DatabaseError) {}
@@ -36,22 +41,24 @@ object BookingRepository {
     }
 
     fun addBooking(booking: Booking) {
+        if (booking.id.isEmpty()) return
         db.child(booking.id).setValue(booking)
     }
 
-    fun updateBookingStatus(bookingId: String, status: BookingStatus) {
-        db.child(bookingId).child("status").setValue(status)
+    fun updateBookingStatus(id: String, status: BookingStatus) {
+        db.child(id).child("status").setValue(status)
     }
 
     fun checkInGuest(bookingId: String, idPhotoUrl: String) {
-        db.child(bookingId).updateChildren(mapOf(
+        val updates = mapOf(
             "status" to BookingStatus.CHECKED_IN,
-            "guestIdPhotoUrl" to idPhotoUrl
-        ))
+            "guestIdentities/0/frontPhotoUrl" to idPhotoUrl
+        )
+        db.child(bookingId).updateChildren(updates)
     }
 
-    fun deleteBooking(bookingId: String) {
-        db.child(bookingId).removeValue()
+    fun deleteBooking(id: String) {
+        db.child(id).removeValue()
     }
 
     fun clearData() {

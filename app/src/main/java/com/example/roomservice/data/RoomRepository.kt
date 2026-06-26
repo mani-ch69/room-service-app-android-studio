@@ -18,10 +18,13 @@ object RoomRepository {
     fun startListening(hotelId: String) {
         stopListening()
         db = FirebaseDatabase.getInstance().getReference("hotels").child(hotelId).child("rooms")
-        db.keepSynced(true) // Optimize for slow networks and offline access
+        db.keepSynced(true)
         listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val list = snapshot.children.mapNotNull { it.getValue(Room::class.java) }
+                // Optimization: Use sequence for mapping large lists
+                val list = snapshot.children.asSequence()
+                    .mapNotNull { it.getValue(Room::class.java) }
+                    .toList()
                 _rooms.value = list
             }
             override fun onCancelled(error: DatabaseError) {}
