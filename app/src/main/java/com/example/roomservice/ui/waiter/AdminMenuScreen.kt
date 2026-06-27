@@ -297,9 +297,18 @@ fun RatesAvailabilityMenu(onCalendarClick: () -> Unit, onItemClick: (String) -> 
 @Composable
 fun PropertyDetailMenu(onGeneralInfoClick: () -> Unit, onVatTaxClick: () -> Unit, onPhotosClick: () -> Unit, onPoliciesClick: () -> Unit, onResPoliciesClick: () -> Unit, onFacilitiesClick: () -> Unit, onRoomDetailsClick: () -> Unit, onAmenitiesClick: () -> Unit, onProfileClick: () -> Unit, onDescriptionsClick: () -> Unit, onMessagingClick: () -> Unit, onSustainabilityClick: () -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item { MoreMenuItem("General info", Icons.Default.Info, onGeneralInfoClick) }
+        item { MoreMenuItem("Property Page Score", Icons.Default.Assessment, { /* Score logic */ }) }
+        item { MoreMenuItem("General info & property status", Icons.Default.Info, onGeneralInfoClick) }
+        item { MoreMenuItem("VAT/Tax/Charges", Icons.Default.Payments, onVatTaxClick) }
         item { MoreMenuItem("Photos", Icons.Default.PhotoLibrary, onPhotosClick) }
-        item { MoreMenuItem("Rooms", Icons.Default.Bed, onRoomDetailsClick) }
-        item { MoreMenuItem("Facilities", Icons.Default.RoomService, onFacilitiesClick) }
+        item { MoreMenuItem("Property policies", Icons.Default.Gavel, onPoliciesClick, isNew = true) }
+        item { MoreMenuItem("Reservation policies", Icons.Default.EventNote, onResPoliciesClick, isNew = true) }
+        item { MoreMenuItem("Facilities & services", Icons.Default.RoomService, onFacilitiesClick) }
+        item { MoreMenuItem("Room details", Icons.Default.Bed, onRoomDetailsClick) }
+        item { MoreMenuItem("Room Amenities", Icons.Default.HotTub, onAmenitiesClick) }
+        item { MoreMenuItem("Your Profile", Icons.Default.AccountBox, onProfileClick) }
+        item { MoreMenuItem("View Your Descriptions", Icons.Default.Description, onDescriptionsClick) }
+        item { MoreMenuItem("Messaging Preferences", Icons.Default.Message, onMessagingClick) }
+        item { MoreMenuItem("Sustainability", Icons.Default.Eco, onSustainabilityClick, isNew = true) }
     }
 }
