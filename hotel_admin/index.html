@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganga Homes - Hotel Admin Portal</title>
+    <link rel="stylesheet" href="admin_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" class="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-logo">⚜️</div>
+            <h2>Admin Login</h2>
+            <p>Please enter your credentials to access the dashboard.</p>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="admin-email" placeholder="admin@gangahomes.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="admin-password" placeholder="••••••••">
+            </div>
+            <button id="btn-login" class="btn-primary">Sign In</button>
+            <p id="login-error" class="error-text hidden"></p>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="admin-app" class="dashboard-layout hidden">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="logo-icon">⚜️</span>
+                <h3>Ganga Homes</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+                <div class="nav-item" onclick="switchTab('bookings')">📅 Bookings</div>
+                <div class="nav-item" onclick="switchTab('rooms')">🏨 Room Management</div>
+                <div class="nav-item" onclick="switchTab('payments')">💰 Payments</div>
+                <div class="nav-item" onclick="switchTab('settings')">⚙️ Settings</div>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="btn-logout" class="btn-logout">Logout</button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <header class="content-header">
+                <h2 id="current-tab-title">Dashboard Overview</h2>
+                <div class="admin-profile">
+                    <span id="admin-name">Hotel Admin</span>
+                    <div class="avatar">👤</div>
+                </div>
+            </header>
+
+            <div id="tab-dashboard" class="tab-pane">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p>Today's Bookings</p>
+                        <h3 id="stat-today-bookings">0</h3>
+                    </div>
+                    <div class="stat-card">
+                        <p>Active Guests</p>
+                        <h3 id="stat-active-guests">0</h3>
+                    </div>
+                    <div class="stat-card">
+                        <p>Total Revenue</p>
+                        <h3 id="stat-revenue">₹0</h3>
+                    </div>
+                </div>
+
+                <div class="recent-bookings card">
+                    <h3>Recent Online Reservations</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Guest Name</th>
+                                <th>Room</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-bookings-body">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-bookings" class="tab-pane hidden">
+                <div class="filter-bar card">
+                    <input type="text" id="booking-search" placeholder="Search by name or ID...">
+                    <select id="filter-status">
+                        <option value="all">All Statuses</option>
+                        <option value="booked">Booked</option>
+                        <option value="checked_in">Checked In</option>
+                    </select>
+                </div>
+                <div class="card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Guest</th>
+                                <th>Room #</th>
+                                <th>Dates</th>
+                                <th>Payment</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-bookings-body">
+                            <!-- Injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Additional tabs (rooms, payments, etc.) will go here -->
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
