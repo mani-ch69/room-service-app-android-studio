@@ -194,38 +194,23 @@ fun AdminMenuScreen(
 
 @Composable
 fun AuroraManualBookingButton(onClick: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "aurora")
-    val angle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(6000, easing = LinearEasing), RepeatMode.Restart), label = "angle"
-    )
-
-    val color1 = Color.White
-    val color2 = Color.White
-    val color3 = Color.White
-    val color4 = Color.White
-
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .size(64.dp)
-            .clip(CircleShape)
-            .drawBehind {
-                val brush = Brush.sweepGradient(
-                    colors = listOf(color1, color2, color3, color4, color1),
-                    center = center
-                )
-                rotate(angle) {
-                    drawCircle(brush = brush, radius = size.width / 2)
-                }
-            }
-            .border(2.dp, Color.White, CircleShape),
-        color = Color.Transparent,
-        shadowElevation = 8.dp
+            .size(60.dp)
+            .offset(y = (-4).dp),
+        shape = CircleShape,
+        color = Color(0xFF1976D2), // Primary Blue
+        shadowElevation = 6.dp,
+        border = BorderStroke(2.dp, Color.White)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.size(32.dp))
+            Icon(
+                Icons.Default.Add, 
+                contentDescription = null, 
+                tint = Color.White, 
+                modifier = Modifier.size(32.dp)
+            )
         }
     }
 }
