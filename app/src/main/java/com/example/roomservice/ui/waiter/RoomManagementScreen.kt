@@ -308,6 +308,10 @@ fun AddEditRoomDialog(
     
     val hotelId by HotelSession.hotelId.collectAsState()
 
+    val isDuplicateRoom = remember(roomNumber, roomType, rooms) {
+        rooms.any { it.roomNumber == roomNumber && it.roomType == roomType && it.roomNumber != initialRoom?.roomNumber }
+    }
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -355,6 +359,33 @@ fun AddEditRoomDialog(
                                     shape = RoundedCornerShape(4.dp),
                                     prefix = { Text("₹") }
                                 )
+
+                                if (isDuplicateRoom) {
+                                    Surface(
+                                        color = Color(0xFFFFF9C4),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(12.dp),
+                                            verticalAlignment = Alignment.Top
+                                        ) {
+                                            Icon(
+                                                Icons.Default.PanTool,
+                                                contentDescription = null,
+                                                tint = Color(0xFFFBC02D),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(Modifier.width(12.dp))
+                                            Text(
+                                                text = "Please select a room name you haven't used yet. This will make it easier for you to differentiate between rooms when assigning amenities in the next section.",
+                                                fontSize = 12.sp,
+                                                color = Color.Black,
+                                                lineHeight = 16.sp
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -436,7 +467,7 @@ fun AddEditRoomDialog(
                         Spacer(Modifier.height(12.dp))
                         Button(
                             onClick = { 
-                                if (roomNumber.isNotBlank()) {
+                                if (roomNumber.isNotBlank() && !isDuplicateRoom) {
                                     onConfirm(Room(
                                         roomNumber = roomNumber, 
                                         hotelId = hotelId ?: "", 
