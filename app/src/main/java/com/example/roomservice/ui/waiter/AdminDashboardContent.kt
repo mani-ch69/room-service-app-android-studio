@@ -306,61 +306,131 @@ fun DashboardBookingCardRedesigned(
     val businessDetails by com.example.roomservice.data.BusinessDetailsRepository.details.collectAsState()
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.White),
-        elevation = CardDefaults.elevatedCardElevation(6.dp)
+        elevation = CardDefaults.elevatedCardElevation(4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+            // TOP ROW: Guest Name and Action Icons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = booking.guestName, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color.Black)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Booked on: ${SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(booking.timestamp))}",
-                            fontSize = 11.sp,
-                            color = Color.Gray,
-                            fontWeight = FontWeight.Medium
-                        )
-                        if (booking.bookingAgent != "Individual Customer") {
-                            Text(text = " • ${booking.bookingAgent}", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                    if (booking.guestPhone.isNotBlank()) {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                            Text(text = booking.guestPhone, fontSize = 14.sp, color = Color.Gray)
-                            Spacer(Modifier.width(8.dp))
-                            Icon(Icons.Default.Phone, null, tint = Color(0xFF2E7D32), modifier = Modifier.size(16.dp).clickable {
-                                context.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL).apply { data = android.net.Uri.parse("tel:${booking.guestPhone}") })
-                            })
+                    Text(
+                        text = booking.guestName,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 18.sp,
+                        color = Color.Black,
+                        maxLines = 1
+                    )
+                    
+                    Text(
+                        text = "Booked on: ${SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(booking.timestamp))}",
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                    
+                    if (booking.bookingAgent != "Individual Customer") {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Text(
+                                text = booking.bookingAgent,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
                         }
                     }
                 }
-                Row {
-                    IconButton(onClick = { com.example.roomservice.util.ReceiptHelper.printBookingReceipt(context, booking, businessDetails, roomType) }) { Icon(Icons.Default.Print, null, tint = Color.Gray) }
-                    IconButton(onClick = { com.example.roomservice.util.ReceiptHelper.shareReceiptOnWhatsApp(context, booking, businessDetails, roomType) }) { Icon(Icons.Default.Share, null, tint = Color(0xFF25D366)) }
-                    IconButton(onClick = { showEditDialog = true }) { Icon(Icons.Default.Edit, null, tint = Color.Gray) }
-                    IconButton(onClick = { showDeleteConfirm = true }) { Icon(Icons.Default.Delete, null, tint = Color.Red.copy(alpha = 0.6f)) }
+                
+                // Action Icons Row
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { com.example.roomservice.util.ReceiptHelper.printBookingReceipt(context, booking, businessDetails, roomType) }, modifier = Modifier.size(36.dp)) { 
+                        Icon(Icons.Default.Print, null, tint = Color.Gray, modifier = Modifier.size(20.dp)) 
+                    }
+                    IconButton(onClick = { com.example.roomservice.util.ReceiptHelper.shareReceiptOnWhatsApp(context, booking, businessDetails, roomType) }, modifier = Modifier.size(36.dp)) { 
+                        Icon(Icons.Default.Share, null, tint = Color(0xFF25D366), modifier = Modifier.size(20.dp)) 
+                    }
+                    IconButton(onClick = { showEditDialog = true }, modifier = Modifier.size(36.dp)) { 
+                        Icon(Icons.Default.Edit, null, tint = Color.Gray, modifier = Modifier.size(20.dp)) 
+                    }
+                    IconButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.size(36.dp)) { 
+                        Icon(Icons.Default.Delete, null, tint = Color.Red.copy(alpha = 0.6f), modifier = Modifier.size(20.dp)) 
+                    }
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = "$checkInStr - $checkOutStr", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    Text(text = "$nights nights • ${booking.numberOfGuests} guests", fontSize = 13.sp, color = Color.Gray)
-                    Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Column { Text("Total", fontSize = 10.sp, color = Color.Gray); Text("₹${booking.totalAmount.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold) }
-                        Column { Text("Paid", fontSize = 10.sp, color = Color.Gray); Text("₹${booking.advancePaid.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32)) }
-                        Column { Text("Pending", fontSize = 10.sp, color = Color.Gray); Text("₹${outstanding.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.Red) }
+            Spacer(Modifier.height(12.dp))
+            
+            // MIDDLE ROW: Phone and Dates
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (booking.guestPhone.isNotBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable {
+                                context.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL).apply { 
+                                    data = android.net.Uri.parse("tel:${booking.guestPhone}") 
+                                })
+                            }
+                            .background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Icon(Icons.Default.Phone, null, tint = Color(0xFF2E7D32), modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(text = booking.guestPhone, fontSize = 13.sp, color = Color.DarkGray, fontWeight = FontWeight.Bold)
                     }
                 }
+                
+                Spacer(Modifier.weight(1f))
+                
+                Text(
+                    text = "$checkInStr - $checkOutStr",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1976D2)
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+            
+            // BOTTOM ROW: Financials and Status
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column {
+                    Text(text = "$nights nights • ${booking.numberOfGuests} guests", fontSize = 12.sp, color = Color.Gray)
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        PriceMiniCard("Total", "₹${booking.totalAmount.toInt()}", Color.Black)
+                        PriceMiniCard("Paid", "₹${booking.advancePaid.toInt()}", Color(0xFF2E7D32))
+                        PriceMiniCard("Pending", "₹${outstanding.toInt()}", Color.Red)
+                    }
+                }
+                
                 Column(horizontalAlignment = Alignment.End) {
-                    if (isCheckIn) Surface(color = Color(0xFFE8F5E9), shape = RoundedCornerShape(8.dp)) { Text("Check-in", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold, fontSize = 11.sp) }
-                    else if (isCheckOut) Surface(color = Color(0xFFFFEBEE), shape = RoundedCornerShape(8.dp)) { Text("Check-out", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 11.sp) }
-                    else if (isStayOver) Surface(color = Color(0xFFE3F2FD), shape = RoundedCornerShape(8.dp)) { Text("Stay over", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), color = Color(0xFF1976D2), fontWeight = FontWeight.Bold, fontSize = 11.sp) }
-                    if (roomType.isNotEmpty()) Text(text = roomType, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+                    StatusBadge(isCheckIn, isCheckOut, isStayOver)
+                    if (roomType.isNotEmpty()) {
+                        Text(
+                            text = roomType,
+                            fontSize = 11.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
         }
@@ -423,6 +493,36 @@ private fun getDatesForMonth(month: Calendar): List<Date?> {
     repeat(cal.get(Calendar.DAY_OF_WEEK) - 1) { dates.add(null) }
     repeat(cal.getActualMaximum(Calendar.DAY_OF_MONTH)) { dates.add(cal.time); cal.add(Calendar.DAY_OF_MONTH, 1) }
     return dates
+}
+
+@Composable
+fun PriceMiniCard(label: String, value: String, color: Color) {
+    Column {
+        Text(text = label, fontSize = 10.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+        Text(text = value, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, color = color)
+    }
+}
+
+@Composable
+fun StatusBadge(isCheckIn: Boolean, isCheckOut: Boolean, isStayOver: Boolean) {
+    val (bg, txt, label) = when {
+        isCheckIn -> Triple(Color(0xFFE8F5E9), Color(0xFF2E7D32), "Check-in")
+        isCheckOut -> Triple(Color(0xFFFFEBEE), Color.Red, "Check-out")
+        isStayOver -> Triple(Color(0xFFE3F2FD), Color(0xFF1976D2), "Stay over")
+        else -> Triple(Color.Transparent, Color.Transparent, "")
+    }
+    
+    if (label.isNotEmpty()) {
+        Surface(color = bg, shape = RoundedCornerShape(8.dp)) {
+            Text(
+                text = label,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                color = txt,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp
+            )
+        }
+    }
 }
 
 private fun isSameDay(c1: Calendar, c2: Calendar) = c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
