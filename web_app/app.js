@@ -126,7 +126,7 @@ function renderRooms() {
                     <div class="room-card-footer">
                         <div class="room-price">
                             <span class="price-label">Price per night</span>
-                            <span class="price-value">₹${room.roomPrice || '1,500'}</span>
+                            <span class="price-value">₹1,500</span>
                         </div>
                         <button class="book-btn" onclick="openBookingModal('${room.roomNumber}')">BOOK NOW</button>
                     </div>
@@ -142,7 +142,7 @@ window.openBookingModal = (roomNumber) => {
     selectedRoomForBooking = room;
 
     document.getElementById('modal-room-type').innerText = room.roomType;
-    document.getElementById('summary-price').innerText = `₹${room.roomPrice || '1,500'}`;
+    document.getElementById('summary-price').innerText = `₹1,500`;
 
     // Set default dates
     const today = new Date().toISOString().split('T')[0];
@@ -179,7 +179,7 @@ document.getElementById('btn-confirm-booking').onclick = () => {
         guestPhone: phone,
         checkInDate: new Date(checkIn).getTime(),
         checkOutDate: new Date(checkOut).getTime(),
-        totalAmount: parseFloat(selectedRoomForBooking.roomPrice || 1500),
+        totalAmount: 1500,
         advancePaid: 0,
         numberOfGuests: selectedRoomForBooking.maxGuests,
         status: "BOOKED",

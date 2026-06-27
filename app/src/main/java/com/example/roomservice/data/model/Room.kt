@@ -23,8 +23,7 @@ data class Room(
     var hasGeyser: Boolean = true,
     var hasKettle: Boolean = true,
     var imageUrl: String = "",
-    var isAvailable: Boolean = true,
-    var roomPrice: String = "1500"
+    var isAvailable: Boolean = true
 ) {
     fun generateWebPortalLink(): String {
         // Updated to match the actual Render project URL from your screenshot
