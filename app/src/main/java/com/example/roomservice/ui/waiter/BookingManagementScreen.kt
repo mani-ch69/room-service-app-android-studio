@@ -42,8 +42,7 @@ fun BookingManagementScreen(
     val selectedCredit = remember { mutableStateListOf<String>() }
     var searchQuery by remember { mutableStateOf("") }
 
-    val sdf = remember { SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault()) }
-
+    val sdf = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     var filteredBookings by remember { mutableStateOf(bookings) }
 
     fun applyFilters() {
@@ -74,64 +73,61 @@ fun BookingManagementScreen(
     LaunchedEffect(bookings) { applyFilters() }
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF1F5F9))) {
-        // FILTER HEADER
+        // MOBILE OPTIMIZED FILTER HEADER
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = Color.White,
-            shadowElevation = 2.dp
+            shadowElevation = 4.dp
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                // PRIMARY FILTERS ROW
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                // PRIMARY FILTERS (Vertical Stack for Mobile)
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     FilterDropdownField("Date of", listOf("Reservation", "Check-in", "Check-out", "Invoice", "Stay"), dateOfType) { dateOfType = it }
                     
-                    DatePickerField("From", sdf.format(Date(dateFrom)), Modifier.weight(1f)) { dateFrom = it }
-                    DatePickerField("Until", sdf.format(Date(dateTo)), Modifier.weight(1f)) { dateTo = it }
-                    
-                    OutlinedButton(
-                        onClick = { isMoreFiltersExpanded = !isMoreFiltersExpanded },
-                        shape = RoundedCornerShape(4.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1976D2)),
-                        border = BorderStroke(1.dp, Color(0xFF1976D2)),
-                        modifier = Modifier.height(56.dp)
-                    ) {
-                        Text("More filters")
-                        Icon(if(isMoreFiltersExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        DatePickerField("From", sdf.format(Date(dateFrom)), Modifier.weight(1f)) { dateFrom = it }
+                        DatePickerField("Until", sdf.format(Date(dateTo)), Modifier.weight(1f)) { dateTo = it }
                     }
                     
-                    Button(
-                        onClick = { applyFilters() },
-                        shape = RoundedCornerShape(4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                        modifier = Modifier.height(56.dp)
-                    ) {
-                        Text("Show")
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(
+                            onClick = { isMoreFiltersExpanded = !isMoreFiltersExpanded },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            border = BorderStroke(1.dp, Color(0xFF1976D2))
+                        ) {
+                            Text("More filters", fontSize = 14.sp)
+                            Icon(if(isMoreFiltersExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                        }
+                        
+                        Button(
+                            onClick = { applyFilters() },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(0.6f).height(48.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+                        ) {
+                            Text("Show", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 
-                // MORE FILTERS PANEL
+                // MORE FILTERS PANEL (Vertical Scrollable for Mobile)
                 AnimatedVisibility(visible = isMoreFiltersExpanded) {
-                    Column(modifier = Modifier.padding(top = 16.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            FilterGroup("Reservation Status", listOf("Ok", "Canceled", "No-show", "Corporate card"), selectedStatuses, Modifier.weight(1f))
-                            FilterGroup("Guest Communication", listOf("Pending guest request", "Invoice required"), selectedComm, Modifier.weight(1f))
-                            FilterGroup("Invalid credit card", listOf("Updated", "Pending"), selectedCredit, Modifier.weight(1f))
-                            
-                            Column(modifier = Modifier.weight(1.5f)) {
-                                Text("Guest name or booking number", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                                OutlinedTextField(
-                                    value = searchQuery,
-                                    onValueChange = { searchQuery = it },
-                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                                    shape = RoundedCornerShape(4.dp),
-                                    placeholder = { Text("Search...", fontSize = 13.sp) }
-                                )
-                            }
-                        }
+                    Column(modifier = Modifier.padding(top = 20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            placeholder = { Text("Guest name or booking number", fontSize = 14.sp) },
+                            leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.Gray) },
+                            singleLine = true
+                        )
+
+                        Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+
+                        FilterGroup("Reservation Status", listOf("Ok", "Canceled", "No-show"), selectedStatuses)
+                        FilterGroup("Guest Communication", listOf("Pending request", "Invoice required"), selectedComm)
                     }
                 }
             }
@@ -140,7 +136,10 @@ fun BookingManagementScreen(
         // RESULTS LIST
         if (filteredBookings.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No bookings match your filters.", color = Color.Gray)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(64.dp), tint = Color.LightGray)
+                    Text("No results found", color = Color.Gray, fontWeight = FontWeight.Medium)
+                }
             }
         } else {
             LazyColumn(
@@ -149,7 +148,13 @@ fun BookingManagementScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    BookingTableHeader()
+                    Text(
+                        "Found ${filteredBookings.size} bookings",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
                 }
                 items(filteredBookings, key = { it.id }) { booking ->
                     DashboardBookingCardRedesigned(
@@ -159,7 +164,7 @@ fun BookingManagementScreen(
                         onDelete = onDeleteBooking
                     )
                 }
-                item { Spacer(Modifier.height(80.dp)) }
+                item { Spacer(Modifier.height(100.dp)) }
             }
         }
     }
@@ -169,20 +174,25 @@ fun BookingManagementScreen(
 @Composable
 fun FilterDropdownField(label: String, options: List<String>, selected: String, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    Column {
-        Text(label, fontSize = 12.sp, color = Color.Gray)
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(label, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
         ExposedDropdownMenuBox(
             expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth()
         ) {
             OutlinedTextField(
                 value = selected,
                 onValueChange = {},
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier.menuAnchor().width(140.dp),
-                shape = RoundedCornerShape(4.dp),
-                textStyle = MaterialTheme.typography.bodySmall
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                textStyle = MaterialTheme.typography.bodyMedium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF1976D2),
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -190,7 +200,7 @@ fun FilterDropdownField(label: String, options: List<String>, selected: String, 
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option, fontSize = 13.sp) },
+                        text = { Text(option) },
                         onClick = {
                             onSelect(option)
                             expanded = false
@@ -209,21 +219,25 @@ fun DatePickerField(label: String, value: String, modifier: Modifier = Modifier,
     val datePickerState = rememberDatePickerState()
 
     Column(modifier = modifier) {
-        Text(label, fontSize = 12.sp, color = Color.Gray)
-        OutlinedTextField(
-            value = value,
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier.fillMaxWidth().clickable { showDialog = true },
-            enabled = false,
-            shape = RoundedCornerShape(4.dp),
-            textStyle = MaterialTheme.typography.bodySmall,
-            colors = OutlinedTextFieldDefaults.colors(
-                disabledTextColor = Color.Black,
-                disabledBorderColor = Color.LightGray,
-                disabledLabelColor = Color.Gray
-            )
-        )
+        Text(label, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clickable { showDialog = true }
+                .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp)),
+            color = Color(0xFFF8FAFC),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = value, fontSize = 14.sp, color = Color.Black)
+                Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp), tint = Color.Gray)
+            }
+        }
     }
 
     if (showDialog) {
@@ -246,18 +260,26 @@ fun DatePickerField(label: String, value: String, modifier: Modifier = Modifier,
 
 @Composable
 fun FilterGroup(title: String, options: List<String>, selectedList: MutableList<String>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(end = 8.dp)) {
-        Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-        options.forEach { option ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = selectedList.contains(option),
-                    onCheckedChange = { 
-                        if (it) selectedList.add(option) else selectedList.remove(option)
-                    },
-                    modifier = Modifier.scale(0.8f)
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF334155))
+        Spacer(Modifier.height(8.dp))
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            options.forEach { option ->
+                val isSelected = selectedList.contains(option)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { if (isSelected) selectedList.remove(option) else selectedList.add(option) },
+                    label = { Text(option) },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Color(0xFF1976D2),
+                        selectedLabelColor = Color.White
+                    )
                 )
-                Text(option, fontSize = 12.sp)
             }
         }
     }
