@@ -201,10 +201,10 @@ fun AuroraManualBookingButton(onClick: () -> Unit) {
         animationSpec = infiniteRepeatable(tween(6000, easing = LinearEasing), RepeatMode.Restart), label = "angle"
     )
 
-    val color1 = Color(0xFF00C9FF)
-    val color2 = Color(0xFF92FE9D)
-    val color3 = Color(0xFFFC00FF)
-    val color4 = Color(0xFF00DBDE)
+    val color1 = Color.White
+    val color2 = Color.White
+    val color3 = Color.White
+    val color4 = Color.White
 
     Surface(
         onClick = onClick,
