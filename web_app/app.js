@@ -20,67 +20,32 @@ auth.signInAnonymously().catch(e => console.error("Auth Error:", e));
 
 // State
 const urlParams = new URLSearchParams(window.location.search);
-let hotelId = urlParams.get('hotel') || localStorage.getItem('hotel_id') || "DEMO_HOTEL";
+let hotelId = urlParams.get('hotel') || localStorage.getItem('hotel_id') || "GangaHomes_001";
 
 // Persist for refresh
 if (urlParams.has('hotel')) localStorage.setItem('hotel_id', hotelId);
 
 let currentHotelData = null;
-let currentMainTab = 'rooms';
 let allRooms = [];
 let selectedRoomForBooking = null;
 
 // UI Elements
-const hotelLogo = document.getElementById('hotel-logo');
-const popupHotelName = document.getElementById('popup-hotel-name');
-const popupHotelId = document.getElementById('popup-hotel-id');
-const optionsPopup = document.getElementById('options-popup');
-const btnMoreMenu = document.getElementById('btn-more-menu');
-const roomsListEl = document.getElementById('rooms-list');
-const infoDescription = document.getElementById('info-description');
-const infoAddress = document.getElementById('info-address');
-const infoContact = document.getElementById('info-contact');
+const roomsGridEl = document.getElementById('rooms-grid');
 
 // --- INITIALIZATION ---
 function init() {
-    updateHeader();
     syncBusinessDetails();
     syncRooms();
-    setupPopup();
-}
-
-function updateHeader() {
-    const shortId = hotelId.slice(-6).toUpperCase();
-    if (popupHotelId) popupHotelId.innerText = `ID: ${shortId}`;
-}
-
-function setupPopup() {
-    if (!btnMoreMenu || !optionsPopup) return;
-    btnMoreMenu.onclick = (e) => {
-        e.stopPropagation();
-        optionsPopup.classList.toggle('hidden');
-    };
-    document.addEventListener('click', () => {
-        optionsPopup.classList.add('hidden');
-    });
+    setDefaultDates();
 }
 
 function syncBusinessDetails() {
     db.ref('hotels').child(hotelId).child('business_details').on('value', snap => {
         currentHotelData = snap.val();
         if (currentHotelData) {
-            const name = currentHotelData.hotelName || "Hotel Service";
-            if (hotelLogo) hotelLogo.innerText = name;
-            if (popupHotelName) popupHotelName.innerText = name;
-            if (infoDescription) infoDescription.innerText = currentHotelData.hotelDescription || "Welcome to our premium hotel service.";
-            if (infoAddress) infoAddress.innerText = currentHotelData.address || "Address not provided";
-            if (infoContact) infoContact.innerText = currentHotelData.phone || "Contact not provided";
-
-            const taglineEl = document.getElementById('hero-hotel-tagline');
-            if (taglineEl) taglineEl.innerText = currentHotelData.hotelTagline || "Your perfect stay awaits. Book directly for best rates.";
-            const heroNameEl = document.getElementById('hero-hotel-name');
-            if (heroNameEl) heroNameEl.innerText = currentHotelData.heroTitle || "Experience Luxury";
-
+            // Update names if provided in DB, otherwise use "Ganga Homes" as requested
+            const name = currentHotelData.hotelName || "Ganga Homes";
+            document.querySelectorAll('#hotel-name, .logo-text h1, .footer-logo h3').forEach(el => el.innerText = name.toUpperCase());
             document.title = name + " - Official Website";
         }
     });
@@ -100,39 +65,52 @@ function syncRooms() {
 }
 
 function renderRooms() {
-    if (!roomsListEl) return;
-    roomsListEl.innerHTML = '';
+    if (!roomsGridEl) return;
+    roomsGridEl.innerHTML = '';
 
     if (allRooms.length === 0) {
-        roomsListEl.innerHTML = `<div style="text-align:center; padding:60px; color:var(--text-light);">No rooms available at the moment.</div>`;
+        roomsGridEl.innerHTML = `<div style="text-align:center; padding:60px; color:var(--text-light); grid-column: 1/-1;">No rooms available at the moment.</div>`;
         return;
     }
 
     allRooms.forEach(room => {
         const roomImg = room.imageUrl || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800';
-        roomsListEl.innerHTML += `
+        const price = room.roomPrice || '2,500';
+
+        roomsGridEl.innerHTML += `
             <div class="room-card">
-                <div class="room-img-container">
-                    <img src="${roomImg}" class="room-card-img" alt="${room.roomType}">
-                    <div class="room-badge">${room.roomType}</div>
+                <div class="room-img-wrapper">
+                    <img src="${roomImg}" alt="${room.roomType}">
+                    ${room.isAvailable ? '' : '<div class="popular-badge" style="background:#666">Fully Booked</div>'}
+                    ${room.roomNumber === "101" ? '<div class="popular-badge">Most Popular</div>' : ''}
                 </div>
-                <div class="room-card-info">
-                    <h3>${room.roomType} (Room ${room.roomNumber})</h3>
-                    <div class="room-amenities">
-                        <span class="amenity-chip">Max ${room.maxGuests} Guests</span>
-                        <span class="amenity-chip">${room.bedType}</span>
-                        ${room.isBathroomPrivate ? '<span class="amenity-chip">Private Bath</span>' : ''}
+                <div class="room-info">
+                    <h3>${room.roomType}</h3>
+                    <div class="room-stats">
+                        <span>👤 ${room.maxGuests} Adults</span>
+                        <span>🛏️ ${room.bedType}</span>
+                        <span>📏 ${room.roomSize || '250 sq.ft.'}</span>
                     </div>
-                    <div class="room-card-footer">
-                        <div class="room-price">
-                            <span class="price-label">Price per night</span>
-                            <span class="price-value">₹1,500</span>
+                    <div class="room-icons">
+                        <span>📶</span> <span>🛎️</span> <span>❄️</span> <span>🚿</span>
+                    </div>
+                    <div class="room-footer">
+                        <div class="room-price-info">
+                            <span class="price-tag">₹${price}</span>
+                            <span class="price-unit">/ night</span>
                         </div>
-                        <button class="book-btn" onclick="openBookingModal('${room.roomNumber}')">BOOK NOW</button>
+                        <button class="btn-view-details" onclick="openBookingModal('${room.roomNumber}')">View Details</button>
                     </div>
                 </div>
             </div>`;
     });
+}
+
+function setDefaultDates() {
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    document.querySelectorAll('#hero-check-in, #check-in-date').forEach(el => el.value = today);
+    document.querySelectorAll('#hero-check-out, #check-out-date').forEach(el => el.value = tomorrow);
 }
 
 // --- BOOKING MODAL ---
@@ -142,14 +120,6 @@ window.openBookingModal = (roomNumber) => {
     selectedRoomForBooking = room;
 
     document.getElementById('modal-room-type').innerText = room.roomType;
-    document.getElementById('summary-price').innerText = `₹1,500`;
-
-    // Set default dates
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    document.getElementById('check-in-date').value = today;
-    document.getElementById('check-out-date').value = tomorrow;
-
     document.getElementById('booking-modal').classList.remove('hidden');
 };
 
@@ -179,7 +149,7 @@ document.getElementById('btn-confirm-booking').onclick = () => {
         guestPhone: phone,
         checkInDate: new Date(checkIn).getTime(),
         checkOutDate: new Date(checkOut).getTime(),
-        totalAmount: 1500,
+        totalAmount: parseFloat(selectedRoomForBooking.roomPrice || 2500),
         advancePaid: 0,
         numberOfGuests: selectedRoomForBooking.maxGuests,
         status: "BOOKED",
@@ -200,26 +170,6 @@ document.getElementById('btn-confirm-booking').onclick = () => {
             console.error("Booking Error:", err);
             alert("Sorry, booking failed. Please try again later.");
         });
-};
-
-// --- TABS & SECTIONS ---
-window.switchMainTab = (tab) => {
-    currentMainTab = tab;
-    document.getElementById('tab-rooms').classList.toggle('active', tab === 'rooms');
-    document.getElementById('tab-info').classList.toggle('active', tab === 'info');
-    document.getElementById('section-rooms').classList.toggle('hidden', tab !== 'rooms');
-    document.getElementById('section-info').classList.toggle('hidden', tab !== 'info');
-    document.getElementById('hero-section').classList.toggle('hidden', tab !== 'rooms');
-
-    // Sync Bottom Nav
-    document.getElementById('nav-home').classList.toggle('active', tab === 'rooms');
-    document.getElementById('nav-rooms').classList.toggle('active', tab === 'rooms');
-    document.getElementById('nav-info').classList.toggle('active', tab === 'info');
-};
-
-window.switchSection = (section) => {
-    if (section === 'home' || section === 'rooms') switchMainTab('rooms');
-    if (section === 'info') switchMainTab('info');
 };
 
 // Start
