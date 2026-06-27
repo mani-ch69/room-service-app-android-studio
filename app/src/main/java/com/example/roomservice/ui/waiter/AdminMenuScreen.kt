@@ -151,7 +151,17 @@ fun AdminMenuScreen(
                         "hotel_bookings" -> {
                             BookingManagementScreen(bookings, rooms) { viewModel.deleteBooking(it) }
                         }
-                        "hotel_rates_menu" -> RatesAvailabilityMenu({ moreTabSubScreen = "hotel_availability" }, { if(it == "pricing_guest") moreTabSubScreen = "pricing_guest" })
+                        "hotel_rates_menu" -> RatesAvailabilityMenu({ moreTabSubScreen = "hotel_availability" }, { 
+                            moreTabSubScreen = when(it) {
+                                "open_close" -> "hotel_open_close"
+                                "pricing_guest" -> "pricing_guest"
+                                else -> moreTabSubScreen
+                            }
+                        })
+                        "hotel_open_close" -> OpenCloseRoomsScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" }, { from, to, days, types, status ->
+                            // TODO: Implement actual database update logic for bulk open/close
+                            moreTabSubScreen = "hotel_rates_menu"
+                        })
                         "pricing_guest" -> PricingPerGuestScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" })
                         "hotel_availability" -> AvailabilityCalendarScreen(rooms, bookings, { moreTabSubScreen = "hotel_rates_menu" }, { viewModel.addBooking(it) })
                         "hotel_property_detail" -> PropertyDetailMenu({ moreTabSubScreen = "hotel_prop_general_info" }, { moreTabSubScreen = "hotel_prop_vat_tax" }, { moreTabSubScreen = "hotel_prop_photos" }, { moreTabSubScreen = "hotel_prop_policies" }, { moreTabSubScreen = "hotel_prop_res_policies" }, { moreTabSubScreen = "hotel_prop_facilities" }, { moreTabSubScreen = "hotel_rooms_list" }, { moreTabSubScreen = "hotel_prop_amenities" }, { moreTabSubScreen = "hotel_prop_profile" }, { moreTabSubScreen = "hotel_prop_descriptions" }, { moreTabSubScreen = "hotel_prop_messaging" }, { moreTabSubScreen = "hotel_prop_sustainability" })
