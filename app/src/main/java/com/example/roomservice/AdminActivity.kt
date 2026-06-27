@@ -92,7 +92,7 @@ fun AdminNavigation() {
             SplashScreen(
                 onAnimationFinished = {
                     val next = when {
-                        !securityManager.isLoggedIn() -> "onboarding"
+                        !securityManager.isLoggedIn() -> "login"
                         !securityManager.hasSeenSecuritySetup() -> "security_setup"
                         securityManager.isLockEnabled() -> "unlock"
                         else -> "admin_menu"
@@ -213,7 +213,7 @@ fun AdminNavigation() {
                 },
                 onLogout = {
                     securityManager.logout()
-                    navController.navigate("onboarding") {
+                    navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
                 }
@@ -227,7 +227,7 @@ fun AdminNavigation() {
                 onProfileClick = { navController.navigate("profile") },
                 onLogoutClick = {
                     securityManager.logout()
-                    navController.navigate("onboarding") {
+                    navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
                 }
