@@ -315,8 +315,16 @@ fun DashboardBookingCardRedesigned(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = booking.guestName, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color.Black)
-                    if (booking.bookingAgent != "Individual Customer") {
-                        Text(text = booking.bookingAgent, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Booked on: ${SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(booking.timestamp))}",
+                            fontSize = 11.sp,
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Medium
+                        )
+                        if (booking.bookingAgent != "Individual Customer") {
+                            Text(text = " • ${booking.bookingAgent}", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        }
                     }
                     if (booking.guestPhone.isNotBlank()) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
