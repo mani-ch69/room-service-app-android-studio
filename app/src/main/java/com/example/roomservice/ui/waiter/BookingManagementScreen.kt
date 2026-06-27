@@ -258,6 +258,7 @@ fun DatePickerField(label: String, value: String, modifier: Modifier = Modifier,
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterGroup(title: String, options: List<String>, selectedList: MutableList<String>, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
