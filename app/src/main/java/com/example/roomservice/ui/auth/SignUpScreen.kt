@@ -40,33 +40,57 @@ fun SignUpScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1A237E)) // App Deep Blue Theme
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(scrollState)
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
+        // TOP HEADER
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { if(step == 1) onBackToLogin() else step = 1 }) {
+                Icon(Icons.Default.ArrowBack, null, tint = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = if (step == 1) "Create Admin Account" else "Verify Mobile",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
 
-        // Title sync with App Theme
-        Text(
-            text = if (step == 1) "Create Account" else "Verify Mobile",
-            color = Color.White,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(bottom = 48.dp)
-        )
+        Spacer(modifier = Modifier.height(20.dp))
 
         if (step == 1) {
-            // STEP 1: ACCOUNT DETAILS (Hotel Section Removed)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(18.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                Text(
+                    text = "Personal Details",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                
+                Text(
+                    text = "Please enter your details to set up your hotel admin account",
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 22.sp
+                )
+
+                Spacer(Modifier.height(16.dp))
+
                 SignUpTextField(
                     value = adminName,
                     onValueChange = { adminName = it },
-                    label = "Admin Name",
+                    label = "Admin Full Name",
                     icon = Icons.Default.Person
                 )
 
@@ -97,38 +121,36 @@ fun SignUpScreen(
                     onVisibilityChange = { confirmPasswordVisible = !confirmPasswordVisible }
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     onClick = { step = 2 },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(58.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC5A059)), // App Gold
+                        .height(56.dp),
+                    enabled = adminName.isNotBlank() && emailAddress.isNotBlank() && password.length >= 6 && password == confirmPassword,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("NEXT: VERIFY MOBILE", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("CONTINUE", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Already have an account? ", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                    Text("Already have an account? ", color = Color.Gray, fontSize = 14.sp)
                     Text(
                         text = "Login",
-                        color = Color(0xFFC5A059),
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
                         modifier = Modifier.clickable { onBackToLogin() }
                     )
                 }
             }
         } else {
-            // STEP 2: MOBILE VERIFICATION (Sync with PhonePe layout style)
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -136,35 +158,34 @@ fun SignUpScreen(
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "Enter Your Mobile Number",
+                    text = "Contact Information",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
-                    "Please enter your mobile number for verification.",
+                    "Enter your mobile number for account security and verification.",
                     fontSize = 15.sp,
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 22.sp
                 )
                 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(32.dp))
                 
                 OutlinedTextField(
                     value = mobileNumber,
                     onValueChange = { if (it.length <= 10) mobileNumber = it },
                     modifier = Modifier.fillMaxWidth(),
-                    prefix = { Text("+91 ", fontWeight = FontWeight.Bold, color = Color.White) },
-                    placeholder = { Text("00000 00000", color = Color.White.copy(alpha = 0.3f)) },
+                    prefix = { Text("+91 ", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary) },
+                    placeholder = { Text("Mobile Number", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                     shape = RoundedCornerShape(12.dp),
+                    leadingIcon = { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.primary) },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        focusedBorderColor = Color(0xFFC5A059),
-                        unfocusedBorderColor = Color.White.copy(alpha = 0.3f)
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
 
@@ -176,24 +197,15 @@ fun SignUpScreen(
                             onSignUpSuccess(adminName, emailAddress, mobileNumber, password)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().height(58.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
                     enabled = mobileNumber.length == 10,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFC5A059),
+                        containerColor = Color(0xFF1976D2),
                         disabledContainerColor = Color.Gray
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("VERIFY & CONTINUE", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                TextButton(
-                    onClick = { step = 1 },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text("Edit Details", color = Color(0xFFC5A059), fontWeight = FontWeight.Bold)
+                    Text("VERIFY & CREATE ACCOUNT", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                 }
             }
         }
@@ -215,24 +227,21 @@ fun SignUpTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(label, color = Color.White.copy(alpha = 0.4f)) },
+        placeholder = { Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
         modifier = Modifier.fillMaxWidth(),
-        leadingIcon = { Icon(icon, null, tint = Color(0xFFC5A059)) },
+        leadingIcon = { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) },
         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = if (isPassword) {
             {
                 val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 IconButton(onClick = { onVisibilityChange?.invoke() }) {
-                    Icon(image, null, tint = Color.White.copy(alpha = 0.4f))
+                    Icon(image, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else null,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedBorderColor = Color.White.copy(alpha = 0.7f),
-            unfocusedBorderColor = Color.White.copy(alpha = 0.4f),
-            cursorColor = Color(0xFFC5A059)
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline
         ),
         shape = RoundedCornerShape(12.dp)
     )
