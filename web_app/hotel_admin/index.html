@@ -125,8 +125,117 @@
                 </div>
             </div>
 
-            <!-- Additional tabs (rooms, payments, etc.) will go here -->
+            <div id="tab-rooms" class="tab-pane hidden">
+                <div class="content-header-actions">
+                    <button class="btn-primary" onclick="openRoomModal()">+ Add New Room</button>
+                </div>
+                <div id="admin-rooms-grid" class="rooms-admin-grid">
+                    <!-- Injected -->
+                </div>
+            </div>
+
+            <div id="tab-inventory" class="tab-pane hidden">
+                <div class="card">
+                    <h3>Bulk Inventory Control</h3>
+                    <p>Select dates and room types to open or close for bookings.</p>
+                    <div class="inventory-form">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>From Date</label>
+                                <input type="date" id="inv-from">
+                            </div>
+                            <div class="input-group">
+                                <label>To Date</label>
+                                <input type="date" id="inv-to">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Select Room Types</label>
+                            <div id="inv-room-types" class="checkbox-group">
+                                <!-- Injected -->
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Status</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="inv-status" value="open" checked> Open</label>
+                                <label><input type="radio" name="inv-status" value="closed"> Closed</label>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="applyInventoryChange()">Apply Changes</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-settings" class="tab-pane hidden">
+                <div class="card">
+                    <h3>Property Details</h3>
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label>Hotel Name</label>
+                            <input type="text" id="set-hotel-name">
+                        </div>
+                        <div class="input-group">
+                            <label>Tagline</label>
+                            <input type="text" id="set-hotel-tagline">
+                        </div>
+                        <div class="input-group">
+                            <label>Description</label>
+                            <textarea id="set-hotel-desc"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label>Address</label>
+                            <input type="text" id="set-hotel-address">
+                        </div>
+                        <div class="input-group">
+                            <label>Phone</label>
+                            <input type="text" id="set-hotel-phone">
+                        </div>
+                        <button class="btn-primary" onclick="savePropertySettings()">Save Settings</button>
+                    </div>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- ROOM MODAL -->
+    <div id="room-modal" class="modal hidden">
+        <div class="modal-content admin-modal">
+            <div class="modal-header">
+                <h2 id="room-modal-title">Add Room</h2>
+                <span class="close-icon" onclick="closeRoomModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Room Number</label>
+                    <input type="text" id="room-number">
+                </div>
+                <div class="input-group">
+                    <label>Room Type</label>
+                    <select id="room-type">
+                        <option>Single Room</option>
+                        <option>Double Room</option>
+                        <option>Deluxe Room</option>
+                        <option>Suite</option>
+                    </select>
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Max Guests</label>
+                        <input type="number" id="room-max-guests" value="2">
+                    </div>
+                    <div class="input-group">
+                        <label>Bed Type</label>
+                        <input type="text" id="room-bed-type" placeholder="e.g. King Size">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Image URL</label>
+                    <input type="text" id="room-image-url" placeholder="https://...">
+                </div>
+                <button id="btn-save-room" class="btn-primary">Save Room</button>
+            </div>
+        </div>
     </div>
 
     <script src="./admin.js?v=1.1"></script>
