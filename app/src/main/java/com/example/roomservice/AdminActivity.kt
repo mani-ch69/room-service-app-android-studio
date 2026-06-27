@@ -69,6 +69,11 @@ fun AdminNavigation() {
     
     var tempPhone by remember { mutableStateOf("") }
     var tempVerificationId by remember { mutableStateOf("") }
+    
+    var adminName by remember { mutableStateOf("") }
+    var emailAddress by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var mobileNumber by remember { mutableStateOf("") }
 
     // Helper to mask email (e.g. admin@hotel.com -> a***n@hotel.com)
     fun maskEmail(email: String): String {
@@ -169,24 +174,53 @@ fun AdminNavigation() {
         composable("signup") {
             SignUpScreen(
                 onSignUpSuccess = { name, email, phone, pass ->
-                    com.example.roomservice.data.AuthRepository.signUpAdmin(
-                        name = name,
-                        email = email,
-                        phone = phone,
-                        pass = pass,
-                        onSuccess = {
-                            loggedId = email
-                            loggedName = name
-                            loggedPhoto = null
-                            securityManager.setLoggedIn(true, email, name, null, phone, "ADMIN")
-                            navController.navigate("permissions_request") {
-                                popUpTo("signup") { inclusive = true }
+                    adminName = name
+                    emailAddress = email
+                    mobileNumber = phone
+                    password = pass
+
+                    // Firebase Phone Auth Trigger
+                    val options = com.google.firebase.auth.PhoneAuthOptions.newBuilder(com.google.firebase.auth.FirebaseAuth.getInstance())
+                        .setPhoneNumber("+91$phone")
+                        .setTimeout(60L, java.util.concurrent.TimeUnit.SECONDS)
+                        .setActivity(context.findActivity()!!)
+                        .setCallbacks(object : com.google.firebase.auth.PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                            override fun onVerificationCompleted(credential: com.google.firebase.auth.PhoneAuthCredential) {
+                                // AUTO CAPTURED OTP
+                                com.google.firebase.auth.FirebaseAuth.getInstance().signInWithCredential(credential)
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            com.example.roomservice.data.AuthRepository.signUpAdmin(
+                                                name = name,
+                                                email = email,
+                                                phone = phone,
+                                                pass = pass,
+                                                onSuccess = {
+                                                    loggedId = email
+                                                    loggedName = name
+                                                    securityManager.setLoggedIn(true, email, name, null, phone, "ADMIN")
+                                                    navController.navigate("permissions_request") {
+                                                        popUpTo("signup") { inclusive = true }
+                                                    }
+                                                },
+                                                onFailure = { /* Handle error */ }
+                                            )
+                                        }
+                                    }
                             }
-                        },
-                        onFailure = { error ->
-                            android.widget.Toast.makeText(context, error, android.widget.Toast.LENGTH_LONG).show()
-                        }
-                    )
+
+                            override fun onVerificationFailed(e: com.google.firebase.FirebaseException) {
+                                android.widget.Toast.makeText(context, e.message, android.widget.Toast.LENGTH_LONG).show()
+                            }
+
+                            override fun onCodeSent(id: String, token: com.google.firebase.auth.PhoneAuthProvider.ForceResendingToken) {
+                                tempPhone = phone
+                                tempVerificationId = id
+                                navController.navigate("otp_verification")
+                            }
+                        })
+                        .build()
+                    com.google.firebase.auth.PhoneAuthProvider.verifyPhoneNumber(options)
                 },
                 onBackToLogin = { navController.popBackStack() }
             )

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.auth.PhoneAuthCredential
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,16 +58,13 @@ fun OtpVerificationScreen(
         if (otpValue.length == 6) {
             isVerifying = true
             val credential = PhoneAuthProvider.getCredential(verificationId, otpValue)
-            auth.signInWithCredential(credential)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        onVerifySuccess(mobileNumber)
-                    } else {
-                        isVerifying = false
-                        otpValue = ""
-                        Toast.makeText(context, "Incorrect OTP. Please check and try again.", Toast.LENGTH_LONG).show()
-                    }
-                }
+            signInWithCredential(auth, credential, {
+                onVerifySuccess(mobileNumber)
+            }, { error ->
+                isVerifying = false
+                otpValue = ""
+                Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+            })
         }
     }
 
@@ -79,13 +77,18 @@ fun OtpVerificationScreen(
         TopAppBar(
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(modifier = Modifier.size(32.dp), shape = CircleShape, color = Color(0xFF2E7D32)) {
+                    Surface(modifier = Modifier.size(32.dp), shape = CircleShape, color = Color(0xFF1976D2)) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.NotificationsActive, null, tint = Color.White, modifier = Modifier.size(18.dp))
                         }
                     }
                     Spacer(Modifier.width(12.dp))
-                    Text(hotelName, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color(0xFF2E7D32))
+                    Text(hotelName, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color(0xFF1976D2))
+                }
+            },
+            navigationIcon = {
+                IconButton(onClick = onBackClick) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.Black)
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -193,11 +196,26 @@ fun OtpVerificationScreen(
         Spacer(Modifier.weight(1f))
 
         Text(
-            "Tapping any box will open the keyboard. Please enter the 6-digit code.",
+            "Auto-verification is active. OTP will be captured automatically if possible.",
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             color = Color.Gray,
             fontSize = 12.sp
         )
+    }
+}
+
+private fun signInWithCredential(
+    auth: FirebaseAuth, 
+    credential: PhoneAuthCredential,
+    onSuccess: () -> Unit,
+    onFailure: (String) -> Unit
+) {
+    auth.signInWithCredential(credential).addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+            onSuccess()
+        } else {
+            onFailure(task.exception?.message ?: "Verification failed")
+        }
     }
 }
