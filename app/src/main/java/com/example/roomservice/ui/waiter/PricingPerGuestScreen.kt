@@ -138,7 +138,7 @@ fun PricingPerGuestScreen(
 
 @Composable
 fun PricingDetailArea(roomType: String, maxGuests: Int) {
-    var baseOccupancy by remember(roomType) { mutableStateOf("2") }
+    var baseOccupancy by remember(roomType, maxGuests) { mutableStateOf(maxGuests.toString()) }
     var pricingMode by remember { mutableStateOf("Custom") }
 
     @OptIn(ExperimentalMaterial3Api::class)
