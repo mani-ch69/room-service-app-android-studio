@@ -55,7 +55,8 @@ fun Context.findActivity(): Activity? {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String, String, String?) -> Unit
+    onLoginSuccess: (String, String, String?) -> Unit,
+    onSignUpClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -211,6 +212,32 @@ fun LoginScreen(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline
                     )
                 )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = "Forgot Password?",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clickable {
+                            if (email.isNotBlank()) {
+                                FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            Toast.makeText(context, "Password reset email sent to $email", Toast.LENGTH_LONG).show()
+                                        } else {
+                                            Toast.makeText(context, task.exception?.message ?: "Error", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                            } else {
+                                Toast.makeText(context, "Please enter your email to reset password", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+                }
             }
 
             Spacer(Modifier.height(40.dp))
@@ -274,6 +301,21 @@ fun LoginScreen(
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
             
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Don't have an account? ", color = Color.Gray, fontSize = 14.sp)
+                Text(
+                    "Sign Up",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onSignUpClick() }
+                )
+            }
+
             Spacer(Modifier.height(24.dp))
             
             Button(

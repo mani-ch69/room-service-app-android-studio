@@ -123,7 +123,8 @@ fun AdminNavigation() {
                     navController.navigate("permissions_request") {
                         popUpTo("login") { inclusive = true }
                     }
-                }
+                },
+                onSignUpClick = { navController.navigate("signup") }
             )
         }
         composable("otp_verification") {
