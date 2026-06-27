@@ -38,6 +38,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.roomservice.data.model.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -51,6 +53,7 @@ fun AddBookingDialog(
     onConfirm: (Booking) -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     
     // FORM STATE
     var guestName by remember { mutableStateOf(initialBooking?.guestName ?: "") }
@@ -75,6 +78,10 @@ fun AddBookingDialog(
     
     var selectedType by remember { mutableStateOf(initialBooking?.roomNumber?.let { rn -> rooms.find { it.roomNumber == rn }?.roomType } ?: if(rooms.isNotEmpty()) rooms[0].roomType else "") }
 
+    // APP STATE
+    var isSaving by remember { mutableStateOf(false) }
+    var showSaveDialog by remember { mutableStateOf(false) }
+
     // ID PHOTO STATE
     var selectedIdUri by remember { mutableStateOf<Uri?>(null) }
     val cameraImageUri = remember { try { val file = File(context.cacheDir, "temp_id.jpg"); FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file) } catch (e: Exception) { null } }
@@ -87,7 +94,7 @@ fun AddBookingDialog(
     var showCheckInPicker by remember { mutableStateOf(false) }
     var showCheckOutPicker by remember { mutableStateOf(false) }
 
-    // CALCULATIONS with remember/derivedStateOf
+    // CALCULATIONS
     val nights by remember(checkInDate, checkOutDate) {
         derivedStateOf {
             val start = Calendar.getInstance().apply { timeInMillis = checkInDate; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
@@ -111,7 +118,7 @@ fun AddBookingDialog(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("New Manual Booking", fontWeight = FontWeight.Bold) },
+                    title = { Text(if (initialBooking == null) "New Manual Booking" else "Edit Booking", fontWeight = FontWeight.Bold) },
                     navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
                 )
@@ -120,28 +127,38 @@ fun AddBookingDialog(
                 Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
                     Button(
                         onClick = {
-                            val assignedRoom = rooms.find { it.roomType == selectedType }?.roomNumber ?: ""
-                            onConfirm(Booking(
-                                id = initialBooking?.id ?: UUID.randomUUID().toString(),
-                                hotelId = hotelId ?: "",
-                                roomNumber = assignedRoom,
-                                guestName = guestName,
-                                guestPhone = guestPhone,
-                                checkInDate = checkInDate,
-                                checkOutDate = checkOutDate,
-                                totalAmount = totalAmount,
-                                advancePaid = advanceVal,
-                                numberOfGuests = adults + children,
-                                status = initialBooking?.status ?: BookingStatus.BOOKED,
-                                bookingAgent = selectedAgent
-                            ))
+                            scope.launch {
+                                isSaving = true
+                                delay(1000) // Feedback delay
+                                val assignedRoom = rooms.find { it.roomType == selectedType }?.roomNumber ?: ""
+                                onConfirm(Booking(
+                                    id = initialBooking?.id ?: UUID.randomUUID().toString(),
+                                    hotelId = hotelId ?: "",
+                                    roomNumber = assignedRoom,
+                                    guestName = guestName,
+                                    guestPhone = guestPhone,
+                                    checkInDate = checkInDate,
+                                    checkOutDate = checkOutDate,
+                                    totalAmount = totalAmount,
+                                    advancePaid = advanceVal,
+                                    numberOfGuests = adults + children,
+                                    status = initialBooking?.status ?: BookingStatus.BOOKED,
+                                    bookingAgent = selectedAgent
+                                ))
+                                isSaving = false
+                                showSaveDialog = true
+                            }
                         },
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                        enabled = guestName.isNotBlank() && guestPhone.isNotBlank() && selectedType.isNotBlank()
+                        enabled = !isSaving && guestName.isNotBlank() && guestPhone.isNotBlank() && selectedType.isNotBlank()
                     ) {
-                        Text("Save Booking", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        if (isSaving) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text("Save Booking", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        }
                     }
                 }
             }
@@ -216,7 +233,17 @@ fun AddBookingDialog(
             }
         }
 
-        // DIALOGS
+        // FEEDBACK DIALOG
+        if (showSaveDialog) {
+            AlertDialog(
+                onDismissRequest = { showSaveDialog = false; onDismiss() },
+                title = { Text("Success") },
+                text = { Text("Booking has been saved successfully.") },
+                confirmButton = { Button(onClick = { showSaveDialog = false; onDismiss() }) { Text("OK") } }
+            )
+        }
+
+        // PICKERS
         if (showCheckInPicker) {
             val state = rememberDatePickerState(initialSelectedDateMillis = checkInDate)
             DatePickerDialog(onDismissRequest = { showCheckInPicker = false }, confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { checkInDate = it }; showCheckInPicker = false }) { Text("OK") } }) { DatePicker(state = state) }

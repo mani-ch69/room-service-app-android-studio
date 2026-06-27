@@ -149,7 +149,7 @@ fun AdminMenuScreen(
                         )
                         "hotel_stays" -> HotelStaysMenu({ moreTabSubScreen = "hotel_bookings" }, { moreTabSubScreen = "hotel_rates_menu" }, { moreTabSubScreen = "hotel_property_detail" })
                         "hotel_bookings" -> {
-                            BookingManagementScreen(bookings, rooms)
+                            BookingManagementScreen(bookings, rooms) { viewModel.deleteBooking(it) }
                         }
                         "hotel_rates_menu" -> RatesAvailabilityMenu({ moreTabSubScreen = "hotel_availability" }, { if(it == "pricing_guest") moreTabSubScreen = "pricing_guest" })
                         "pricing_guest" -> PricingPerGuestScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" })
@@ -241,12 +241,27 @@ fun AdminMoreContent(staffName: String, staffIdLabel: String, staffPhoto: String
 }
 
 @Composable
-fun MoreMenuItem(label: String, icon: ImageVector, onClick: () -> Unit, tint: Color = Color.Black) {
+fun MoreMenuItem(label: String, icon: ImageVector, onClick: () -> Unit, tint: Color = Color.Black, isNew: Boolean = false) {
     Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.White) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, null, tint = if(tint == Color.Red) Color.Red else Color(0xFF1976D2))
             Spacer(Modifier.width(16.dp))
-            Text(label, color = tint)
+            Text(label, color = tint, modifier = Modifier.weight(1f))
+            if (isNew) {
+                Surface(
+                    color = Color(0xFF2E7D32),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(
+                        "New",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
         }
     }
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
@@ -263,12 +278,21 @@ fun HotelStaysMenu(onBookingsClick: () -> Unit, onRatesClick: () -> Unit, onProp
 
 @Composable
 fun RatesAvailabilityMenu(onCalendarClick: () -> Unit, onItemClick: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        MoreMenuItem("Calendar", Icons.Default.CalendarMonth, onCalendarClick)
-        MoreMenuItem("Availability planner", Icons.Default.EventNote, { onItemClick("planner") })
-        MoreMenuItem("Pricing per guest", Icons.Default.Groups, { onItemClick("pricing_guest") })
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item { MoreMenuItem("Calendar", Icons.Default.CalendarMonth, onCalendarClick) }
+        item { MoreMenuItem("Open/close rooms", Icons.Default.DoorFront, { onItemClick("open_close") }) }
+        item { MoreMenuItem("Copy rates to future dates", Icons.Default.ContentCopy, { onItemClick("copy_rates") }) }
+        item { MoreMenuItem("Dynamic Restriction Rules", Icons.Default.Gavel, { onItemClick("restriction_rules") }, isNew = true) }
+        item { MoreMenuItem("Sync calendars", Icons.Default.Sync, { onItemClick("sync_calendars") }) }
+        item { MoreMenuItem("Rate plans", Icons.Default.Assignment, { onItemClick("rate_plans") }) }
+        item { MoreMenuItem("Value adds", Icons.Default.AddCircle, { onItemClick("value_adds") }, isNew = true) }
+        item { MoreMenuItem("Availability planner", Icons.Default.EventNote, { onItemClick("planner") }) }
+        item { MoreMenuItem("Pricing per guest", Icons.Default.Groups, { onItemClick("pricing_guest") }) }
+        item { MoreMenuItem("Country rates", Icons.Default.Public, { onItemClick("country_rates") }, isNew = true) }
+        item { MoreMenuItem("Mobile rates", Icons.Default.Smartphone, { onItemClick("mobile_rates") }) }
     }
 }
+
 
 @Composable
 fun PropertyDetailMenu(onGeneralInfoClick: () -> Unit, onVatTaxClick: () -> Unit, onPhotosClick: () -> Unit, onPoliciesClick: () -> Unit, onResPoliciesClick: () -> Unit, onFacilitiesClick: () -> Unit, onRoomDetailsClick: () -> Unit, onAmenitiesClick: () -> Unit, onProfileClick: () -> Unit, onDescriptionsClick: () -> Unit, onMessagingClick: () -> Unit, onSustainabilityClick: () -> Unit) {

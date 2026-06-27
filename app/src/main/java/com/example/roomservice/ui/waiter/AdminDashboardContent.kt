@@ -16,6 +16,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,22 +36,52 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.roomservice.data.model.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardContent(
     roomStatuses: List<RoomLiveStatus>,
     bookings: List<Booking> = emptyList(),
-    onAddBooking: (Booking) -> Unit = {}
+    onAddBooking: (Booking) -> Unit = {},
+    onDeleteBooking: (String) -> Unit = {}
 ) {
     val rooms = remember(roomStatuses) { roomStatuses.map { it.room } }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    
+    val pullToRefreshState = rememberPullToRefreshState()
 
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF1F5F9))) {
+    // Pull to Refresh logic
+    if (pullToRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            isRefreshing = true
+            delay(1500) // Simulate sync
+            isRefreshing = false
+            pullToRefreshState.endRefresh()
+        }
+    }
+
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(Color(0xFFF1F5F9))
+        .nestedScroll(pullToRefreshState.nestedScrollConnection)
+    ) {
         DashboardCalendarView(
             rooms = rooms, 
             bookings = bookings, 
-            onAddBooking = onAddBooking
+            onAddBooking = onAddBooking,
+            onDeleteBooking = onDeleteBooking
+        )
+
+        PullToRefreshContainer(
+            state = pullToRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            containerColor = Color.White,
+            contentColor = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -57,13 +90,14 @@ fun AdminDashboardContent(
 fun DashboardCalendarView(
     rooms: List<Room>,
     bookings: List<Booking>,
-    onAddBooking: (Booking) -> Unit
+    onAddBooking: (Booking) -> Unit,
+    onDeleteBooking: (String) -> Unit
 ) {
     var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var calendarMonth by remember { mutableStateOf(Calendar.getInstance()) }
     val sdfMonth = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
 
-    // Optimization: Use derivedStateOf for expensive filtering
+    // Optimization: Filter bookings only when bookings or selectedDate changes
     val bookingsForDate by remember(bookings, selectedDate) {
         derivedStateOf {
             bookings.filter { b ->
@@ -77,7 +111,7 @@ fun DashboardCalendarView(
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF1F5F9)),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -109,8 +143,14 @@ fun DashboardCalendarView(
                 }
             }
         } else {
+            // Optimization: Use key for items
             items(bookingsForDate, key = { it.id }) { booking ->
-                DashboardBookingCardRedesigned(booking = booking, rooms = rooms, selectedDate = selectedDate)
+                DashboardBookingCardRedesigned(
+                    booking = booking, 
+                    rooms = rooms, 
+                    selectedDate = selectedDate,
+                    onDelete = { onDeleteBooking(it) }
+                )
             }
         }
         item { Spacer(Modifier.height(80.dp)) }
@@ -236,50 +276,14 @@ fun GridCalendar(
 }
 
 @Composable
-fun ManualBookingButton(onClick: () -> Unit) {
-    val infiniteTransition = rememberInfiniteTransition(label = "mesh")
-    val color1 by infiniteTransition.animateColor(
-        initialValue = Color(0xFF1976D2),
-        targetValue = Color(0xFF9C27B0),
-        animationSpec = infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Reverse), label = "c1"
-    )
-    val color2 by infiniteTransition.animateColor(
-        initialValue = Color(0xFF64B5F6),
-        targetValue = Color(0xFFE91E63),
-        animationSpec = infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Reverse), label = "c2"
-    )
-
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .padding(4.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .drawBehind {
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(color1, color2, color1.copy(alpha = 0.5f)),
-                        start = Offset(0f, 0f),
-                        end = Offset(size.width, size.height)
-                    )
-                )
-            },
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-        shape = RoundedCornerShape(12.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Icon(Icons.Default.Add, null, tint = Color.White)
-        Spacer(Modifier.width(8.dp))
-        Text("Manual Booking", fontWeight = FontWeight.Bold, color = Color.White)
-    }
-}
-
-@Composable
 fun DashboardBookingCardRedesigned(
     booking: Booking,
     rooms: List<Room>,
-    selectedDate: Long
+    selectedDate: Long,
+    onDelete: (String) -> Unit = {}
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val df = remember { SimpleDateFormat("dd MMM", Locale.getDefault()) }
     val checkInStr = remember(booking.checkInDate) { df.format(Date(booking.checkInDate)) }
@@ -328,6 +332,7 @@ fun DashboardBookingCardRedesigned(
                     IconButton(onClick = { com.example.roomservice.util.ReceiptHelper.printBookingReceipt(context, booking, businessDetails, roomType) }) { Icon(Icons.Default.Print, null, tint = Color.Gray) }
                     IconButton(onClick = { com.example.roomservice.util.ReceiptHelper.shareReceiptOnWhatsApp(context, booking, businessDetails, roomType) }) { Icon(Icons.Default.Share, null, tint = Color(0xFF25D366)) }
                     IconButton(onClick = { showEditDialog = true }) { Icon(Icons.Default.Edit, null, tint = Color.Gray) }
+                    IconButton(onClick = { showDeleteConfirm = true }) { Icon(Icons.Default.Delete, null, tint = Color.Red.copy(alpha = 0.6f)) }
                 }
             }
 
@@ -353,6 +358,18 @@ fun DashboardBookingCardRedesigned(
         }
     }
 
+    if (showDeleteConfirm) {
+        DeleteConfirmDialog(
+            title = "Delete Booking?",
+            message = "Are you sure you want to permanently delete ${booking.guestName}\u0027s booking?",
+            onDismiss = { showDeleteConfirm = false },
+            onConfirm = { 
+                onDelete(booking.id)
+                showDeleteConfirm = false
+            }
+        )
+    }
+
     if (showEditDialog) {
         AddBookingDialog(
             rooms = rooms,
@@ -365,6 +382,30 @@ fun DashboardBookingCardRedesigned(
             }
         )
     }
+}
+
+@Composable
+fun DeleteConfirmDialog(
+    title: String,
+    message: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, fontWeight = FontWeight.Bold) },
+        text = { Text(message) },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                shape = RoundedCornerShape(8.dp)
+            ) { Text("DELETE", fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("CANCEL") }
+        }
+    )
 }
 
 private fun getDatesForMonth(month: Calendar): List<Date?> {

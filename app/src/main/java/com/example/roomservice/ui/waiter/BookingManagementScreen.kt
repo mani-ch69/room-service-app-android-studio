@@ -15,7 +15,8 @@ import com.example.roomservice.data.model.*
 @Composable
 fun BookingManagementScreen(
     bookings: List<Booking>,
-    rooms: List<Room>
+    rooms: List<Room>,
+    onDeleteBooking: (String) -> Unit
 ) {
     // Optimization: Pre-sort once outside of the list items
     val sortedBookings = remember(bookings) {
@@ -38,7 +39,8 @@ fun BookingManagementScreen(
                     DashboardBookingCardRedesigned(
                         booking = booking,
                         rooms = rooms,
-                        selectedDate = System.currentTimeMillis()
+                        selectedDate = System.currentTimeMillis(),
+                        onDelete = onDeleteBooking
                     )
                 }
                 item { Spacer(Modifier.height(80.dp)) }

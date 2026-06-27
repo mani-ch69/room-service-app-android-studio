@@ -194,6 +194,7 @@ fun PropertyRoomCard(
                 StatLine("Maximum adults:", "${room.maxAdults} adults")
                 StatLine("Maximum children:", "${room.maxChildren} children")
                 StatLine("Number of this type:", "$typeCount")
+                StatLine("Room Price:", "₹${room.roomPrice}")
 
                 Spacer(Modifier.height(16.dp))
 
@@ -303,6 +304,7 @@ fun AddEditRoomDialog(
     var maxChildren by remember { mutableIntStateOf(initialRoom?.maxChildren ?: 0) }
     var numBathrooms by remember { mutableIntStateOf(initialRoom?.numBathrooms ?: 1) }
     var isBathroomPrivate by remember { mutableStateOf(initialRoom?.isBathroomPrivate ?: true) }
+    var roomPrice by remember { mutableStateOf(initialRoom?.roomPrice ?: "1500") }
     
     val hotelId by HotelSession.hotelId.collectAsState()
 
@@ -345,6 +347,14 @@ fun AddEditRoomDialog(
                                     )
                                 }
                                 DropdownField("Smoking policy", listOf("Non-smoking", "Smoking allowed", "I have both smoking and non-smoking options for this room type"), smokingPolicy) { smokingPolicy = it }
+                                OutlinedTextField(
+                                    value = roomPrice,
+                                    onValueChange = { roomPrice = it },
+                                    label = { Text("Room Price (per night)") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(4.dp),
+                                    prefix = { Text("₹") }
+                                )
                             }
                         }
                     }
@@ -439,7 +449,8 @@ fun AddEditRoomDialog(
                                         maxAdults = maxAdults, 
                                         maxChildren = maxChildren, 
                                         numBathrooms = numBathrooms, 
-                                        isBathroomPrivate = isBathroomPrivate
+                                        isBathroomPrivate = isBathroomPrivate,
+                                        roomPrice = roomPrice
                                     ))
                                     onDismiss()
                                 }
