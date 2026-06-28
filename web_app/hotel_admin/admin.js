@@ -57,10 +57,9 @@ window.switchTab = (tabId) => {
     const target = document.getElementById('tab-' + tabId);
     if (target) target.classList.remove('hidden');
 
-    // Find the clicked item and mark it active
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        if (item.innerText.toLowerCase().includes(tabId)) {
+    // Mark the correct sidebar item as active
+    document.querySelectorAll('.nav-item').forEach(item => {
+        if (item.getAttribute('onclick')?.includes(tabId)) {
             item.classList.add('active');
         }
     });
