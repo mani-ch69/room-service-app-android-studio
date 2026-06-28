@@ -170,8 +170,8 @@
             <nav class="sidebar-nav">
                 <div class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</div>
                 <div class="nav-item" onclick="switchTab('bookings')">📅 Bookings</div>
-                <div class="nav-item" onclick="switchTab('rooms')">🏨 Room Management</div>
-                <div class="nav-item" onclick="switchTab('inventory')">📦 Inventory</div>
+                <div class="nav-item" onclick="switchTab('rooms')">📅 Rates & Availability</div>
+                <div class="nav-item" onclick="switchTab('inventory')">🏢 Property Detail</div>
                 <div class="nav-item" onclick="switchTab('settings')">⚙️ Settings</div>
             </nav>
             <div class="sidebar-footer">
@@ -256,7 +256,7 @@
 
             <div id="tab-rooms" class="tab-pane hidden">
                 <div class="content-header-actions">
-                    <button class="btn-primary" onclick="openRoomModal()">+ Add New Room</button>
+                    <button class="btn-primary" onclick="openRoomModal()">+ Add New Rate/Room</button>
                 </div>
                 <div id="admin-rooms-grid" class="rooms-admin-grid">
                     <!-- Injected -->
@@ -265,7 +265,7 @@
 
             <div id="tab-inventory" class="tab-pane hidden">
                 <div class="card">
-                    <h3>Bulk Inventory Control</h3>
+                    <h3>Property Detail & Inventory Control</h3>
                     <p>Select dates and room types to open or close for bookings.</p>
                     <div class="inventory-form" style="margin-top:20px;">
                         <div class="input-row">
