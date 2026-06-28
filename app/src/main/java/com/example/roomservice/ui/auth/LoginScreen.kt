@@ -51,6 +51,9 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalAutofillTree
 
+import androidx.compose.ui.ExperimentalComposeUiApi
+
+@OptIn(ExperimentalComposeUiApi::class)
 fun Modifier.autofill(
     autofillTypes: List<AutofillType>,
     onFill: (String) -> Unit
@@ -81,7 +84,7 @@ fun Context.findActivity(): Activity? {
     return null
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: (String, String, String?) -> Unit,
