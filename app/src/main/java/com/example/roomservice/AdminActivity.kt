@@ -125,7 +125,7 @@ fun AdminNavigation() {
                     securityManager.setLoggedIn(true, id, name, photo, null, "ADMIN", uid)
                     com.example.roomservice.data.HotelSession.setHotelId(uid)
 
-                    navController.navigate("permissions_request") {
+                    navController.navigate("admin_menu") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
