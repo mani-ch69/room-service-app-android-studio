@@ -136,6 +136,32 @@
         .radio-group { display: flex; gap: 20px; padding: 10px 0; }
         textarea { width: 100%; height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; resize: none; }
         select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
+
+        /* --- HORIZONTAL FILTER BAR --- */
+        .horizontal-filter {
+            display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+            padding: 15px 20px; background: white; border-radius: 8px; border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        .filter-item { display: flex; flex-direction: column; gap: 5px; }
+        .filter-item label { font-size: 0.75rem; color: #64748B; font-weight: 600; }
+        .filter-item select, .filter-item input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+        .btn-show { background: var(--accent-blue); color: white; border: none; padding: 8px 24px; border-radius: 4px; font-weight: 700; cursor: pointer; height: 38px; }
+        .btn-outline { background: white; border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 8px 16px; border-radius: 4px; cursor: pointer; height: 38px; }
+
+        /* --- ACCORDION MODAL --- */
+        .accordion-section { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+        .accordion-header {
+            background: #F8F9FF; padding: 12px 15px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: 700; font-size: 0.9rem; color: #1A1C1E;
+        }
+        .accordion-content { padding: 15px; display: none; background: white; }
+        .accordion-section.active .accordion-content { display: block; }
+        .accordion-section.active .accordion-header { color: var(--accent-blue); }
+
+        .modal-scroll { max-height: 70vh; overflow-y: auto; padding-right: 5px; }
+        .summary-box { background: #FFF9C4; padding: 12px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -190,6 +216,10 @@
             </header>
 
             <div id="tab-dashboard" class="tab-pane">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h3>Quick Overview</h3>
+                    <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="openManualBookingModal()">+ Manual Booking</button>
+                </div>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <p>Today's Bookings</p>
@@ -226,15 +256,31 @@
             </div>
 
             <div id="tab-bookings" class="tab-pane hidden">
-                <div class="filter-bar card">
-                    <input type="text" id="booking-search" placeholder="Search by name or ID...">
-                    <select id="filter-status">
-                        <option value="all">All Statuses</option>
-                        <option value="booked">Booked</option>
-                        <option value="checked_in">Checked In</option>
-                    </select>
+                <div class="horizontal-filter card">
+                    <div class="filter-item">
+                        <label>Date of</label>
+                        <select id="filter-date-type">
+                            <option value="check-in">Check-in</option>
+                            <option value="check-out">Check-out</option>
+                            <option value="reservation">Reservation</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>From</label>
+                        <input type="date" id="filter-from-date">
+                    </div>
+                    <div class="filter-item">
+                        <label>Until</label>
+                        <input type="date" id="filter-until-date">
+                    </div>
+                    <button class="btn-outline">More filters ⌵</button>
+                    <button class="btn-show" onclick="applyBookingFilters()">Show</button>
                 </div>
-                <div class="card">
+
+                <div class="card" style="margin-top: 20px;">
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" id="booking-search" placeholder="Search by name or ID..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
+                    </div>
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -368,6 +414,148 @@
         </div>
     </div>
 
+    <!-- MANUAL BOOKING MODAL -->
+    <div id="manual-booking-modal" class="modal hidden">
+        <div class="modal-content admin-modal" style="max-width: 650px;">
+            <div class="modal-header">
+                <h2>New Manual Booking</h2>
+                <span class="close-icon" onclick="closeManualBookingModal()">&times;</span>
+            </div>
+            <div class="modal-body modal-scroll">
+                <!-- GUEST DETAILS -->
+                <div class="accordion-section active" id="sec-guest">
+                    <div class="accordion-header" onclick="toggleAccordion('sec-guest')">Guest Details <span>👤</span></div>
+                    <div class="accordion-content">
+                        <div class="input-group">
+                            <label>Guest Name *</label>
+                            <input type="text" id="mb-name" placeholder="Full Name">
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Mobile Number *</label>
+                                <input type="text" id="mb-phone" placeholder="+91 ...">
+                            </div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label>Adults</label>
+                                    <input type="number" id="mb-adults" value="2">
+                                </div>
+                                <div class="input-group">
+                                    <label>Children</label>
+                                    <input type="number" id="mb-children" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STAY DETAILS -->
+                <div class="accordion-section" id="sec-stay">
+                    <div class="accordion-header" onclick="toggleAccordion('sec-stay')">Stay Details <span>📅</span></div>
+                    <div class="accordion-content">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Check-in Date *</label>
+                                <input type="date" id="mb-checkin" onchange="calcNights()">
+                            </div>
+                            <div class="input-group">
+                                <label>Check-out Date *</label>
+                                <input type="date" id="mb-checkout" onchange="calcNights()">
+                            </div>
+                        </div>
+                        <p id="mb-nights-display" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-blue); margin-bottom: 15px;">1 Night(s)</p>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Room Type *</label>
+                                <select id="mb-room-type"></select>
+                            </div>
+                            <div class="input-group">
+                                <label>Booking Agent</label>
+                                <select id="mb-agent">
+                                    <option>Individual Bookings</option>
+                                    <option>Website Booking</option>
+                                    <option>Booking.com</option>
+                                    <option>Agoda</option>
+                                    <option>MakeMyTrip</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAYMENT DETAILS -->
+                <div class="accordion-section" id="sec-payment">
+                    <div class="accordion-header" onclick="toggleAccordion('sec-payment')">Payment Details <span>💰</span></div>
+                    <div class="accordion-content">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Room Rent / Night *</label>
+                                <input type="number" id="mb-rent" placeholder="₹" oninput="calcTotal()">
+                            </div>
+                            <div class="input-group">
+                                <label>Total Amount</label>
+                                <input type="number" id="mb-total" readonly placeholder="₹">
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>Advance Paid</label>
+                                <input type="number" id="mb-advance" placeholder="₹" oninput="calcTotal()">
+                            </div>
+                            <div class="input-group">
+                                <label>Payment Mode</label>
+                                <select id="mb-paymode">
+                                    <option>UPI</option>
+                                    <option>Cash</option>
+                                    <option>Card</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="summary-box">
+                            <span>Remaining Amount</span>
+                            <span id="mb-remaining">₹0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ID PROOF -->
+                <div class="accordion-section" id="sec-id">
+                    <div class="accordion-header" onclick="toggleAccordion('sec-id')">ID Proof <span>🪪</span></div>
+                    <div class="accordion-content">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label>ID Type *</label>
+                                <select id="mb-id-type">
+                                    <option>Aadhar Card</option>
+                                    <option>PAN Card</option>
+                                    <option>Passport</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>ID Number *</label>
+                                <input type="text" id="mb-id-number">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Upload ID Photo</label>
+                            <input type="file" id="mb-id-photo" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SPECIAL REQUESTS -->
+                <div class="accordion-section" id="sec-notes">
+                    <div class="accordion-header" onclick="toggleAccordion('sec-notes')">Special Requests / Notes <span>📝</span></div>
+                    <div class="accordion-content">
+                        <textarea id="mb-notes" placeholder="Enter any special request or note"></textarea>
+                    </div>
+                </div>
+
+                <button id="btn-save-manual" class="btn-primary" onclick="saveManualBooking()">Save Booking</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- EMBEDDED JAVASCRIPT ---
         const firebaseConfig = {
@@ -391,6 +579,8 @@
         const loginError = document.getElementById('login-error');
 
         let hotelId = "GangaHomes_001";
+        let allBookings = [];
+        let allRooms = [];
 
         auth.onAuthStateChanged(user => {
             if (user) {
@@ -422,7 +612,7 @@
             const target = document.getElementById('tab-' + tabId);
             if (target) target.classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(item => {
-                if (item.getAttribute('onclick').includes(tabId)) item.classList.add('active');
+                if (item.getAttribute('onclick')?.includes(tabId)) item.classList.add('active');
             });
             document.getElementById('current-tab-title').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
         };
@@ -436,11 +626,11 @@
 
         function listenForBookings() {
             db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
-                const bookings = [];
-                snap.forEach(child => bookings.push(child.val()));
-                bookings.sort((a, b) => b.timestamp - a.timestamp);
-                renderRecentBookings(bookings.slice(0, 5));
-                renderAllBookings(bookings);
+                allBookings = [];
+                snap.forEach(child => allBookings.push(child.val()));
+                allBookings.sort((a, b) => b.timestamp - a.timestamp);
+                renderRecentBookings(allBookings.slice(0, 5));
+                renderAllBookings(allBookings);
             });
         }
 
@@ -450,10 +640,10 @@
             body.innerHTML = bookings.map(b => `
                 <tr>
                     <td><b>${b.guestName}</b></td>
-                    <td>Room ${b.roomNumber}</td>
+                    <td>Room ${b.roomNumber || 'TBA'}</td>
                     <td>${formatDate(b.checkInDate)}</td>
                     <td>${formatDate(b.checkOutDate)}</td>
-                    <td><span class="status-pill ${b.status.toLowerCase()}">${b.status}</span></td>
+                    <td><span class="status-pill ${(b.status || 'BOOKED').toLowerCase()}">${b.status || 'BOOKED'}</span></td>
                     <td><button class="btn-action" onclick="switchTab('bookings')">View</button></td>
                 </tr>
             `).join('');
@@ -464,18 +654,42 @@
             if (!body) return;
             body.innerHTML = bookings.map(b => `
                 <tr>
-                    <td>#${b.id.slice(-6)}</td>
-                    <td><b>${b.guestName}</b><br><small>${b.guestPhone}</small></td>
-                    <td>${b.roomNumber}</td>
+                    <td>#${(b.id || '').slice(-6)}</td>
+                    <td><b>${b.guestName}</b><br><small>${b.guestPhone || ''}</small></td>
+                    <td>${b.roomNumber || 'TBA'}</td>
                     <td>${formatDate(b.checkInDate)} - ${formatDate(b.checkOutDate)}</td>
-                    <td>₹${b.totalAmount}</td>
-                    <td><span class="status-pill ${b.status.toLowerCase()}">${b.status}</span></td>
+                    <td>₹${b.totalAmount || 0}</td>
+                    <td><span class="status-pill ${(b.status || 'BOOKED').toLowerCase()}">${b.status || 'BOOKED'}</span></td>
                     <td>
                         <button class="btn-action approve" onclick="updateStatus('${b.id}', 'CHECKED_IN')">Check-in</button>
                     </td>
                 </tr>
             `).join('');
         }
+
+        window.applyBookingFilters = () => {
+            const dateType = document.getElementById('filter-date-type').value;
+            const from = document.getElementById('filter-from-date').value;
+            const until = document.getElementById('filter-until-date').value;
+
+            let filtered = allBookings;
+
+            if (from || until) {
+                const fromTs = from ? new Date(from).getTime() : 0;
+                const untilTs = until ? new Date(until).getTime() + 86399999 : Infinity;
+
+                filtered = allBookings.filter(b => {
+                    let dateToCompare;
+                    if (dateType === 'check-in') dateToCompare = b.checkInDate;
+                    else if (dateType === 'check-out') dateToCompare = b.checkOutDate;
+                    else dateToCompare = b.timestamp;
+
+                    return dateToCompare >= fromTs && dateToCompare <= untilTs;
+                });
+            }
+
+            renderAllBookings(filtered);
+        };
 
         function syncStats() {
             db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
@@ -490,6 +704,7 @@
         }
 
         function formatDate(ts) {
+            if (!ts) return '-';
             return new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
         }
 
@@ -497,7 +712,7 @@
             db.ref('hotels').child(hotelId).child('bookings').child(id).update({ status: newStatus });
         };
 
-        let allRooms = [];
+        // --- ROOM MANAGEMENT ---
         const roomsGrid = document.getElementById('admin-rooms-grid');
         const roomModal = document.getElementById('room-modal');
 
@@ -507,6 +722,7 @@
                 snap.forEach(c => allRooms.push(c.val()));
                 renderAdminRooms();
                 renderInventoryRoomTypes();
+                updateRoomTypeSelect();
             });
         }
 
@@ -555,6 +771,107 @@
             }
         };
 
+        // --- MANUAL BOOKING LOGIC ---
+        const mbModal = document.getElementById('manual-booking-modal');
+
+        window.openManualBookingModal = () => {
+            mbModal.classList.remove('hidden');
+            // Reset dates to today and tomorrow
+            const today = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+            document.getElementById('mb-checkin').value = today;
+            document.getElementById('mb-checkout').value = tomorrow;
+            calcNights();
+        };
+
+        window.closeManualBookingModal = () => mbModal.classList.add('hidden');
+
+        window.toggleAccordion = (id) => {
+            const sec = document.getElementById(id);
+            const isActive = sec.classList.contains('active');
+            document.querySelectorAll('.accordion-section').forEach(s => s.classList.remove('active'));
+            if (!isActive) sec.classList.add('active');
+        };
+
+        window.calcNights = () => {
+            const start = document.getElementById('mb-checkin').value;
+            const end = document.getElementById('mb-checkout').value;
+            if (start && end) {
+                const s = new Date(start);
+                const e = new Date(end);
+                const diff = Math.ceil((e - s) / (1000 * 60 * 60 * 24));
+                const nights = diff <= 0 ? 1 : diff;
+                document.getElementById('mb-nights-display').innerText = nights + " Night(s)";
+                calcTotal();
+            }
+        };
+
+        window.calcTotal = () => {
+            const nights = parseInt(document.getElementById('mb-nights-display').innerText);
+            const rent = parseFloat(document.getElementById('mb-rent').value) || 0;
+            const advance = parseFloat(document.getElementById('mb-advance').value) || 0;
+
+            const total = nights * rent;
+            const remaining = total - advance;
+
+            document.getElementById('mb-total').value = total;
+            document.getElementById('mb-remaining').innerText = "₹" + remaining.toLocaleString();
+        };
+
+        function updateRoomTypeSelect() {
+            const select = document.getElementById('mb-room-type');
+            if (!select) return;
+            const types = [...new Set(allRooms.map(r => r.roomType))];
+            select.innerHTML = types.map(t => `<option>${t}</option>`).join('');
+        }
+
+        window.saveManualBooking = () => {
+            const name = document.getElementById('mb-name').value;
+            const phone = document.getElementById('mb-phone').value;
+            const roomType = document.getElementById('mb-room-type').value;
+
+            if (!name || !phone || !roomType) return alert("Please fill required fields (*)");
+
+            const btn = document.getElementById('btn-save-manual');
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            // Find a room of this type
+            const room = allRooms.find(r => r.roomType === roomType);
+
+            const booking = {
+                id: 'MB_' + Date.now(),
+                hotelId: hotelId,
+                guestName: name,
+                guestPhone: phone,
+                numberOfGuests: parseInt(document.getElementById('mb-adults').value) + parseInt(document.getElementById('mb-children').value),
+                checkInDate: new Date(document.getElementById('mb-checkin').value).getTime(),
+                checkOutDate: new Date(document.getElementById('mb-checkout').value).getTime(),
+                roomNumber: room ? room.roomNumber : "",
+                totalAmount: parseFloat(document.getElementById('mb-total').value),
+                advancePaid: parseFloat(document.getElementById('mb-advance').value) || 0,
+                bookingAgent: document.getElementById('mb-agent').value,
+                paymentMode: document.getElementById('mb-paymode').value,
+                status: "BOOKED",
+                timestamp: Date.now(),
+                notes: document.getElementById('mb-notes').value
+            };
+
+            db.ref('hotels').child(hotelId).child('bookings/' + booking.id).set(booking)
+                .then(() => {
+                    alert("Booking Saved Successfully!");
+                    closeManualBookingModal();
+                    btn.disabled = false;
+                    btn.innerText = "Save Booking";
+                })
+                .catch(err => {
+                    alert("Error: " + err.message);
+                    btn.disabled = false;
+                    btn.innerText = "Save Booking";
+                });
+        };
+
+        // --- SETTINGS ---
         function syncSettings() {
             db.ref('hotels').child(hotelId).child('business_details').on('value', snap => {
                 const d = snap.val();
@@ -564,6 +881,7 @@
                     const desc = document.getElementById('set-hotel-desc');
                     const addr = document.getElementById('set-hotel-address');
                     const phone = document.getElementById('set-hotel-phone');
+
                     if(name) name.value = d.hotelName || "";
                     if(tagline) tagline.value = d.hotelTagline || "";
                     if(desc) desc.value = d.hotelDescription || "";

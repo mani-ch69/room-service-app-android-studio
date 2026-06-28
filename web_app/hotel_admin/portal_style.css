@@ -125,3 +125,29 @@ body { background: var(--bg-light); color: var(--text-dark); overflow: hidden; }
 .radio-group { display: flex; gap: 20px; padding: 10px 0; }
 textarea { width: 100%; height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; resize: none; }
 select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
+
+/* --- HORIZONTAL FILTER BAR --- */
+.horizontal-filter {
+    display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+    padding: 15px 20px; background: white; border-radius: 8px; border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+.filter-item { display: flex; flex-direction: column; gap: 5px; }
+.filter-item label { font-size: 0.75rem; color: #64748B; font-weight: 600; }
+.filter-item select, .filter-item input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+.btn-show { background: var(--accent-blue); color: white; border: none; padding: 8px 24px; border-radius: 4px; font-weight: 700; cursor: pointer; height: 38px; }
+.btn-outline { background: white; border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 8px 16px; border-radius: 4px; cursor: pointer; height: 38px; }
+
+/* --- ACCORDION MODAL --- */
+.accordion-section { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
+.accordion-header {
+    background: #F8F9FF; padding: 12px 15px; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: 700; font-size: 0.9rem; color: #1A1C1E;
+}
+.accordion-content { padding: 15px; display: none; background: white; }
+.accordion-section.active .accordion-content { display: block; }
+.accordion-section.active .accordion-header { color: var(--accent-blue); }
+
+.modal-scroll { max-height: 70vh; overflow-y: auto; padding-right: 5px; }
+.summary-box { background: #FFF9C4; padding: 12px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; font-weight: 600; }
