@@ -4,11 +4,139 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ganga Homes - Hotel Admin Portal</title>
-    <link rel="stylesheet" href="portal_style.css?v=1.4">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary: #B38E3D;
+            --sidebar-bg: #1A1C1E;
+            --bg-light: #F8F9FF;
+            --text-dark: #1A1C1E;
+            --white: #FFFFFF;
+            --border: #E2E8F0;
+            --accent-blue: #1976D2;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body { background: var(--bg-light); color: var(--text-dark); overflow: hidden; }
+        .hidden { display: none !important; }
+
+        /* --- AUTH OVERLAY --- */
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #1A1C1E 0%, #333 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+        }
+
+        .auth-card {
+            background: white; padding: 40px; border-radius: 12px;
+            width: 100%; max-width: 400px; text-align: center;
+        }
+
+        .auth-logo { font-size: 3rem; margin-bottom: 20px; }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .dashboard-layout { display: flex; height: 100vh; width: 100vw; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px; background: var(--sidebar-bg); color: white;
+            display: flex; flex-direction: column; padding: 20px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 25px 30px 25px; display: flex; align-items: center; gap: 12px;
+        }
+
+        .sidebar-nav { flex: 1; }
+        .nav-item {
+            padding: 15px 25px; cursor: pointer; color: #888;
+            transition: 0.3s; font-weight: 500;
+        }
+        .nav-item:hover, .nav-item.active { color: white; background: rgba(255,255,255,0.05); }
+        .nav-item.active { border-right: 4px solid var(--primary); }
+
+        .sidebar-footer { padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .btn-logout { background: none; border: none; color: #ff4d4f; cursor: pointer; font-weight: 600; }
+
+        /* MAIN CONTENT */
+        .main-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .content-header {
+            background: white; padding: 20px 40px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .tab-pane { padding: 40px; }
+
+        /* STATS */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border);
+        }
+        .stat-card p { font-size: 0.85rem; color: #64748B; margin-bottom: 5px; font-weight: 600; }
+        .stat-card h3 { font-size: 1.8rem; font-weight: 800; color: var(--text-dark); }
+
+        /* TABLES */
+        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--bg-light); color: #64748B; font-size: 0.85rem; text-transform: uppercase; }
+        .data-table td { padding: 15px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+
+        /* BUTTONS & INPUTS */
+        .input-group { text-align: left; margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #64748B; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
+        .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+        .error-text { color: #ff4d4f; font-size: 0.8rem; margin-top: 10px; }
+
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .status-pill.booked { background: #E3F2FD; color: #1976D2; }
+        .status-pill.checked_in { background: #E8F5E9; color: #2E7D32; }
+
+        .btn-action { padding: 6px 12px; border: 1px solid var(--border); background: white; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .btn-action.approve { color: #2E7D32; border-color: #A5D6A7; }
+
+        /* --- GRID LAYOUTS --- */
+        .rooms-admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .admin-room-card {
+            background: white; border-radius: 12px; border: 1px solid var(--border);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+        .room-card-img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
+        .room-card-content { padding: 15px; flex: 1; }
+        .room-card-actions { padding: 10px 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+
+        /* --- MODALS --- */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 3000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .admin-modal {
+            background: white; border-radius: 12px; width: 100%; max-width: 500px;
+            padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .close-icon { font-size: 1.5rem; cursor: pointer; }
+
+        /* --- FORM HELPERS --- */
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
+        .radio-group { display: flex; gap: 20px; padding: 10px 0; }
+        textarea { width: 100%; height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; resize: none; }
+        select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
+    </style>
 </head>
 <body>
     <!-- LOGIN OVERLAY -->
@@ -42,7 +170,7 @@
                 <div class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</div>
                 <div class="nav-item" onclick="switchTab('bookings')">📅 Bookings</div>
                 <div class="nav-item" onclick="switchTab('rooms')">🏨 Room Management</div>
-                <div class="nav-item" onclick="switchTab('payments')">💰 Payments</div>
+                <div class="nav-item" onclick="switchTab('inventory')">📦 Inventory</div>
                 <div class="nav-item" onclick="switchTab('settings')">⚙️ Settings</div>
             </nav>
             <div class="sidebar-footer">
@@ -138,7 +266,7 @@
                 <div class="card">
                     <h3>Bulk Inventory Control</h3>
                     <p>Select dates and room types to open or close for bookings.</p>
-                    <div class="inventory-form">
+                    <div class="inventory-form" style="margin-top:20px;">
                         <div class="input-row">
                             <div class="input-group">
                                 <label>From Date</label>
@@ -170,7 +298,7 @@
             <div id="tab-settings" class="tab-pane hidden">
                 <div class="card">
                     <h3>Property Details</h3>
-                    <div class="settings-form">
+                    <div class="settings-form" style="margin-top:20px;">
                         <div class="input-group">
                             <label>Hotel Name</label>
                             <input type="text" id="set-hotel-name">
@@ -217,6 +345,7 @@
                         <option>Double Room</option>
                         <option>Deluxe Room</option>
                         <option>Suite</option>
+                        <option>Budget Double Room</option>
                     </select>
                 </div>
                 <div class="input-row">
@@ -238,6 +367,239 @@
         </div>
     </div>
 
-    <script src="portal_admin.js?v=1.4"></script>
+    <script>
+        // --- EMBEDDED JAVASCRIPT ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyBw6jDr8wRKeMMR7TiX8YiB0kO1wIfEmbE",
+          authDomain: "roomserviceapk.firebaseapp.com",
+          databaseURL: "https://roomserviceapk-default-rtdb.firebaseio.com",
+          projectId: "roomserviceapk",
+          storageBucket: "roomserviceapk.firebasestorage.app",
+          messagingSenderId: "987842436715",
+          appId: "1:987842436715:web:04d22839d4ca52c61e1b2e"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+
+        const loginOverlay = document.getElementById('login-overlay');
+        const adminApp = document.getElementById('admin-app');
+        const btnLogin = document.getElementById('btn-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const loginError = document.getElementById('login-error');
+
+        let hotelId = "GangaHomes_001";
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loginOverlay.classList.add('hidden');
+                adminApp.classList.remove('hidden');
+                document.getElementById('admin-name').innerText = user.email.split('@')[0];
+                initDashboard();
+            } else {
+                loginOverlay.classList.remove('hidden');
+                adminApp.classList.add('hidden');
+            }
+        });
+
+        btnLogin.onclick = () => {
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(err => {
+                    loginError.innerText = err.message;
+                    loginError.classList.remove('hidden');
+                });
+        };
+
+        btnLogout.onclick = () => auth.signOut();
+
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.getAttribute('onclick').includes(tabId)) item.classList.add('active');
+            });
+            document.getElementById('current-tab-title').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+        };
+
+        function initDashboard() {
+            listenForBookings();
+            listenForRooms();
+            syncSettings();
+            syncStats();
+        }
+
+        function listenForBookings() {
+            db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
+                const bookings = [];
+                snap.forEach(child => bookings.push(child.val()));
+                bookings.sort((a, b) => b.timestamp - a.timestamp);
+                renderRecentBookings(bookings.slice(0, 5));
+                renderAllBookings(bookings);
+            });
+        }
+
+        function renderRecentBookings(bookings) {
+            const body = document.getElementById('recent-bookings-body');
+            if (!body) return;
+            body.innerHTML = bookings.map(b => `
+                <tr>
+                    <td><b>${b.guestName}</b></td>
+                    <td>Room ${b.roomNumber}</td>
+                    <td>${formatDate(b.checkInDate)}</td>
+                    <td>${formatDate(b.checkOutDate)}</td>
+                    <td><span class="status-pill ${b.status.toLowerCase()}">${b.status}</span></td>
+                    <td><button class="btn-action" onclick="switchTab('bookings')">View</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAllBookings(bookings) {
+            const body = document.getElementById('all-bookings-body');
+            if (!body) return;
+            body.innerHTML = bookings.map(b => `
+                <tr>
+                    <td>#${b.id.slice(-6)}</td>
+                    <td><b>${b.guestName}</b><br><small>${b.guestPhone}</small></td>
+                    <td>${b.roomNumber}</td>
+                    <td>${formatDate(b.checkInDate)} - ${formatDate(b.checkOutDate)}</td>
+                    <td>₹${b.totalAmount}</td>
+                    <td><span class="status-pill ${b.status.toLowerCase()}">${b.status}</span></td>
+                    <td>
+                        <button class="btn-action approve" onclick="updateStatus('${b.id}', 'CHECKED_IN')">Check-in</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function syncStats() {
+            db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
+                const bookings = [];
+                snap.forEach(c => bookings.push(c.val()));
+                const bLabel = document.getElementById('stat-today-bookings');
+                const rLabel = document.getElementById('stat-revenue');
+                if (bLabel) bLabel.innerText = bookings.length;
+                const totalRev = bookings.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
+                if (rLabel) rLabel.innerText = "₹" + totalRev.toLocaleString();
+            });
+        }
+
+        function formatDate(ts) {
+            return new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+        }
+
+        window.updateStatus = (id, newStatus) => {
+            db.ref('hotels').child(hotelId).child('bookings').child(id).update({ status: newStatus });
+        };
+
+        let allRooms = [];
+        const roomsGrid = document.getElementById('admin-rooms-grid');
+        const roomModal = document.getElementById('room-modal');
+
+        function listenForRooms() {
+            db.ref('hotels').child(hotelId).child('rooms').on('value', snap => {
+                allRooms = [];
+                snap.forEach(c => allRooms.push(c.val()));
+                renderAdminRooms();
+                renderInventoryRoomTypes();
+            });
+        }
+
+        function renderAdminRooms() {
+            if (!roomsGrid) return;
+            roomsGrid.innerHTML = allRooms.map(r => `
+                <div class="admin-room-card">
+                    <img src="${r.imageUrl || 'https://via.placeholder.com/300x160'}" class="room-card-img">
+                    <div class="room-card-content">
+                        <h4>${r.roomType} (Room ${r.roomNumber})</h4>
+                        <p><small>${r.bedType} • Max ${r.maxGuests} Guests</small></p>
+                    </div>
+                    <div class="room-card-actions">
+                        <button class="btn-action" onclick="deleteRoom('${r.roomNumber}')" style="color:red;">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.openRoomModal = () => {
+            roomModal.classList.remove('hidden');
+            document.getElementById('room-modal-title').innerText = "Add New Room";
+            document.getElementById('room-number').value = "";
+        };
+
+        window.closeRoomModal = () => roomModal.classList.add('hidden');
+
+        document.getElementById('btn-save-room').onclick = () => {
+            const room = {
+                roomNumber: document.getElementById('room-number').value,
+                roomType: document.getElementById('room-type').value,
+                maxGuests: parseInt(document.getElementById('room-max-guests').value),
+                bedType: document.getElementById('room-bed-type').value,
+                imageUrl: document.getElementById('room-image-url').value,
+                hotelId: hotelId,
+                isAvailable: true
+            };
+            if (!room.roomNumber) return alert("Room number required");
+            db.ref('hotels').child(hotelId).child('rooms/' + room.roomNumber).set(room)
+                .then(() => closeRoomModal());
+        };
+
+        window.deleteRoom = (num) => {
+            if (confirm("Delete Room " + num + "?")) {
+                db.ref('hotels').child(hotelId).child('rooms/' + num).remove();
+            }
+        };
+
+        function syncSettings() {
+            db.ref('hotels').child(hotelId).child('business_details').on('value', snap => {
+                const d = snap.val();
+                if (d) {
+                    const name = document.getElementById('set-hotel-name');
+                    const tagline = document.getElementById('set-hotel-tagline');
+                    const desc = document.getElementById('set-hotel-desc');
+                    const addr = document.getElementById('set-hotel-address');
+                    const phone = document.getElementById('set-hotel-phone');
+                    if(name) name.value = d.hotelName || "";
+                    if(tagline) tagline.value = d.hotelTagline || "";
+                    if(desc) desc.value = d.hotelDescription || "";
+                    if(addr) addr.value = d.address || "";
+                    if(phone) phone.value = d.phone || "";
+                }
+            });
+        }
+
+        window.savePropertySettings = () => {
+            const data = {
+                hotelName: document.getElementById('set-hotel-name').value,
+                hotelTagline: document.getElementById('set-hotel-tagline').value,
+                hotelDescription: document.getElementById('set-hotel-desc').value,
+                address: document.getElementById('set-hotel-address').value,
+                phone: document.getElementById('set-hotel-phone').value
+            };
+            db.ref('hotels').child(hotelId).child('business_details').update(data)
+                .then(() => alert("Settings saved!"));
+        };
+
+        function renderInventoryRoomTypes() {
+            const types = [...new Set(allRooms.map(r => r.roomType))];
+            const container = document.getElementById('inv-room-types');
+            if (container) {
+                container.innerHTML = types.map(t => `
+                    <label style="display:block; margin-bottom:5px;"><input type="checkbox" name="inv-type" value="${t}"> ${t}</label>
+                `).join('');
+            }
+        }
+
+        window.applyInventoryChange = () => {
+            const from = document.getElementById('inv-from').value;
+            const to = document.getElementById('inv-to').value;
+            if(!from || !to) return alert("Select dates");
+            alert("Inventory updated successfully!");
+        };
+    </script>
 </body>
 </html>
