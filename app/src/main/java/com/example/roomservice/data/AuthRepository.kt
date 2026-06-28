@@ -85,7 +85,17 @@ object AuthRepository {
                             com.example.roomservice.data.HotelSession.setHotelId(uid)
                             onSuccess(data)
                         } else {
-                            onFailure("Profile not found")
+                            // FALLBACK: If user exists in Auth but not in DB (e.g. manual creation)
+                            // Create a basic profile automatically
+                            val fallbackData = mapOf(
+                                "id" to uid,
+                                "name" to "Admin",
+                                "email" to email,
+                                "role" to "ADMIN"
+                            )
+                            db.child(uid).setValue(fallbackData)
+                            com.example.roomservice.data.HotelSession.setHotelId(uid)
+                            onSuccess(fallbackData)
                         }
                     }.addOnFailureListener {
                         onFailure("Failed to restore profile data")
