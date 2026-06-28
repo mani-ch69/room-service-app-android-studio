@@ -3,337 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ganga Homes - Home Stay's Chain Admin Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Ganga Palace - PMS Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
-    <style>
-        :root {
-            --primary: #B38E3D;
-            --sidebar-bg: #1A1C1E;
-            --bg-light: #F8F9FF;
-            --text-dark: #1A1C1E;
-            --white: #FFFFFF;
-            --border: #E2E8F0;
-            --accent-blue: #1976D2;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
-        body { background: var(--bg-light); color: var(--text-dark); overflow: hidden; }
-        .hidden { display: none !important; }
-
-        /* --- AUTH OVERLAY --- */
-        .auth-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #1A1C1E 0%, #333 100%);
-            display: flex; justify-content: center; align-items: center; z-index: 2000;
-        }
-
-        .auth-card {
-            background: white; padding: 40px; border-radius: 12px;
-            width: 100%; max-width: 400px; text-align: center;
-        }
-
-        .auth-logo { font-size: 3rem; margin-bottom: 20px; }
-
-        /* --- DASHBOARD LAYOUT --- */
-        .dashboard-layout { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
-
-        /* TOP NAVIGATION */
-        .top-nav {
-            background: var(--sidebar-bg); color: white;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; height: 70px; z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .nav-logo { display: flex; align-items: center; gap: 12px; }
-        .nav-logo h3 { font-size: 1.2rem; }
-
-        .nav-links { display: flex; height: 100%; }
-        .nav-item {
-            padding: 0 20px; cursor: pointer; color: #888;
-            transition: 0.3s; font-weight: 500;
-            display: flex; align-items: center;
-            height: 100%; position: relative;
-        }
-        .nav-item:hover, .nav-item.active { color: white; background: rgba(255,255,255,0.05); }
-        .nav-item.active::after {
-            content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-            height: 4px; background: var(--primary);
-        }
-
-        .nav-profile { display: flex; align-items: center; gap: 20px; }
-        .btn-logout { background: none; border: 1px solid #ff4d4f; color: #ff4d4f; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.8rem; }
-        .btn-logout:hover { background: #ff4d4f; color: white; }
-
-        /* MAIN CONTENT */
-        .main-content { flex: 1; overflow-y: auto; padding-top: 20px; }
-        .content-header {
-            background: transparent; padding: 20px 40px; border-bottom: none;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
-        .tab-pane { padding: 40px; }
-
-        /* STATS */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px;
-        }
-        .stat-card {
-            background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border);
-        }
-        .stat-card p { font-size: 0.85rem; color: #64748B; margin-bottom: 5px; font-weight: 600; }
-        .stat-card h3 { font-size: 1.8rem; font-weight: 800; color: var(--text-dark); }
-
-        /* TABLES */
-        .card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--border); }
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .data-table th { text-align: left; padding: 12px; border-bottom: 2px solid var(--bg-light); color: #64748B; font-size: 0.85rem; text-transform: uppercase; }
-        .data-table td { padding: 15px 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-
-        /* BUTTONS & INPUTS */
-        .input-group { text-align: left; margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #64748B; }
-        .input-group input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
-        .btn-primary { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-        .error-text { color: #ff4d4f; font-size: 0.8rem; margin-top: 10px; }
-
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
-        .status-pill.booked { background: #E3F2FD; color: #1976D2; }
-        .status-pill.checked_in { background: #E8F5E9; color: #2E7D32; }
-
-        .btn-action { padding: 6px 12px; border: 1px solid var(--border); background: white; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-        .btn-action.approve { color: #2E7D32; border-color: #A5D6A7; }
-
-        /* --- GRID LAYOUTS --- */
-        .rooms-admin-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .admin-room-card {
-            background: white; border-radius: 12px; border: 1px solid var(--border);
-            overflow: hidden; display: flex; flex-direction: column;
-        }
-        .room-card-img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
-        .room-card-content { padding: 15px; flex: 1; }
-        .room-card-actions { padding: 10px 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-
-        /* --- MODALS --- */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 3000;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .admin-modal {
-            background: white; border-radius: 12px; width: 100%; max-width: 500px;
-            padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .close-icon { font-size: 1.5rem; cursor: pointer; }
-
-        /* --- FORM HELPERS --- */
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px; border: 1px solid var(--border); border-radius: 6px; }
-        .radio-group { display: flex; gap: 20px; padding: 10px 0; }
-        textarea { width: 100%; height: 100px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; resize: none; }
-        select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; }
-
-        /* --- HORIZONTAL FILTER BAR --- */
-        .horizontal-filter {
-            display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
-            padding: 15px 20px; background: white; border-radius: 8px; border: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-        .filter-item { display: flex; flex-direction: column; gap: 5px; }
-        .filter-item label { font-size: 0.75rem; color: #64748B; font-weight: 600; }
-        .filter-item select, .filter-item input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
-        .btn-show { background: var(--accent-blue); color: white; border: none; padding: 8px 24px; border-radius: 4px; font-weight: 700; cursor: pointer; height: 38px; }
-        .btn-outline { background: white; border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 8px 16px; border-radius: 4px; cursor: pointer; height: 38px; }
-
-        /* --- MORE FILTERS --- */
-        .more-filters-container {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
-            padding: 20px; background: #fcfcfc; border-top: 1px solid var(--border);
-            margin-top: 10px; border-radius: 0 0 8px 8px;
-        }
-        .filter-column h4 { font-size: 0.85rem; color: #1A1C1E; margin-bottom: 12px; font-weight: 700; }
-        .filter-checkbox-group { display: flex; flex-direction: column; gap: 8px; }
-        .filter-checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #64748B; cursor: pointer; }
-        .filter-search-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
-
-        /* --- ACCORDION MODAL --- */
-        .accordion-section { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
-        .accordion-header {
-            background: #F8F9FF; padding: 12px 15px; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
-            font-weight: 700; font-size: 0.9rem; color: #1A1C1E;
-        }
-        .accordion-content { padding: 15px; display: none; background: white; }
-        .accordion-section.active .accordion-content { display: block; }
-        .accordion-section.active .accordion-header { color: var(--accent-blue); }
-
-        .modal-scroll { max-height: 70vh; overflow-y: auto; padding-right: 5px; }
-        .summary-box { background: #FFF9C4; padding: 12px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; font-weight: 600; }
-    </style>
+    <link rel="stylesheet" href="portal_style.css">
 </head>
 <body>
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay" class="auth-overlay">
         <div class="auth-card">
             <div class="auth-logo">⚜️</div>
-            <h2>Admin Login</h2>
-            <p>Please enter your credentials to access the dashboard.</p>
-            <div class="input-group">
+            <h2>PMS Admin Login</h2>
+            <p style="margin-bottom: 25px; color: #7f8c8d;">Enter credentials to access Ganga Palace Dashboard</p>
+            <div class="input-group" style="text-align: left;">
                 <label>Email Address</label>
-                <input type="email" id="admin-email" placeholder="admin@gangahomes.com">
+                <input type="email" id="admin-email" placeholder="admin@gangapalace.com">
             </div>
-            <div class="input-group">
+            <div class="input-group" style="text-align: left;">
                 <label>Password</label>
                 <input type="password" id="admin-password" placeholder="••••••••">
             </div>
-            <button id="btn-login" class="btn-primary">Sign In</button>
-            <p id="login-error" class="error-text hidden"></p>
+            <button id="btn-login" class="btn-primary" style="width: 100%; margin-top: 10px; height: 45px; border: none; background: #C59D5F; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">Sign In</button>
+            <p id="login-error" class="error-text hidden" style="color: #e74c3c; font-size: 0.8rem; margin-top: 15px;"></p>
         </div>
     </div>
 
     <!-- MAIN DASHBOARD -->
     <div id="admin-app" class="dashboard-layout hidden">
-        <!-- TOP NAVIGATION -->
-        <header class="top-nav">
-            <div class="nav-logo">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
                 <span class="logo-icon">⚜️</span>
                 <div>
-                    <h3>Ganga Homes</h3>
-                    <p style="font-size: 0.5rem; color: var(--primary); font-weight: 800; letter-spacing: 1px; margin-top: -2px;">HOME STAY'S CHAIN</p>
+                    <h3>GANGA PALACE</h3>
+                    <p>HOTEL & RESORT</p>
                 </div>
             </div>
 
-            <nav class="nav-links">
-                <div class="nav-item active" onclick="switchTab('dashboard')">📊 Dashboard</div>
-                <div class="nav-item" onclick="switchTab('bookings')">📅 Bookings</div>
-                <div class="nav-item" onclick="switchTab('rooms')">📅 Rates & Availability</div>
-                <div class="nav-item" onclick="switchTab('inventory')">🏢 Property Detail</div>
-                <div class="nav-item" onclick="switchTab('settings')">⚙️ Settings</div>
+            <div class="user-profile-sidebar">
+                <div class="sidebar-avatar">👤</div>
+                <div class="sidebar-user-info">
+                    <h4 id="sidebar-user-name">Manish Chaurasia</h4>
+                    <p>Administrator • <span style="color: #27ae60;">● Online</span></p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Main Menu</div>
+                <div class="nav-item active" onclick="switchTab('dashboard')"><span>📊</span> Dashboard</div>
+
+                <div class="nav-section-label">Booking Management</div>
+                <div class="nav-item" onclick="switchTab('bookings')"><span>📅</span> Bookings</div>
+                <div class="nav-item" onclick="openManualBookingModal()"><span>➕</span> Add Booking</div>
+                <div class="nav-item"><span>🗓️</span> Room Calendar</div>
+
+                <div class="nav-section-label">Room Management</div>
+                <div class="nav-item" onclick="switchTab('rooms')"><span>🏢</span> Rooms</div>
+                <div class="nav-item" onclick="switchTab('inventory')"><span>📦</span> Inventory</div>
+
+                <div class="nav-section-label">Guest Management</div>
+                <div class="nav-item"><span>👥</span> Guests</div>
+
+                <div class="nav-section-label">Finance & Reports</div>
+                <div class="nav-item"><span>💰</span> Payments</div>
+                <div class="nav-item"><span>📈</span> Reports</div>
+
+                <div class="nav-section-label">Settings</div>
+                <div class="nav-item" onclick="switchTab('settings')"><span>⚙️</span> Hotel Profile</div>
             </nav>
 
-            <div class="nav-profile">
-                <div class="admin-profile" style="color: white; border: none; padding: 0;">
-                    <span id="admin-name">Hotel Admin</span>
-                    <div class="avatar" style="margin-left: 10px; background: rgba(255,255,255,0.1); border-radius: 50%; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">👤</div>
-                </div>
-                <button id="btn-logout" class="btn-logout">Logout</button>
+            <div class="sidebar-footer">
+                <button id="btn-logout" class="btn-logout"><span>🚪</span> Logout</button>
             </div>
-        </header>
+        </aside>
 
         <!-- MAIN CONTENT -->
         <main class="main-content">
-            <header class="content-header">
-                <h2 id="current-tab-title">Dashboard Overview</h2>
+            <header class="top-header">
+                <div class="header-welcome">
+                    <h2 id="header-greeting">Welcome back, Manish!</h2>
+                    <p>Here's what's happening with your hotel today.</p>
+                </div>
+                <div class="header-actions">
+                    <div class="date-selector">
+                        <span>📅</span>
+                        <span id="current-date-display">24 Jun 2025</span>
+                        <span>▼</span>
+                    </div>
+                    <button class="btn-new-booking" onclick="openManualBookingModal()">+ New Booking</button>
+                    <div class="header-icons">
+                        <span>🔍</span>
+                        <span>🔔</span>
+                        <span>⚙️</span>
+                    </div>
+                </div>
             </header>
 
+            <!-- TAB: DASHBOARD -->
             <div id="tab-dashboard" class="tab-pane">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <h3>Quick Overview</h3>
-                    <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="openManualBookingModal()">+ Manual Booking</button>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <p>Today's Bookings</p>
-                        <h3 id="stat-today-bookings">0</h3>
+                <!-- TOP METRICS -->
+                <div class="dashboard-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: #E3F2FD; color: #1565C0;">📊</div>
+                        <div class="metric-info">
+                            <p>Total Bookings</p>
+                            <h4 id="stat-total-bookings">28</h4>
+                            <div class="metric-change up">+12% from yesterday</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <p>Active Guests</p>
-                        <h3 id="stat-active-guests">0</h3>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: #E8F5E9; color: #2E7D32;">🏨</div>
+                        <div class="metric-info">
+                            <p>Today Check-ins</p>
+                            <h4 id="stat-checkins">8</h4>
+                            <div class="metric-change up">View Details →</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <p>Total Revenue</p>
-                        <h3 id="stat-revenue">₹0</h3>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: #FFF3E0; color: #E65100;">🚪</div>
+                        <div class="metric-info">
+                            <p>Today Check-outs</p>
+                            <h4 id="stat-checkouts">6</h4>
+                            <div class="metric-change up">View Details →</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon" style="background: #F3E5F5; color: #7B1FA2;">🛏️</div>
+                        <div class="metric-info">
+                            <p>Occupancy</p>
+                            <h4 id="stat-occupancy">78%</h4>
+                            <div class="metric-change up">Excellent</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="recent-bookings card">
-                    <h3>Recent Online Reservations</h3>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Guest Name</th>
-                                <th>Room</th>
-                                <th>Check-in</th>
-                                <th>Check-out</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recent-bookings-body">
+                <!-- MIDDLE SECTION -->
+                <div class="content-cols">
+                    <!-- BOOKING OVERVIEW -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Booking Overview</h3>
+                            <div class="filter-pills" style="display: flex; gap: 10px;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); border-bottom: 2px solid var(--primary); cursor: pointer;">Today</span>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #999; cursor: pointer;">This Week</span>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #999; cursor: pointer;">This Month</span>
+                            </div>
+                        </div>
+                        <div class="occupancy-chart-container">
+                            <div class="donut-placeholder"></div>
+                            <div class="chart-legend">
+                                <div style="margin-bottom: 15px;">
+                                    <p style="font-size: 0.75rem; color: #999; font-weight: 700;">Occupancy Rate</p>
+                                    <h2 style="font-size: 1.8rem;">78%</h2>
+                                    <p style="font-size: 0.7rem; color: var(--success); font-weight: 800;">↑ 8% from yesterday</p>
+                                </div>
+                                <div class="legend-item"><span class="dot" style="background: var(--success);"></span> Occupied: 25 (78%)</div>
+                                <div class="legend-item"><span class="dot" style="background: var(--info);"></span> Available: 7 (22%)</div>
+                                <div class="legend-item"><span class="dot" style="background: var(--warning);"></span> Maintenance: 0 (0%)</div>
+                            </div>
+                            <div class="adr-revpar" style="border-left: 1px solid #eee; padding-left: 20px;">
+                                <div style="margin-bottom: 15px;">
+                                    <p style="font-size: 0.7rem; color: #999; font-weight: 700;">ADR (Avg Daily Rate)</p>
+                                    <h4 style="font-size: 1.1rem;">₹4,250</h4>
+                                    <p style="font-size: 0.65rem; color: var(--success); font-weight: 800;">↑ 6% from yesterday</p>
+                                </div>
+                                <div>
+                                    <p style="font-size: 0.7rem; color: #999; font-weight: 700;">RevPAR</p>
+                                    <h4 style="font-size: 1.1rem;">₹3,315</h4>
+                                    <p style="font-size: 0.65rem; color: var(--success); font-weight: 800;">↑ 7% from yesterday</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ROOM STATUS -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Room Status</h3>
+                            <a href="#" class="view-link" onclick="switchTab('rooms')">View Calendar</a>
+                        </div>
+                        <div class="room-status-grid" id="dashboard-rooms-grid">
                             <!-- Injected -->
-                        </tbody>
-                    </table>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: center; gap: 20px;">
+                            <div class="legend-item"><span class="dot" style="background: var(--success);"></span> Occupied</div>
+                            <div class="legend-item"><span class="dot" style="background: var(--info);"></span> Available</div>
+                            <div class="legend-item"><span class="dot" style="background: var(--warning);"></span> Maintenance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM SECTION -->
+                <div class="content-cols">
+                    <!-- RECENT BOOKINGS -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Bookings</h3>
+                            <a href="#" class="view-link" onclick="switchTab('bookings')">View All Bookings</a>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Guest Name</th>
+                                    <th>Room</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-bookings-body">
+                                <!-- Injected -->
+                            </tbody>
+                        </table>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <a href="#" class="view-link" onclick="switchTab('bookings')">View All Bookings →</a>
+                        </div>
+                    </div>
+
+                    <!-- TODAY'S ACTIVITY -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Today's Activity</h3>
+                            <a href="#" class="view-link">View All</a>
+                        </div>
+                        <div class="timeline" id="timeline-activity">
+                            <div class="timeline-item">
+                                <div class="timeline-time">10:30 AM</div>
+                                <div class="timeline-point" style="background: var(--success);"></div>
+                                <div class="timeline-desc">
+                                    <h5>Rahul Sharma checked in</h5>
+                                    <p>Room 101 • BK25062401</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-time">11:15 AM</div>
+                                <div class="timeline-point" style="background: var(--info);"></div>
+                                <div class="timeline-desc">
+                                    <h5>Payment received</h5>
+                                    <p>Booking BK25062401 - ₹8,500</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-time">01:20 PM</div>
+                                <div class="timeline-point" style="background: #7B1FA2;"></div>
+                                <div class="timeline-desc">
+                                    <h5>Neha Singh booking confirmed</h5>
+                                    <p>Room 103</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REVENUE METRICS -->
+                <div class="revenue-metrics">
+                    <div class="rev-mini-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <p>Today's Revenue</p>
+                            <span style="color: var(--success);">💸</span>
+                        </div>
+                        <h4 id="rev-today">₹34,850</h4>
+                        <span class="trend" style="color: var(--success);">↑ 12% from yesterday</span>
+                    </div>
+                    <div class="rev-mini-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <p>This Month Revenue</p>
+                            <span style="color: #7B1FA2;">📊</span>
+                        </div>
+                        <h4 id="rev-month">₹8,45,200</h4>
+                        <span class="trend" style="color: var(--success);">↑ 15% from last month</span>
+                    </div>
+                    <div class="rev-mini-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <p>Pending Payments</p>
+                            <span style="color: var(--warning);">🕒</span>
+                        </div>
+                        <h4 id="rev-pending">₹1,25,600</h4>
+                        <span class="trend" style="color: #999;">5 Bookings</span>
+                    </div>
+                    <div class="rev-mini-card">
+                        <div style="display: flex; justify-content: space-between;">
+                            <p>Total Guests</p>
+                            <span style="color: var(--info);">👥</span>
+                        </div>
+                        <h4 id="stat-total-guests">96</h4>
+                        <span class="trend" style="color: var(--success);">↑ 18% from last month</span>
+                    </div>
                 </div>
             </div>
 
+            <!-- TAB: BOOKINGS -->
             <div id="tab-bookings" class="tab-pane hidden">
-                <div class="card" style="padding: 0; overflow: hidden;">
-                    <div class="horizontal-filter" style="border: none; border-radius: 0; margin-bottom: 0;">
-                        <div class="filter-item">
+                <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 25px;">
+                    <div class="horizontal-filter" style="display: flex; gap: 15px; padding: 20px; align-items: flex-end;">
+                        <div class="input-group" style="margin-bottom: 0; flex: 1;">
                             <label>Date of</label>
-                            <select id="filter-date-type">
+                            <select id="filter-date-type" style="padding: 8px;">
                                 <option value="check-in">Check-in</option>
                                 <option value="reservation">Reservation</option>
                                 <option value="check-out">Check-out</option>
-                                <option value="invoice">Invoice</option>
-                                <option value="stay">Stay</option>
                             </select>
                         </div>
-                        <div class="filter-item">
+                        <div class="input-group" style="margin-bottom: 0; flex: 1;">
                             <label>From</label>
-                            <input type="date" id="filter-from-date">
+                            <input type="date" id="filter-from-date" style="padding: 6px;">
                         </div>
-                        <div class="filter-item">
+                        <div class="input-group" style="margin-bottom: 0; flex: 1;">
                             <label>Until</label>
-                            <input type="date" id="filter-until-date">
+                            <input type="date" id="filter-until-date" style="padding: 6px;">
                         </div>
-                        <button class="btn-outline" onclick="toggleMoreFilters()">More filters ⌵</button>
-                        <button class="btn-show" onclick="applyBookingFilters()">Show</button>
+                        <button onclick="toggleMoreFilters()" style="background: white; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; cursor: pointer;">More filters ⌵</button>
+                        <button onclick="applyBookingFilters()" style="background: var(--primary); color: white; border: none; padding: 8px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Show</button>
                     </div>
-
-                    <div id="more-filters" class="more-filters-container hidden">
+                    <div id="more-filters" class="more-filters-container hidden" style="padding: 20px; background: #fafafa; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
                         <div class="filter-column">
-                            <h4>Reservation Status</h4>
-                            <div class="filter-checkbox-group">
-                                <label><input type="checkbox" name="status-filter" value="ok"> Ok</label>
-                                <label><input type="checkbox" name="status-filter" value="canceled"> Canceled</label>
-                                <label><input type="checkbox" name="status-filter" value="no-show"> No-show</label>
-                                <label><input type="checkbox" name="status-filter" value="corporate"> Corporate card</label>
-                            </div>
+                            <h4 style="font-size: 0.8rem; margin-bottom: 10px;">Status</h4>
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 5px;"><input type="checkbox" name="status-filter" value="booked"> Confirmed</label>
+                            <label style="display: block; font-size: 0.8rem;"><input type="checkbox" name="status-filter" value="cancelled"> Cancelled</label>
                         </div>
                         <div class="filter-column">
-                            <h4>Guest Communication</h4>
-                            <div class="filter-checkbox-group">
-                                <label><input type="checkbox" name="comm-filter" value="pending-request"> Pending guest request</label>
-                                <label><input type="checkbox" name="comm-filter" value="invoice-required"> Invoice required</label>
-                            </div>
-                        </div>
-                        <div class="filter-column">
-                            <h4>Invalid credit card</h4>
-                            <div class="filter-checkbox-group">
-                                <label><input type="checkbox" name="cc-filter" value="updated"> Updated</label>
-                                <label><input type="checkbox" name="cc-filter" value="pending"> Pending</label>
-                            </div>
-                        </div>
-                        <div class="filter-column">
-                            <h4>Guest name or booking number</h4>
-                            <input type="text" id="filter-search-advanced" class="filter-search-input" placeholder="Search...">
+                            <h4 style="font-size: 0.8rem; margin-bottom: 10px;">Search</h4>
+                            <input type="text" id="filter-search-advanced" placeholder="Name or ID..." style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
                         </div>
                     </div>
                 </div>
 
-                <div class="card" style="margin-top: 20px;">
+                <div class="card">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -341,7 +339,7 @@
                                 <th>Guest</th>
                                 <th>Room #</th>
                                 <th>Dates</th>
-                                <th>Payment</th>
+                                <th>Amount</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -353,19 +351,21 @@
                 </div>
             </div>
 
+            <!-- TAB: ROOMS -->
             <div id="tab-rooms" class="tab-pane hidden">
-                <div class="content-header-actions">
-                    <button class="btn-primary" onclick="openRoomModal()">+ Add New Rate/Room</button>
+                <div class="card-header">
+                    <h2>Property Rooms</h2>
+                    <button class="btn-new-booking" onclick="openRoomModal()">+ Add New Room</button>
                 </div>
-                <div id="admin-rooms-grid" class="rooms-admin-grid">
+                <div id="admin-rooms-grid" class="rooms-admin-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
                     <!-- Injected -->
                 </div>
             </div>
 
+            <!-- TAB: INVENTORY -->
             <div id="tab-inventory" class="tab-pane hidden">
                 <div class="card">
-                    <h3>Property Detail & Inventory Control</h3>
-                    <p>Select dates and room types to open or close for bookings.</p>
+                    <h3>Inventory Control</h3>
                     <div class="inventory-form" style="margin-top:20px;">
                         <div class="input-row">
                             <div class="input-group">
@@ -378,632 +378,75 @@
                             </div>
                         </div>
                         <div class="input-group">
-                            <label>Select Room Types</label>
-                            <div id="inv-room-types" class="checkbox-group">
-                                <!-- Injected -->
-                            </div>
+                            <label>Room Types</label>
+                            <div id="inv-room-types" class="checkbox-group" style="display: flex; gap: 15px; flex-wrap: wrap;"></div>
                         </div>
-                        <div class="input-group">
-                            <label>Status</label>
-                            <div class="radio-group">
-                                <label><input type="radio" name="inv-status" value="open" checked> Open</label>
-                                <label><input type="radio" name="inv-status" value="closed"> Closed</label>
-                            </div>
-                        </div>
-                        <button class="btn-primary" onclick="applyInventoryChange()">Apply Changes</button>
+                        <button class="btn-new-booking" onclick="applyInventoryChange()">Apply Inventory Changes</button>
                     </div>
                 </div>
             </div>
 
+            <!-- TAB: SETTINGS -->
             <div id="tab-settings" class="tab-pane hidden">
                 <div class="card">
-                    <h3>Property Details</h3>
+                    <h3>Hotel Settings</h3>
                     <div class="settings-form" style="margin-top:20px;">
                         <div class="input-group">
                             <label>Hotel Name</label>
                             <input type="text" id="set-hotel-name">
                         </div>
                         <div class="input-group">
-                            <label>Tagline</label>
-                            <input type="text" id="set-hotel-tagline">
-                        </div>
-                        <div class="input-group">
-                            <label>Description</label>
-                            <textarea id="set-hotel-desc"></textarea>
-                        </div>
-                        <div class="input-group">
                             <label>Address</label>
                             <input type="text" id="set-hotel-address">
                         </div>
                         <div class="input-group">
-                            <label>Phone</label>
-                            <input type="text" id="set-hotel-phone">
+                            <label>Description</label>
+                            <textarea id="set-hotel-desc" rows="4"></textarea>
                         </div>
-                        <button class="btn-primary" onclick="savePropertySettings()">Save Settings</button>
+                        <button class="btn-new-booking" onclick="savePropertySettings()">Save Profile</button>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- ROOM MODAL -->
-    <div id="room-modal" class="modal hidden">
-        <div class="modal-content admin-modal">
-            <div class="modal-header">
-                <h2 id="room-modal-title">Add Room</h2>
-                <span class="close-icon" onclick="closeRoomModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>Room Number</label>
-                    <input type="text" id="room-number">
-                </div>
-                <div class="input-group">
-                    <label>Room Type</label>
-                    <select id="room-type">
-                        <option>Single Room</option>
-                        <option>Double Room</option>
-                        <option>Deluxe Room</option>
-                        <option>Suite</option>
-                        <option>Budget Double Room</option>
-                    </select>
-                </div>
-                <div class="input-row">
-                    <div class="input-group">
-                        <label>Max Guests</label>
-                        <input type="number" id="room-max-guests" value="2">
-                    </div>
-                    <div class="input-group">
-                        <label>Bed Type</label>
-                        <input type="text" id="room-bed-type" placeholder="e.g. King Size">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Image URL</label>
-                    <input type="text" id="room-image-url" placeholder="https://...">
-                </div>
-                <button id="btn-save-room" class="btn-primary">Save Room</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MANUAL BOOKING MODAL -->
+    <!-- MODAL: MANUAL BOOKING -->
     <div id="manual-booking-modal" class="modal hidden">
-        <div class="modal-content admin-modal" style="max-width: 650px;">
+        <div class="modal-content">
             <div class="modal-header">
-                <h2>New Manual Booking</h2>
+                <h2>New Booking</h2>
                 <span class="close-icon" onclick="closeManualBookingModal()">&times;</span>
             </div>
-            <div class="modal-body modal-scroll">
-                <!-- GUEST DETAILS -->
-                <div class="accordion-section active" id="sec-guest">
-                    <div class="accordion-header" onclick="toggleAccordion('sec-guest')">Guest Details <span>👤</span></div>
-                    <div class="accordion-content">
-                        <div class="input-group">
-                            <label>Guest Name *</label>
-                            <input type="text" id="mb-name" placeholder="Full Name">
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>Mobile Number *</label>
-                                <input type="text" id="mb-phone" placeholder="+91 ...">
-                            </div>
-                            <div class="input-row">
-                                <div class="input-group">
-                                    <label>Adults</label>
-                                    <input type="number" id="mb-adults" value="2">
-                                </div>
-                                <div class="input-group">
-                                    <label>Children</label>
-                                    <input type="number" id="mb-children" value="0">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STAY DETAILS -->
-                <div class="accordion-section" id="sec-stay">
-                    <div class="accordion-header" onclick="toggleAccordion('sec-stay')">Stay Details <span>📅</span></div>
-                    <div class="accordion-content">
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>Check-in Date *</label>
-                                <input type="date" id="mb-checkin" onchange="calcNights()">
-                            </div>
-                            <div class="input-group">
-                                <label>Check-out Date *</label>
-                                <input type="date" id="mb-checkout" onchange="calcNights()">
-                            </div>
-                        </div>
-                        <p id="mb-nights-display" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-blue); margin-bottom: 15px;">1 Night(s)</p>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>Room Type *</label>
-                                <select id="mb-room-type"></select>
-                            </div>
-                            <div class="input-group">
-                                <label>Booking Agent</label>
-                                <select id="mb-agent">
-                                    <option>Individual Bookings</option>
-                                    <option>Website Booking</option>
-                                    <option>Booking.com</option>
-                                    <option>Agoda</option>
-                                    <option>MakeMyTrip</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PAYMENT DETAILS -->
-                <div class="accordion-section" id="sec-payment">
-                    <div class="accordion-header" onclick="toggleAccordion('sec-payment')">Payment Details <span>💰</span></div>
-                    <div class="accordion-content">
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>Room Rent / Night *</label>
-                                <input type="number" id="mb-rent" placeholder="₹" oninput="calcTotal()">
-                            </div>
-                            <div class="input-group">
-                                <label>Total Amount</label>
-                                <input type="number" id="mb-total" readonly placeholder="₹">
-                            </div>
-                        </div>
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>Advance Paid</label>
-                                <input type="number" id="mb-advance" placeholder="₹" oninput="calcTotal()">
-                            </div>
-                            <div class="input-group">
-                                <label>Payment Mode</label>
-                                <select id="mb-paymode">
-                                    <option>UPI</option>
-                                    <option>Cash</option>
-                                    <option>Card</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="summary-box">
-                            <span>Remaining Amount</span>
-                            <span id="mb-remaining">₹0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ID PROOF -->
-                <div class="accordion-section" id="sec-id">
-                    <div class="accordion-header" onclick="toggleAccordion('sec-id')">ID Proof <span>🪪</span></div>
-                    <div class="accordion-content">
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>ID Type *</label>
-                                <select id="mb-id-type">
-                                    <option>Aadhar Card</option>
-                                    <option>PAN Card</option>
-                                    <option>Passport</option>
-                                </select>
-                            </div>
-                            <div class="input-group">
-                                <label>ID Number *</label>
-                                <input type="text" id="mb-id-number">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Upload ID Photo</label>
-                            <input type="file" id="mb-id-photo" accept="image/*">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SPECIAL REQUESTS -->
-                <div class="accordion-section" id="sec-notes">
-                    <div class="accordion-header" onclick="toggleAccordion('sec-notes')">Special Requests / Notes <span>📝</span></div>
-                    <div class="accordion-content">
-                        <textarea id="mb-notes" placeholder="Enter any special request or note"></textarea>
-                    </div>
-                </div>
-
-                <button id="btn-save-manual" class="btn-primary" onclick="saveManualBooking()">Save Booking</button>
+            <div class="input-group"><label>Guest Name *</label><input type="text" id="mb-name"></div>
+            <div class="input-row">
+                <div class="input-group"><label>Phone *</label><input type="text" id="mb-phone"></div>
+                <div class="input-group"><label>Adults</label><input type="number" id="mb-adults" value="2"></div>
             </div>
+            <div class="input-row">
+                <div class="input-group"><label>Check-in</label><input type="date" id="mb-checkin" onchange="calcNights()"></div>
+                <div class="input-group"><label>Check-out</label><input type="date" id="mb-checkout" onchange="calcNights()"></div>
+            </div>
+            <div class="input-row">
+                <div class="input-group"><label>Room Type</label><select id="mb-room-type"></select></div>
+                <div class="input-group"><label>Rent / Night</label><input type="number" id="mb-rent" oninput="calcTotal()"></div>
+            </div>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between;"><span>Total Amount</span><b id="mb-total-display">₹0</b></div>
+            </div>
+            <button id="btn-save-manual" class="btn-new-booking" style="width: 100%;" onclick="saveManualBooking()">Confirm Booking</button>
         </div>
     </div>
 
-    <script>
-        // --- EMBEDDED JAVASCRIPT ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyBw6jDr8wRKeMMR7TiX8YiB0kO1wIfEmbE",
-          authDomain: "roomserviceapk.firebaseapp.com",
-          databaseURL: "https://roomserviceapk-default-rtdb.firebaseio.com",
-          projectId: "roomserviceapk",
-          storageBucket: "roomserviceapk.firebasestorage.app",
-          messagingSenderId: "987842436715",
-          appId: "1:987842436715:web:04d22839d4ca52c61e1b2e"
-        };
+    <!-- MODAL: ROOM -->
+    <div id="room-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header"><h2>Add Room</h2><span class="close-icon" onclick="closeRoomModal()">&times;</span></div>
+            <div class="input-group"><label>Room Number</label><input type="text" id="room-number"></div>
+            <div class="input-group"><label>Room Type</label><input type="text" id="room-type"></div>
+            <button id="btn-save-room" class="btn-new-booking" style="width: 100%;">Save Room</button>
+        </div>
+    </div>
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        const auth = firebase.auth();
-
-        const loginOverlay = document.getElementById('login-overlay');
-        const adminApp = document.getElementById('admin-app');
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
-        const loginError = document.getElementById('login-error');
-
-        let hotelId = "GangaHomes_001";
-        let allBookings = [];
-        let allRooms = [];
-
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                loginOverlay.classList.add('hidden');
-                adminApp.classList.remove('hidden');
-                document.getElementById('admin-name').innerText = user.email.split('@')[0];
-                initDashboard();
-            } else {
-                loginOverlay.classList.remove('hidden');
-                adminApp.classList.add('hidden');
-            }
-        });
-
-        btnLogin.onclick = () => {
-            const email = document.getElementById('admin-email').value;
-            const password = document.getElementById('admin-password').value;
-            auth.signInWithEmailAndPassword(email, password)
-                .catch(err => {
-                    loginError.innerText = err.message;
-                    loginError.classList.remove('hidden');
-                });
-        };
-
-        btnLogout.onclick = () => auth.signOut();
-
-        window.switchTab = (tabId) => {
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            const target = document.getElementById('tab-' + tabId);
-            if (target) target.classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(item => {
-                if (item.getAttribute('onclick')?.includes(tabId)) item.classList.add('active');
-            });
-            document.getElementById('current-tab-title').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
-        };
-
-        function initDashboard() {
-            listenForBookings();
-            listenForRooms();
-            syncSettings();
-            syncStats();
-        }
-
-        function listenForBookings() {
-            db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
-                allBookings = [];
-                snap.forEach(child => allBookings.push(child.val()));
-                allBookings.sort((a, b) => b.timestamp - a.timestamp);
-                renderRecentBookings(allBookings.slice(0, 5));
-                renderAllBookings(allBookings);
-            });
-        }
-
-        function renderRecentBookings(bookings) {
-            const body = document.getElementById('recent-bookings-body');
-            if (!body) return;
-            body.innerHTML = bookings.map(b => `
-                <tr>
-                    <td><b>${b.guestName}</b></td>
-                    <td>Room ${b.roomNumber || 'TBA'}</td>
-                    <td>${formatDate(b.checkInDate)}</td>
-                    <td>${formatDate(b.checkOutDate)}</td>
-                    <td><span class="status-pill ${(b.status || 'BOOKED').toLowerCase()}">${b.status || 'BOOKED'}</span></td>
-                    <td><button class="btn-action" onclick="switchTab('bookings')">View</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function renderAllBookings(bookings) {
-            const body = document.getElementById('all-bookings-body');
-            if (!body) return;
-            body.innerHTML = bookings.map(b => `
-                <tr>
-                    <td>#${(b.id || '').slice(-6)}</td>
-                    <td><b>${b.guestName}</b><br><small>${b.guestPhone || ''}</small></td>
-                    <td>${b.roomNumber || 'TBA'}</td>
-                    <td>${formatDate(b.checkInDate)} - ${formatDate(b.checkOutDate)}</td>
-                    <td>₹${b.totalAmount || 0}</td>
-                    <td><span class="status-pill ${(b.status || 'BOOKED').toLowerCase()}">${b.status || 'BOOKED'}</span></td>
-                    <td>
-                        <button class="btn-action approve" onclick="updateStatus('${b.id}', 'CHECKED_IN')">Check-in</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        window.toggleMoreFilters = () => {
-            const el = document.getElementById('more-filters');
-            el.classList.toggle('hidden');
-        };
-
-        window.applyBookingFilters = () => {
-            const dateType = document.getElementById('filter-date-type').value;
-            const from = document.getElementById('filter-from-date').value;
-            const until = document.getElementById('filter-until-date').value;
-            const searchQuery = document.getElementById('filter-search-advanced').value.toLowerCase();
-
-            // Checkbox filters
-            const selectedStatuses = Array.from(document.querySelectorAll('input[name="status-filter"]:checked')).map(cb => cb.value);
-
-            let filtered = allBookings;
-
-            // Date filtering
-            if (from || until) {
-                const fromTs = from ? new Date(from).getTime() : 0;
-                const untilTs = until ? new Date(until).getTime() + 86399999 : Infinity;
-
-                filtered = filtered.filter(b => {
-                    let dateToCompare;
-                    if (dateType === 'check-in') dateToCompare = b.checkInDate;
-                    else if (dateType === 'check-out') dateToCompare = b.checkOutDate;
-                    else if (dateType === 'reservation') dateToCompare = b.timestamp;
-                    else if (dateType === 'invoice') dateToCompare = b.timestamp;
-                    else if (dateType === 'stay') dateToCompare = b.checkInDate;
-                    else dateToCompare = b.timestamp;
-
-                    return dateToCompare >= fromTs && dateToCompare <= untilTs;
-                });
-            }
-
-            // Status filtering
-            if (selectedStatuses.length > 0) {
-                filtered = filtered.filter(b => {
-                    const s = (b.status || '').toLowerCase();
-                    if (selectedStatuses.includes('ok') && (s === 'booked' || s === 'checked_in')) return true;
-                    if (selectedStatuses.includes('canceled') && s === 'cancelled') return true;
-                    if (selectedStatuses.includes('no-show') && s === 'no-show') return true;
-                    return false;
-                });
-            }
-
-            // Search filtering
-            if (searchQuery) {
-                filtered = filtered.filter(b =>
-                    b.guestName.toLowerCase().includes(searchQuery) ||
-                    (b.id && b.id.toLowerCase().includes(searchQuery))
-                );
-            }
-
-            renderAllBookings(filtered);
-        };
-
-        function syncStats() {
-            db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
-                const bookings = [];
-                snap.forEach(c => bookings.push(c.val()));
-                const bLabel = document.getElementById('stat-today-bookings');
-                const rLabel = document.getElementById('stat-revenue');
-                if (bLabel) bLabel.innerText = bookings.length;
-                const totalRev = bookings.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
-                if (rLabel) rLabel.innerText = "₹" + totalRev.toLocaleString();
-            });
-        }
-
-        function formatDate(ts) {
-            if (!ts) return '-';
-            return new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-        }
-
-        window.updateStatus = (id, newStatus) => {
-            db.ref('hotels').child(hotelId).child('bookings').child(id).update({ status: newStatus });
-        };
-
-        // --- ROOM MANAGEMENT ---
-        const roomsGrid = document.getElementById('admin-rooms-grid');
-        const roomModal = document.getElementById('room-modal');
-
-        function listenForRooms() {
-            db.ref('hotels').child(hotelId).child('rooms').on('value', snap => {
-                allRooms = [];
-                snap.forEach(c => allRooms.push(c.val()));
-                renderAdminRooms();
-                renderInventoryRoomTypes();
-                updateRoomTypeSelect();
-            });
-        }
-
-        function renderAdminRooms() {
-            if (!roomsGrid) return;
-            roomsGrid.innerHTML = allRooms.map(r => `
-                <div class="admin-room-card">
-                    <img src="${r.imageUrl || 'https://via.placeholder.com/300x160'}" class="room-card-img">
-                    <div class="room-card-content">
-                        <h4>${r.roomType} (Room ${r.roomNumber})</h4>
-                        <p><small>${r.bedType} • Max ${r.maxGuests} Guests</small></p>
-                    </div>
-                    <div class="room-card-actions">
-                        <button class="btn-action" onclick="deleteRoom('${r.roomNumber}')" style="color:red;">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        window.openRoomModal = () => {
-            roomModal.classList.remove('hidden');
-            document.getElementById('room-modal-title').innerText = "Add New Room";
-            document.getElementById('room-number').value = "";
-        };
-
-        window.closeRoomModal = () => roomModal.classList.add('hidden');
-
-        document.getElementById('btn-save-room').onclick = () => {
-            const room = {
-                roomNumber: document.getElementById('room-number').value,
-                roomType: document.getElementById('room-type').value,
-                maxGuests: parseInt(document.getElementById('room-max-guests').value),
-                bedType: document.getElementById('room-bed-type').value,
-                imageUrl: document.getElementById('room-image-url').value,
-                hotelId: hotelId,
-                isAvailable: true
-            };
-            if (!room.roomNumber) return alert("Room number required");
-            db.ref('hotels').child(hotelId).child('rooms/' + room.roomNumber).set(room)
-                .then(() => closeRoomModal());
-        };
-
-        window.deleteRoom = (num) => {
-            if (confirm("Delete Room " + num + "?")) {
-                db.ref('hotels').child(hotelId).child('rooms/' + num).remove();
-            }
-        };
-
-        // --- MANUAL BOOKING LOGIC ---
-        const mbModal = document.getElementById('manual-booking-modal');
-
-        window.openManualBookingModal = () => {
-            mbModal.classList.remove('hidden');
-            // Reset dates to today and tomorrow
-            const today = new Date().toISOString().split('T')[0];
-            const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-            document.getElementById('mb-checkin').value = today;
-            document.getElementById('mb-checkout').value = tomorrow;
-            calcNights();
-        };
-
-        window.closeManualBookingModal = () => mbModal.classList.add('hidden');
-
-        window.toggleAccordion = (id) => {
-            const sec = document.getElementById(id);
-            const isActive = sec.classList.contains('active');
-            document.querySelectorAll('.accordion-section').forEach(s => s.classList.remove('active'));
-            if (!isActive) sec.classList.add('active');
-        };
-
-        window.calcNights = () => {
-            const start = document.getElementById('mb-checkin').value;
-            const end = document.getElementById('mb-checkout').value;
-            if (start && end) {
-                const s = new Date(start);
-                const e = new Date(end);
-                const diff = Math.ceil((e - s) / (1000 * 60 * 60 * 24));
-                const nights = diff <= 0 ? 1 : diff;
-                document.getElementById('mb-nights-display').innerText = nights + " Night(s)";
-                calcTotal();
-            }
-        };
-
-        window.calcTotal = () => {
-            const nights = parseInt(document.getElementById('mb-nights-display').innerText);
-            const rent = parseFloat(document.getElementById('mb-rent').value) || 0;
-            const advance = parseFloat(document.getElementById('mb-advance').value) || 0;
-
-            const total = nights * rent;
-            const remaining = total - advance;
-
-            document.getElementById('mb-total').value = total;
-            document.getElementById('mb-remaining').innerText = "₹" + remaining.toLocaleString();
-        };
-
-        function updateRoomTypeSelect() {
-            const select = document.getElementById('mb-room-type');
-            if (!select) return;
-            const types = [...new Set(allRooms.map(r => r.roomType))];
-            select.innerHTML = types.map(t => `<option>${t}</option>`).join('');
-        }
-
-        window.saveManualBooking = () => {
-            const name = document.getElementById('mb-name').value;
-            const phone = document.getElementById('mb-phone').value;
-            const roomType = document.getElementById('mb-room-type').value;
-
-            if (!name || !phone || !roomType) return alert("Please fill required fields (*)");
-
-            const btn = document.getElementById('btn-save-manual');
-            btn.disabled = true;
-            btn.innerText = "Saving...";
-
-            // Find a room of this type
-            const room = allRooms.find(r => r.roomType === roomType);
-
-            const booking = {
-                id: 'MB_' + Date.now(),
-                hotelId: hotelId,
-                guestName: name,
-                guestPhone: phone,
-                numberOfGuests: parseInt(document.getElementById('mb-adults').value) + parseInt(document.getElementById('mb-children').value),
-                checkInDate: new Date(document.getElementById('mb-checkin').value).getTime(),
-                checkOutDate: new Date(document.getElementById('mb-checkout').value).getTime(),
-                roomNumber: room ? room.roomNumber : "",
-                totalAmount: parseFloat(document.getElementById('mb-total').value),
-                advancePaid: parseFloat(document.getElementById('mb-advance').value) || 0,
-                bookingAgent: document.getElementById('mb-agent').value,
-                paymentMode: document.getElementById('mb-paymode').value,
-                status: "BOOKED",
-                timestamp: Date.now(),
-                notes: document.getElementById('mb-notes').value
-            };
-
-            db.ref('hotels').child(hotelId).child('bookings/' + booking.id).set(booking)
-                .then(() => {
-                    alert("Booking Saved Successfully!");
-                    closeManualBookingModal();
-                    btn.disabled = false;
-                    btn.innerText = "Save Booking";
-                })
-                .catch(err => {
-                    alert("Error: " + err.message);
-                    btn.disabled = false;
-                    btn.innerText = "Save Booking";
-                });
-        };
-
-        // --- SETTINGS ---
-        function syncSettings() {
-            db.ref('hotels').child(hotelId).child('business_details').on('value', snap => {
-                const d = snap.val();
-                if (d) {
-                    const name = document.getElementById('set-hotel-name');
-                    const tagline = document.getElementById('set-hotel-tagline');
-                    const desc = document.getElementById('set-hotel-desc');
-                    const addr = document.getElementById('set-hotel-address');
-                    const phone = document.getElementById('set-hotel-phone');
-
-                    if(name) name.value = d.hotelName || "";
-                    if(tagline) tagline.value = d.hotelTagline || "";
-                    if(desc) desc.value = d.hotelDescription || "";
-                    if(addr) addr.value = d.address || "";
-                    if(phone) phone.value = d.phone || "";
-                }
-            });
-        }
-
-        window.savePropertySettings = () => {
-            const data = {
-                hotelName: document.getElementById('set-hotel-name').value,
-                hotelTagline: document.getElementById('set-hotel-tagline').value,
-                hotelDescription: document.getElementById('set-hotel-desc').value,
-                address: document.getElementById('set-hotel-address').value,
-                phone: document.getElementById('set-hotel-phone').value
-            };
-            db.ref('hotels').child(hotelId).child('business_details').update(data)
-                .then(() => alert("Settings saved!"));
-        };
-
-        function renderInventoryRoomTypes() {
-            const types = [...new Set(allRooms.map(r => r.roomType))];
-            const container = document.getElementById('inv-room-types');
-            if (container) {
-                container.innerHTML = types.map(t => `
-                    <label style="display:block; margin-bottom:5px;"><input type="checkbox" name="inv-type" value="${t}"> ${t}</label>
-                `).join('');
-            }
-        }
-
-        window.applyInventoryChange = () => {
-            const from = document.getElementById('inv-from').value;
-            const to = document.getElementById('inv-to').value;
-            if(!from || !to) return alert("Select dates");
-            alert("Inventory updated successfully!");
-        };
-    </script>
+    <script src="portal_admin.js"></script>
 </body>
 </html>
