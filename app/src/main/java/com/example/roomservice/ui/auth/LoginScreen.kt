@@ -42,6 +42,35 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.GoogleAuthProvider
+import androidx.compose.ui.autofill.AutofillNode
+import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.composed
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalAutofill
+import androidx.compose.ui.platform.LocalAutofillTree
+
+fun Modifier.autofill(
+    autofillTypes: List<AutofillType>,
+    onFill: (String) -> Unit
+) = composed {
+    val autofill = LocalAutofill.current
+    val autofillNode = AutofillNode(onFill = onFill, autofillTypes = autofillTypes)
+    LocalAutofillTree.current += autofillNode
+
+    this.onGloballyPositioned {
+        autofillNode.boundingBox = it.boundsInWindow()
+    }.onFocusChanged { focusState ->
+        autofill?.run {
+            if (focusState.isFocused) {
+                requestAutofillForNode(autofillNode)
+            } else {
+                cancelAutofillForNode(autofillNode)
+            }
+        }
+    }
+}
 
 fun Context.findActivity(): Activity? {
     var context = this
@@ -189,6 +218,16 @@ fun LoginScreen(
                     placeholder = { Text("Admin Email", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                     shape = RoundedCornerShape(8.dp),
                     leadingIcon = { Icon(Icons.Default.Email, null, tint = MaterialTheme.colorScheme.primary) },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        autoCorrect = false
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .autofill(
+                            autofillTypes = listOf(AutofillType.EmailAddress, AutofillType.Username),
+                            onFill = { email = it }
+                        ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary, 
                         unfocusedBorderColor = MaterialTheme.colorScheme.outline
@@ -197,11 +236,20 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("Password", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) },
                     shape = RoundedCornerShape(8.dp),
                     leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.primary) },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        autoCorrect = false
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .autofill(
+                            autofillTypes = listOf(AutofillType.Password),
+                            onFill = { password = it }
+                        ),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
