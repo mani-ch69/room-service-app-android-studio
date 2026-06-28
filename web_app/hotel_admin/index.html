@@ -149,6 +149,17 @@
         .btn-show { background: var(--accent-blue); color: white; border: none; padding: 8px 24px; border-radius: 4px; font-weight: 700; cursor: pointer; height: 38px; }
         .btn-outline { background: white; border: 1px solid var(--accent-blue); color: var(--accent-blue); padding: 8px 16px; border-radius: 4px; cursor: pointer; height: 38px; }
 
+        /* --- MORE FILTERS --- */
+        .more-filters-container {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+            padding: 20px; background: #fcfcfc; border-top: 1px solid var(--border);
+            margin-top: 10px; border-radius: 0 0 8px 8px;
+        }
+        .filter-column h4 { font-size: 0.85rem; color: #1A1C1E; margin-bottom: 12px; font-weight: 700; }
+        .filter-checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+        .filter-checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #64748B; cursor: pointer; }
+        .filter-search-input { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+
         /* --- ACCORDION MODAL --- */
         .accordion-section { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
         .accordion-header {
@@ -256,31 +267,62 @@
             </div>
 
             <div id="tab-bookings" class="tab-pane hidden">
-                <div class="horizontal-filter card">
-                    <div class="filter-item">
-                        <label>Date of</label>
-                        <select id="filter-date-type">
-                            <option value="check-in">Check-in</option>
-                            <option value="check-out">Check-out</option>
-                            <option value="reservation">Reservation</option>
-                        </select>
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <div class="horizontal-filter" style="border: none; border-radius: 0; margin-bottom: 0;">
+                        <div class="filter-item">
+                            <label>Date of</label>
+                            <select id="filter-date-type">
+                                <option value="check-in">Check-in</option>
+                                <option value="reservation">Reservation</option>
+                                <option value="check-out">Check-out</option>
+                                <option value="invoice">Invoice</option>
+                                <option value="stay">Stay</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>From</label>
+                            <input type="date" id="filter-from-date">
+                        </div>
+                        <div class="filter-item">
+                            <label>Until</label>
+                            <input type="date" id="filter-until-date">
+                        </div>
+                        <button class="btn-outline" onclick="toggleMoreFilters()">More filters ⌵</button>
+                        <button class="btn-show" onclick="applyBookingFilters()">Show</button>
                     </div>
-                    <div class="filter-item">
-                        <label>From</label>
-                        <input type="date" id="filter-from-date">
+
+                    <div id="more-filters" class="more-filters-container hidden">
+                        <div class="filter-column">
+                            <h4>Reservation Status</h4>
+                            <div class="filter-checkbox-group">
+                                <label><input type="checkbox" name="status-filter" value="ok"> Ok</label>
+                                <label><input type="checkbox" name="status-filter" value="canceled"> Canceled</label>
+                                <label><input type="checkbox" name="status-filter" value="no-show"> No-show</label>
+                                <label><input type="checkbox" name="status-filter" value="corporate"> Corporate card</label>
+                            </div>
+                        </div>
+                        <div class="filter-column">
+                            <h4>Guest Communication</h4>
+                            <div class="filter-checkbox-group">
+                                <label><input type="checkbox" name="comm-filter" value="pending-request"> Pending guest request</label>
+                                <label><input type="checkbox" name="comm-filter" value="invoice-required"> Invoice required</label>
+                            </div>
+                        </div>
+                        <div class="filter-column">
+                            <h4>Invalid credit card</h4>
+                            <div class="filter-checkbox-group">
+                                <label><input type="checkbox" name="cc-filter" value="updated"> Updated</label>
+                                <label><input type="checkbox" name="cc-filter" value="pending"> Pending</label>
+                            </div>
+                        </div>
+                        <div class="filter-column">
+                            <h4>Guest name or booking number</h4>
+                            <input type="text" id="filter-search-advanced" class="filter-search-input" placeholder="Search...">
+                        </div>
                     </div>
-                    <div class="filter-item">
-                        <label>Until</label>
-                        <input type="date" id="filter-until-date">
-                    </div>
-                    <button class="btn-outline">More filters ⌵</button>
-                    <button class="btn-show" onclick="applyBookingFilters()">Show</button>
                 </div>
 
                 <div class="card" style="margin-top: 20px;">
-                    <div style="margin-bottom: 15px;">
-                        <input type="text" id="booking-search" placeholder="Search by name or ID..." style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px;">
-                    </div>
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -667,25 +709,57 @@
             `).join('');
         }
 
+        window.toggleMoreFilters = () => {
+            const el = document.getElementById('more-filters');
+            el.classList.toggle('hidden');
+        };
+
         window.applyBookingFilters = () => {
             const dateType = document.getElementById('filter-date-type').value;
             const from = document.getElementById('filter-from-date').value;
             const until = document.getElementById('filter-until-date').value;
+            const searchQuery = document.getElementById('filter-search-advanced').value.toLowerCase();
+
+            // Checkbox filters
+            const selectedStatuses = Array.from(document.querySelectorAll('input[name="status-filter"]:checked')).map(cb => cb.value);
 
             let filtered = allBookings;
 
+            // Date filtering
             if (from || until) {
                 const fromTs = from ? new Date(from).getTime() : 0;
                 const untilTs = until ? new Date(until).getTime() + 86399999 : Infinity;
 
-                filtered = allBookings.filter(b => {
+                filtered = filtered.filter(b => {
                     let dateToCompare;
                     if (dateType === 'check-in') dateToCompare = b.checkInDate;
                     else if (dateType === 'check-out') dateToCompare = b.checkOutDate;
+                    else if (dateType === 'reservation') dateToCompare = b.timestamp;
+                    else if (dateType === 'invoice') dateToCompare = b.timestamp;
+                    else if (dateType === 'stay') dateToCompare = b.checkInDate;
                     else dateToCompare = b.timestamp;
 
                     return dateToCompare >= fromTs && dateToCompare <= untilTs;
                 });
+            }
+
+            // Status filtering
+            if (selectedStatuses.length > 0) {
+                filtered = filtered.filter(b => {
+                    const s = (b.status || '').toLowerCase();
+                    if (selectedStatuses.includes('ok') && (s === 'booked' || s === 'checked_in')) return true;
+                    if (selectedStatuses.includes('canceled') && s === 'cancelled') return true;
+                    if (selectedStatuses.includes('no-show') && s === 'no-show') return true;
+                    return false;
+                });
+            }
+
+            // Search filtering
+            if (searchQuery) {
+                filtered = filtered.filter(b =>
+                    b.guestName.toLowerCase().includes(searchQuery) ||
+                    (b.id && b.id.toLowerCase().includes(searchQuery))
+                );
             }
 
             renderAllBookings(filtered);
