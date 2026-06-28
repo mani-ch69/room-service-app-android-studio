@@ -253,29 +253,9 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .padding(bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = buildAnnotatedString {
-                    append("By logging in, you agree to our ")
-                    withStyle(style = SpanStyle(color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold)) {
-                        append("Terms and conditions")
-                    }
-                    append(" and ")
-                    withStyle(style = SpanStyle(color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold)) {
-                        append("Privacy Policy")
-                    }
-                },
-                fontSize = 12.sp,
-                color = Color.Gray,
-                textAlign = TextAlign.Center,
-                lineHeight = 18.sp,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
-            
-            Spacer(Modifier.height(24.dp))
-            
             Button(
                 onClick = { 
                     if (email.isNotBlank() && password.isNotBlank()) {
