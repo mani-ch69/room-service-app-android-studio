@@ -3,630 +3,518 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ganga Palace - PMS Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Ganga Palace - Enterprise PMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --primary: #C59D5F;
-            --primary-dark: #A67C45;
-            --sidebar-bg: #1C1C1E;
-            --bg-light: #F4F7FA;
-            --text-dark: #2C3E50;
-            --text-muted: #7F8C8D;
+            --primary: #B38E3D;
+            --primary-light: #F5E6CC;
+            --sidebar-bg: #111315;
+            --bg-body: #F8F9FA;
             --white: #FFFFFF;
-            --border: #EAECEF;
-            --success: #27AE60;
-            --info: #3498DB;
-            --warning: #F39C12;
-            --danger: #E74C3C;
-            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --text-main: #1A1C1E;
+            --text-muted: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --info: #3B82F6;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 4px 20px rgba(0,0,0,0.03);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
-        body { background: var(--bg-light); color: var(--text-dark); height: 100vh; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-body); color: var(--text-main); height: 100vh; overflow: hidden; }
         .hidden { display: none !important; }
 
-        .dashboard-layout { display: flex; height: 100vh; width: 100vw; }
+        /* --- LAYOUT --- */
+        .app-container { display: flex; height: 100vh; width: 100vw; }
 
-        /* --- SIDEBAR --- */
+        /* SIDEBAR (Optimized for PC) */
         .sidebar {
-            width: 260px; background: var(--sidebar-bg); color: white;
-            display: flex; flex-direction: column; height: 100vh; overflow-y: auto;
+            width: 280px; background: var(--sidebar-bg); color: white;
+            display: flex; flex-direction: column; flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .sidebar-header {
-            padding: 30px 25px; display: flex; align-items: center; gap: 12px;
-        }
-        .sidebar-header .logo-icon { font-size: 2rem; }
-        .sidebar-header h3 { font-size: 1.1rem; letter-spacing: 1px; color: var(--white); }
-        .sidebar-header p { font-size: 0.7rem; color: var(--primary); font-weight: 700; margin-top: -2px; }
+        .sidebar-header { padding: 32px 28px; display: flex; align-items: center; gap: 12px; }
+        .logo-box { width: 40px; height: 40px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .logo-text h3 { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.5px; }
+        .logo-text p { font-size: 0.65rem; color: var(--primary); font-weight: 700; letter-spacing: 1px; }
 
-        .user-profile-sidebar {
-            padding: 20px 25px; display: flex; align-items: center; gap: 15px;
-            border-top: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;
-        }
-        .sidebar-avatar { width: 45px; height: 45px; border-radius: 50%; background: #444; overflow: hidden; }
-        .sidebar-user-info h4 { font-size: 0.9rem; margin-bottom: 2px; }
-        .sidebar-user-info p { font-size: 0.75rem; color: var(--text-muted); }
+        .sidebar-user { padding: 0 28px 32px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px; }
+        .user-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--primary); background: #333; overflow: hidden; }
+        .user-meta h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
+        .user-meta p { font-size: 0.75rem; color: #888; display: flex; align-items: center; gap: 6px; }
+        .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; }
 
-        .nav-section-label {
-            padding: 10px 25px; font-size: 0.7rem; text-transform: uppercase;
-            color: #555; font-weight: 800; letter-spacing: 1.5px;
-        }
-
+        .nav-list { flex: 1; overflow-y: auto; padding: 0 16px; }
+        .nav-label { padding: 12px 12px 8px; font-size: 0.7rem; text-transform: uppercase; color: #444; font-weight: 800; letter-spacing: 1.2px; }
         .nav-item {
-            padding: 12px 25px; cursor: pointer; color: #BBB;
-            transition: 0.3s; font-weight: 500; font-size: 0.9rem;
-            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px; margin-bottom: 4px; border-radius: var(--radius-md);
+            cursor: pointer; color: #94A3B8; font-weight: 600; font-size: 0.95rem;
+            display: flex; align-items: center; gap: 14px; transition: 0.2s;
         }
-        .nav-item:hover { color: white; background: rgba(255,255,255,0.03); }
-        .nav-item.active {
-            color: white; background: var(--primary);
-            border-radius: 0 25px 25px 0; margin-right: 20px;
-        }
+        .nav-item:hover { color: white; background: rgba(255,255,255,0.05); }
+        .nav-item.active { color: white; background: var(--primary); box-shadow: 0 8px 16px rgba(179, 142, 61, 0.2); }
+        .nav-item i { font-size: 1.2rem; width: 24px; text-align: center; }
 
-        .sidebar-footer { padding: 20px 25px; border-top: 1px solid rgba(255,255,255,0.05); margin-top: auto; }
-        .btn-logout { background: none; border: none; color: #BBB; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        .btn-logout:hover { color: #ff4d4f; }
+        /* MAIN CONTENT */
+        .main-wrapper { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
 
-        /* --- MAIN CONTENT --- */
-        .main-content { flex: 1; overflow-y: auto; display: flex; flex-direction: column; background: var(--bg-light); }
-
-        .top-header {
-            background: white; padding: 15px 40px; display: flex;
+        .header-top {
+            background: white; padding: 20px 48px; display: flex;
             justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border);
         }
-        .header-welcome h2 { font-size: 1.4rem; font-weight: 700; }
-        .header-welcome p { color: var(--text-muted); font-size: 0.85rem; }
+        .greeting h2 { font-size: 1.5rem; font-weight: 800; }
+        .greeting p { color: var(--text-muted); font-size: 0.9rem; }
 
-        .header-actions { display: flex; align-items: center; gap: 20px; }
-        .date-selector { padding: 8px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .btn-new-booking { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        .header-icons { display: flex; gap: 20px; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+        .actions-right { display: flex; align-items: center; gap: 24px; }
+        .date-btn { background: #F1F5F9; padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; border: none; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .btn-booking { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(179, 142, 61, 0.3); }
+        .icon-btn { font-size: 1.4rem; color: var(--text-muted); cursor: pointer; position: relative; }
+        .badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 0.6rem; padding: 2px 5px; border-radius: 10px; }
 
-        .tab-pane { padding: 30px 40px; }
+        .page-content { padding: 32px 48px; }
 
-        /* --- DASHBOARD WIDGETS --- */
-        .dashboard-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;
-        }
-        .metric-card {
-            background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow);
-            display: flex; gap: 15px; align-items: center;
-        }
-        .metric-icon {
-            width: 50px; height: 50px; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
-        }
-        .metric-info h4 { font-size: 1.8rem; font-weight: 800; line-height: 1; margin: 5px 0; }
-        .metric-info p { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-        .metric-change { font-size: 0.75rem; font-weight: 700; margin-top: 5px; }
-        .metric-change.up { color: var(--success); }
+        /* --- DASHBOARD GRID --- */
+        .metric-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 24px; margin-bottom: 32px; }
+        .card-stat { background: white; padding: 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow); display: flex; gap: 16px; align-items: center; border: 1px solid transparent; transition: 0.3s; }
+        .card-stat:hover { border-color: var(--primary); transform: translateY(-4px); }
+        .stat-icon { width: 56px; height: 56px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+        .stat-info p { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+        .stat-info h3 { font-size: 1.8rem; font-weight: 800; margin: 4px 0; }
+        .stat-trend { font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .stat-trend.up { color: var(--success); }
 
-        /* --- TWO COLUMN LAYOUT --- */
-        .content-cols { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 25px; margin-bottom: 25px; }
+        /* COMPLEX GRID LAYOUT */
+        .dashboard-layout-main { display: grid; grid-template-columns: 1fr 400px; gap: 24px; margin-bottom: 32px; }
+        .card-panel { background: white; padding: 32px; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+        .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .panel-head h3 { font-size: 1.1rem; font-weight: 800; }
 
-        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); border: none; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card-header h3 { font-size: 1.1rem; font-weight: 700; }
-        .view-link { color: var(--primary); font-size: 0.85rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+        /* CHART & LEGEND */
+        .occupancy-display { display: flex; gap: 32px; align-items: center; min-height: 220px; }
+        .chart-box { width: 200px; height: 200px; position: relative; }
+        .chart-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        .chart-center h2 { font-size: 1.8rem; font-weight: 800; }
+        .chart-center p { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; }
 
-        /* CHARTS & STATS */
-        .occupancy-chart-container { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
-        .donut-placeholder { width: 150px; height: 150px; border-radius: 50%; border: 15px solid #eee; display: flex; align-items: center; justify-content: center; position: relative; }
-        .donut-placeholder::before { content: '32'; font-size: 1.5rem; font-weight: 800; }
-        .chart-legend { display: flex; flex-direction: column; gap: 10px; }
-        .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); }
-        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .chart-meta { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .meta-item { border-left: 3px solid #eee; padding-left: 16px; }
+        .meta-item p { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; }
+        .meta-item h4 { font-size: 1.2rem; font-weight: 800; }
 
-        /* ROOM STATUS GRID */
-        .room-status-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-        .room-box {
-            padding: 12px; border-radius: 8px; text-align: center;
-            border: 1px solid transparent; font-size: 0.75rem; font-weight: 600;
-        }
-        .room-box span { display: block; font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
-        .room-box.occupied { background: #E8F5E9; color: #2E7D32; border-color: #C8E6C9; }
-        .room-box.available { background: #E3F2FD; color: #1565C0; border-color: #BBDEFB; }
-        .room-box.maintenance { background: #FFF3E0; color: #E65100; border-color: #FFE0B2; }
+        /* ROOM GRID */
+        .room-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .room-unit { padding: 14px; border-radius: 10px; text-align: center; border: 1px solid #F1F5F9; font-weight: 800; transition: 0.2s; }
+        .room-unit span { display: block; font-size: 0.7rem; font-weight: 600; opacity: 0.7; margin-top: 4px; }
+        .room-unit.occupied { background: #ECFDF5; color: #065F46; border-color: #A7F3D0; }
+        .room-unit.available { background: #EFF6FF; color: #1E40AF; border-color: #BFDBFE; }
+        .room-unit.maintenance { background: #FFF7ED; color: #9A3412; border-color: #FED7AA; }
 
-        /* RECENT BOOKINGS TABLE */
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th { text-align: left; padding: 12px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-        .data-table td { padding: 15px 12px; font-size: 0.85rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .status-pill { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
-        .status-pill.checked_in { background: #E8F5E9; color: #2E7D32; }
-        .status-pill.confirmed { background: #E3F2FD; color: #1565C0; }
-        .status-pill.upcoming { background: #FFF3E0; color: #E65100; }
+        /* TABLE */
+        .enterprise-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .enterprise-table th { text-align: left; padding: 16px; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 800; border-bottom: 1px solid var(--border); }
+        .enterprise-table td { padding: 18px 16px; font-size: 0.9rem; font-weight: 600; border-bottom: 1px solid #F8FAFC; }
+        .status-tag { padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        .tag-checkin { background: #DCFCE7; color: #166534; }
+        .tag-upcoming { background: #FEF3C7; color: #92400E; }
+        .tag-confirmed { background: #DBEAFE; color: #1E40AF; }
 
-        /* ACTIVITY TIMELINE */
-        .timeline { display: flex; flex-direction: column; gap: 20px; }
-        .timeline-item { display: flex; gap: 15px; align-items: flex-start; }
-        .timeline-time { font-size: 0.75rem; color: var(--text-muted); min-width: 60px; font-weight: 600; }
-        .timeline-point { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); margin-top: 4px; position: relative; }
-        .timeline-point::after { content: ''; position: absolute; top: 10px; left: 4.5px; width: 1px; height: 30px; background: #eee; }
-        .timeline-item:last-child .timeline-point::after { display: none; }
-        .timeline-desc h5 { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
-        .timeline-desc p { font-size: 0.75rem; color: var(--text-muted); }
+        /* TIMELINE ACTIVITY */
+        .activity-feed { display: flex; flex-direction: column; gap: 24px; }
+        .activity-item { display: flex; gap: 20px; align-items: flex-start; }
+        .act-time { min-width: 70px; font-size: 0.75rem; color: var(--text-muted); font-weight: 700; padding-top: 4px; }
+        .act-icon { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); margin-top: 6px; position: relative; }
+        .act-icon::after { content: ''; position: absolute; top: 12px; left: 5.5px; width: 1px; height: 40px; background: #E2E8F0; }
+        .activity-item:last-child .act-icon::after { display: none; }
+        .act-content h5 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+        .act-content p { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
 
-        /* LOWER REVENUE METRICS */
-        .revenue-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .rev-mini-card { background: white; padding: 20px; border-radius: 12px; box-shadow: var(--shadow); }
-        .rev-mini-card p { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
-        .rev-mini-card h4 { font-size: 1.3rem; font-weight: 800; margin: 5px 0; }
-        .rev-mini-card .trend { font-size: 0.7rem; font-weight: 700; }
+        /* REVENUE FOOTER */
+        .footer-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+        .min-card { background: white; padding: 24px; border-radius: var(--radius-lg); box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; }
+        .min-info p { font-size: 0.8rem; color: var(--text-muted); font-weight: 700; }
+        .min-info h4 { font-size: 1.4rem; font-weight: 800; margin: 4px 0; }
+        .min-icon-box { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 
-        /* --- MODALS --- */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .modal-content { background: white; border-radius: 20px; width: 600px; padding: 30px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; }
-        .close-icon { cursor: pointer; font-size: 1.5rem; }
+        /* AUTH */
+        .overlay-auth { position: fixed; inset: 0; background: var(--sidebar-bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-box { background: white; width: 440px; padding: 48px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; }
+        .login-box input { width: 100%; padding: 14px 20px; border: 1px solid var(--border); border-radius: 12px; margin-top: 8px; outline: none; font-size: 1rem; }
+        .btn-auth { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 800; margin-top: 24px; cursor: pointer; }
 
-        /* --- FORMS --- */
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.75rem; font-weight: 700; margin-bottom: 5px; color: var(--text-muted); }
-        .input-group input, .input-group select, .input-group textarea {
-            width: 100%; padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem;
-        }
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-
-        /* AUTH OVERLAY */
-        .auth-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--sidebar-bg); display: flex; justify-content: center; align-items: center; z-index: 3000;
-        }
-        .auth-card { background: white; padding: 40px; border-radius: 20px; width: 400px; text-align: center; }
-        .auth-logo { font-size: 3rem; margin-bottom: 20px; }
+        /* DATE PICKERS & MODALS */
+        .modal-base { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 500; }
+        .modal-win { background: white; width: 640px; border-radius: 24px; padding: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
+        .win-head { display: flex; justify-content: space-between; margin-bottom: 32px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <!-- LOGIN OVERLAY -->
-    <div id="login-overlay" class="auth-overlay">
-        <div class="auth-card">
-            <div class="auth-logo">⚜️</div>
-            <h2>PMS Admin Login</h2>
-            <p style="margin-bottom: 25px; color: #7f8c8d;">Enter credentials to access Ganga Palace Dashboard</p>
-            <div class="input-group" style="text-align: left;">
-                <label>Email Address</label>
+    <!-- AUTH OVERLAY -->
+    <div id="login-overlay" class="overlay-auth">
+        <div class="login-box">
+            <div class="logo-box" style="margin: 0 auto 24px; width: 60px; height: 60px; font-size: 2rem;">⚜️</div>
+            <h2 style="font-size: 1.8rem; font-weight: 800;">Enterprise Login</h2>
+            <p style="color: var(--text-muted); margin-bottom: 40px;">Ganga Palace PMS Dashboard</p>
+
+            <div style="text-align: left; margin-bottom: 20px;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #444;">Admin Email</label>
                 <input type="email" id="admin-email" placeholder="admin@gangapalace.com">
             </div>
-            <div class="input-group" style="text-align: left;">
-                <label>Password</label>
-                <input type="password" id="admin-password" placeholder="••••••••">
+            <div style="text-align: left; margin-bottom: 10px;">
+                <label style="font-size: 0.8rem; font-weight: 700; color: #444;">Access Token</label>
+                <input type="password" id="admin-password" placeholder="••••••••••••">
             </div>
-            <button id="btn-login" class="btn-primary" style="width: 100%; margin-top: 10px; height: 45px; border: none; background: #C59D5F; color: white; border-radius: 8px; font-weight: 700; cursor: pointer;">Sign In</button>
-            <p id="login-error" class="error-text hidden" style="color: #e74c3c; font-size: 0.8rem; margin-top: 15px;"></p>
+
+            <button id="btn-login" class="btn-auth">Initialize Dashboard</button>
+            <p id="login-error" class="hidden" style="color: var(--danger); font-size: 0.85rem; margin-top: 16px;"></p>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
-    <div id="admin-app" class="dashboard-layout hidden">
-        <!-- SIDEBAR -->
+    <!-- MAIN APP STRUCTURE -->
+    <div id="admin-app" class="app-container hidden">
+        <!-- SIDEBAR (Left) -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <span class="logo-icon">⚜️</span>
-                <div>
+                <div class="logo-box">⚜️</div>
+                <div class="logo-text">
                     <h3>GANGA PALACE</h3>
                     <p>HOTEL & RESORT</p>
                 </div>
             </div>
 
-            <div class="user-profile-sidebar">
-                <div class="sidebar-avatar">👤</div>
-                <div class="sidebar-user-info">
+            <div class="sidebar-user">
+                <div class="user-avatar">👤</div>
+                <div class="user-meta">
                     <h4 id="sidebar-user-name">Manish Chaurasia</h4>
-                    <p>Administrator • <span style="color: #27ae60;">● Online</span></p>
+                    <p><span class="status-dot"></span> Online Administrator</p>
                 </div>
             </div>
 
-            <nav class="sidebar-nav">
-                <div class="nav-section-label">Main Menu</div>
-                <div class="nav-item active" onclick="switchTab('dashboard')"><span>📊</span> Dashboard</div>
+            <nav class="nav-list">
+                <div class="nav-item active" onclick="switchTab('dashboard')"><i>📊</i> Dashboard</div>
 
-                <div class="nav-section-label">Booking Management</div>
-                <div class="nav-item" onclick="switchTab('bookings')"><span>📅</span> Bookings</div>
-                <div class="nav-item" onclick="openManualBookingModal()"><span>➕</span> Add Booking</div>
-                <div class="nav-item"><span>🗓️</span> Room Calendar</div>
+                <div class="nav-label">Reservations</div>
+                <div class="nav-item" onclick="switchTab('bookings')"><i>📅</i> Booking List</div>
+                <div class="nav-item" onclick="openManualBookingModal()"><i>➕</i> Manual Entry</div>
+                <div class="nav-item"><i>🗓️</i> Availability Map</div>
+                <div class="nav-item"><i>🔄</i> Check-in / Out</div>
+                <div class="nav-item"><i>❌</i> Cancellations</div>
 
-                <div class="nav-section-label">Room Management</div>
-                <div class="nav-item" onclick="switchTab('rooms')"><span>🏢</span> Rooms</div>
-                <div class="nav-item" onclick="switchTab('inventory')"><span>📦</span> Inventory</div>
+                <div class="nav-label">Properties</div>
+                <div class="nav-item" onclick="switchTab('rooms')"><i>🏢</i> Inventory Grid</div>
+                <div class="nav-item" onclick="switchTab('inventory')"><i>📦</i> Allotment Control</div>
+                <div class="nav-item"><i>🏠</i> Housekeeping</div>
 
-                <div class="nav-section-label">Guest Management</div>
-                <div class="nav-item"><span>👥</span> Guests</div>
+                <div class="nav-label">Financials</div>
+                <div class="nav-item"><i>💰</i> Payment Logs</div>
+                <div class="nav-item"><i>📈</i> Performance Reports</div>
 
-                <div class="nav-section-label">Finance & Reports</div>
-                <div class="nav-item"><span>💰</span> Payments</div>
-                <div class="nav-item"><span>📈</span> Reports</div>
-
-                <div class="nav-section-label">Settings</div>
-                <div class="nav-item" onclick="switchTab('settings')"><span>⚙️</span> Hotel Profile</div>
+                <div class="nav-label">Settings</div>
+                <div class="nav-item" onclick="switchTab('settings')"><i>⚙️</i> System Profile</div>
             </nav>
 
-            <div class="sidebar-footer">
-                <button id="btn-logout" class="btn-logout"><span>🚪</span> Logout</button>
+            <div style="padding: 24px; border-top: 1px solid rgba(255,255,255,0.05);">
+                <div class="nav-item" id="btn-logout" style="margin-bottom: 0;"><i>🚪</i> Exit Portal</div>
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
-        <main class="main-content">
-            <header class="top-header">
-                <div class="header-welcome">
+        <!-- CONTENT AREA (Right) -->
+        <main class="main-wrapper">
+            <!-- TOP BAR -->
+            <header class="header-top">
+                <div class="greeting">
                     <h2 id="header-greeting">Welcome back, Manish!</h2>
-                    <p>Here's what's happening with your hotel today.</p>
+                    <p>Dashboard monitoring active for current operational cycle.</p>
                 </div>
-                <div class="header-actions">
-                    <div class="date-selector">
-                        <span>📅</span>
-                        <span id="current-date-display">24 Jun 2025</span>
-                        <span>▼</span>
+
+                <div class="actions-right">
+                    <div class="date-btn">
+                        <i>📅</i> <span id="current-date-display">24 Jun 2025</span> ▾
                     </div>
-                    <button class="btn-new-booking" onclick="openManualBookingModal()">+ New Booking</button>
-                    <div class="header-icons">
-                        <span>🔍</span>
-                        <span>🔔</span>
-                        <span>⚙️</span>
-                    </div>
+                    <button class="btn-booking" onclick="openManualBookingModal()">+ New Reservation</button>
+                    <div class="icon-btn">🔍</div>
+                    <div class="icon-btn">🔔 <span class="badge">5</span></div>
+                    <div class="icon-btn">👤</div>
                 </div>
             </header>
 
             <!-- TAB: DASHBOARD -->
-            <div id="tab-dashboard" class="tab-pane">
-                <!-- TOP METRICS -->
-                <div class="dashboard-grid">
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: #E3F2FD; color: #1565C0;">📊</div>
-                        <div class="metric-info">
+            <div id="tab-dashboard" class="page-content">
+                <!-- METRIC CARDS -->
+                <div class="metric-row">
+                    <div class="card-stat">
+                        <div class="stat-icon" style="background: #E0F2FE; color: #0284C7;">📈</div>
+                        <div class="stat-info">
                             <p>Total Bookings</p>
-                            <h4 id="stat-total-bookings">28</h4>
-                            <div class="metric-change up">+12% from yesterday</div>
+                            <h3 id="stat-total-bookings">28</h3>
+                            <div class="stat-trend up">↑ 12% vs yesterday</div>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: #E8F5E9; color: #2E7D32;">🏨</div>
-                        <div class="metric-info">
+                    <div class="card-stat">
+                        <div class="stat-icon" style="background: #DCFCE7; color: #059669;">🛎️</div>
+                        <div class="stat-info">
                             <p>Today Check-ins</p>
-                            <h4 id="stat-checkins">8</h4>
-                            <div class="metric-change up">View Details →</div>
+                            <h4 id="stat-checkins" style="font-size: 1.8rem; font-weight: 800;">8</h4>
+                            <div class="stat-trend up" style="color: var(--primary);">View Analysis →</div>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: #FFF3E0; color: #E65100;">🚪</div>
-                        <div class="metric-info">
+                    <div class="card-stat">
+                        <div class="stat-icon" style="background: #FEF3C7; color: #D97706;">🚪</div>
+                        <div class="stat-info">
                             <p>Today Check-outs</p>
-                            <h4 id="stat-checkouts">6</h4>
-                            <div class="metric-change up">View Details →</div>
+                            <h4 id="stat-checkouts" style="font-size: 1.8rem; font-weight: 800;">6</h4>
+                            <div class="stat-trend up" style="color: var(--primary);">View Analysis →</div>
                         </div>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-icon" style="background: #F3E5F5; color: #7B1FA2;">🛏️</div>
-                        <div class="metric-info">
+                    <div class="card-stat">
+                        <div class="stat-icon" style="background: #F1F5F9; color: #475569;">🛌</div>
+                        <div class="stat-info">
+                            <p>Total Rooms</p>
+                            <h4 id="stat-total-rooms" style="font-size: 1.8rem; font-weight: 800;">32</h4>
+                            <div class="stat-trend" style="color: #64748B;">All Units</div>
+                        </div>
+                    </div>
+                    <div class="card-stat">
+                        <div class="stat-icon" style="background: #F0FDFA; color: #0D9488;">📊</div>
+                        <div class="stat-info">
                             <p>Occupancy</p>
-                            <h4 id="stat-occupancy">78%</h4>
-                            <div class="metric-change up">Excellent</div>
+                            <h4 id="stat-occupancy" style="font-size: 1.8rem; font-weight: 800;">78%</h4>
+                            <div class="stat-trend up">Excellence Level</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- MIDDLE SECTION -->
-                <div class="content-cols">
-                    <!-- BOOKING OVERVIEW -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Booking Overview</h3>
-                            <div class="filter-pills" style="display: flex; gap: 10px;">
-                                <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); border-bottom: 2px solid var(--primary); cursor: pointer;">Today</span>
-                                <span style="font-size: 0.75rem; font-weight: 700; color: #999; cursor: pointer;">This Week</span>
-                                <span style="font-size: 0.75rem; font-weight: 700; color: #999; cursor: pointer;">This Month</span>
+                <!-- MIDDLE PANELS -->
+                <div class="dashboard-layout-main">
+                    <!-- LEFT: BOOKING ANALYTICS -->
+                    <div class="card-panel">
+                        <div class="panel-head">
+                            <h3>Real-time Occupancy Analysis</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <button style="padding: 6px 12px; border-radius: 6px; border: none; background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.75rem;">Today</button>
+                                <button style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: none; font-weight: 700; font-size: 0.75rem; color: #888;">Weekly</button>
                             </div>
                         </div>
-                        <div class="occupancy-chart-container">
-                            <div class="donut-placeholder"></div>
-                            <div class="chart-legend">
-                                <div style="margin-bottom: 15px;">
-                                    <p style="font-size: 0.75rem; color: #999; font-weight: 700;">Occupancy Rate</p>
-                                    <h2 style="font-size: 1.8rem;">78%</h2>
-                                    <p style="font-size: 0.7rem; color: var(--success); font-weight: 800;">↑ 8% from yesterday</p>
+
+                        <div class="occupancy-display">
+                            <div class="chart-box">
+                                <canvas id="occupancyChart"></canvas>
+                                <div class="chart-center">
+                                    <h2 id="chart-total-rooms">32</h2>
+                                    <p>Total Units</p>
                                 </div>
-                                <div class="legend-item"><span class="dot" style="background: var(--success);"></span> Occupied: 25 (78%)</div>
-                                <div class="legend-item"><span class="dot" style="background: var(--info);"></span> Available: 7 (22%)</div>
-                                <div class="legend-item"><span class="dot" style="background: var(--warning);"></span> Maintenance: 0 (0%)</div>
                             </div>
-                            <div class="adr-revpar" style="border-left: 1px solid #eee; padding-left: 20px;">
-                                <div style="margin-bottom: 15px;">
-                                    <p style="font-size: 0.7rem; color: #999; font-weight: 700;">ADR (Avg Daily Rate)</p>
-                                    <h4 style="font-size: 1.1rem;">₹4,250</h4>
-                                    <p style="font-size: 0.65rem; color: var(--success); font-weight: 800;">↑ 6% from yesterday</p>
+
+                            <div class="chart-meta">
+                                <div class="meta-item" style="border-color: var(--success);">
+                                    <p>Occupied Units</p>
+                                    <h4 id="meta-occupied">25 (78%)</h4>
                                 </div>
-                                <div>
-                                    <p style="font-size: 0.7rem; color: #999; font-weight: 700;">RevPAR</p>
-                                    <h4 style="font-size: 1.1rem;">₹3,315</h4>
-                                    <p style="font-size: 0.65rem; color: var(--success); font-weight: 800;">↑ 7% from yesterday</p>
+                                <div class="meta-item" style="border-color: var(--info);">
+                                    <p>Available Units</p>
+                                    <h4 id="meta-available">7 (22%)</h4>
+                                </div>
+                                <div class="meta-item" style="border-color: var(--primary);">
+                                    <p>Avg Daily Rate</p>
+                                    <h4>₹4,250</h4>
+                                    <span style="font-size: 0.65rem; color: var(--success); font-weight: 800;">↑ 6% Trend</span>
+                                </div>
+                                <div class="meta-item" style="border-color: #7C3AED;">
+                                    <p>RevPAR</p>
+                                    <h4>₹3,315</h4>
+                                    <span style="font-size: 0.65rem; color: var(--success); font-weight: 800;">↑ 7% Trend</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- ROOM STATUS -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Room Status</h3>
-                            <a href="#" class="view-link" onclick="switchTab('rooms')">View Calendar</a>
+                    <!-- RIGHT: ROOM STATUS QUICK VIEW -->
+                    <div class="card-panel">
+                        <div class="panel-head">
+                            <h3>Operational Room Status</h3>
+                            <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer;">View Calendar →</span>
                         </div>
-                        <div class="room-status-grid" id="dashboard-rooms-grid">
-                            <!-- Injected -->
+                        <div class="room-grid" id="dashboard-rooms-grid">
+                            <!-- Injected PC Rooms -->
                         </div>
-                        <div style="margin-top: 20px; display: flex; justify-content: center; gap: 20px;">
-                            <div class="legend-item"><span class="dot" style="background: var(--success);"></span> Occupied</div>
-                            <div class="legend-item"><span class="dot" style="background: var(--info);"></span> Available</div>
-                            <div class="legend-item"><span class="dot" style="background: var(--warning);"></span> Maintenance</div>
+                        <div style="margin-top: 24px; display: flex; justify-content: center; gap: 16px;">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700; color: #666;"><span style="width:8px; height:8px; border-radius:50%; background:var(--success);"></span> Occupied</div>
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700; color: #666;"><span style="width:8px; height:8px; border-radius:50%; background:var(--info);"></span> Available</div>
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700; color: #666;"><span style="width:8px; height:8px; border-radius:50%; background:var(--warning);"></span> Maintenance</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- BOTTOM SECTION -->
-                <div class="content-cols">
-                    <!-- RECENT BOOKINGS -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Recent Bookings</h3>
-                            <a href="#" class="view-link" onclick="switchTab('bookings')">View All Bookings</a>
+                <!-- BOTTOM PANELS -->
+                <div class="dashboard-layout-main">
+                    <!-- LEFT: RECENT BOOKINGS -->
+                    <div class="card-panel">
+                        <div class="panel-head">
+                            <h3>Confirmed Recent Reservations</h3>
+                            <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer;">Full Directory →</span>
                         </div>
-                        <table class="data-table">
+                        <table class="enterprise-table">
                             <thead>
                                 <tr>
-                                    <th>Booking ID</th>
-                                    <th>Guest Name</th>
+                                    <th>Booking Reference</th>
+                                    <th>Guest Portfolio</th>
                                     <th>Room</th>
-                                    <th>Check-in</th>
-                                    <th>Check-out</th>
+                                    <th>Period</th>
+                                    <th>Billing</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
                             <tbody id="recent-bookings-body">
-                                <!-- Injected -->
+                                <!-- PC Table Rows -->
                             </tbody>
                         </table>
-                        <div style="text-align: center; margin-top: 20px;">
-                            <a href="#" class="view-link" onclick="switchTab('bookings')">View All Bookings →</a>
-                        </div>
                     </div>
 
-                    <!-- TODAY'S ACTIVITY -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Today's Activity</h3>
-                            <a href="#" class="view-link">View All</a>
+                    <!-- RIGHT: LIVE ACTIVITY FEED -->
+                    <div class="card-panel">
+                        <div class="panel-head">
+                            <h3>Live Operational Log</h3>
+                            <span style="color: var(--primary); font-size: 0.8rem; font-weight: 700; cursor: pointer;">Historical Feed</span>
                         </div>
-                        <div class="timeline" id="timeline-activity">
-                            <div class="timeline-item">
-                                <div class="timeline-time">10:30 AM</div>
-                                <div class="timeline-point" style="background: var(--success);"></div>
-                                <div class="timeline-desc">
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <div class="act-time">10:30 AM</div>
+                                <div class="act-icon" style="background: var(--success);"></div>
+                                <div class="act-content">
                                     <h5>Rahul Sharma checked in</h5>
-                                    <p>Room 101 • BK25062401</p>
+                                    <p>Executive Suite 101 • REF_BK250624</p>
                                 </div>
                             </div>
-                            <div class="timeline-item">
-                                <div class="timeline-time">11:15 AM</div>
-                                <div class="timeline-point" style="background: var(--info);"></div>
-                                <div class="timeline-desc">
-                                    <h5>Payment received</h5>
-                                    <p>Booking BK25062401 - ₹8,500</p>
+                            <div class="activity-item">
+                                <div class="act-time">11:15 AM</div>
+                                <div class="act-icon" style="background: var(--info);"></div>
+                                <div class="act-content">
+                                    <h5>Transaction Initialized</h5>
+                                    <p>₹8,500 Settlement for Booking ID #401</p>
                                 </div>
                             </div>
-                            <div class="timeline-item">
-                                <div class="timeline-time">01:20 PM</div>
-                                <div class="timeline-point" style="background: #7B1FA2;"></div>
-                                <div class="timeline-desc">
-                                    <h5>Neha Singh booking confirmed</h5>
-                                    <p>Room 103</p>
+                            <div class="activity-item">
+                                <div class="act-time">01:20 PM</div>
+                                <div class="act-icon" style="background: #7C3AED;"></div>
+                                <div class="act-content">
+                                    <h5>Booking Authorization</h5>
+                                    <p>Neha Singh confirmed for Deluxe Wing</p>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="act-time">03:45 PM</div>
+                                <div class="act-icon" style="background: var(--warning);"></div>
+                                <div class="act-content">
+                                    <h5>Facility Maintenance Alert</h5>
+                                    <p>Room 108: AC Technical report pending</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- REVENUE METRICS -->
-                <div class="revenue-metrics">
-                    <div class="rev-mini-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <p>Today's Revenue</p>
-                            <span style="color: var(--success);">💸</span>
+                <!-- FOOTER REVENUE BAR -->
+                <div class="footer-metrics">
+                    <div class="min-card">
+                        <div class="min-info">
+                            <p>Daily Revenue Cycle</p>
+                            <h4 id="rev-today">₹34,850</h4>
+                            <span style="font-size: 0.7rem; color: var(--success); font-weight: 800;">↑ 12% Growth</span>
                         </div>
-                        <h4 id="rev-today">₹34,850</h4>
-                        <span class="trend" style="color: var(--success);">↑ 12% from yesterday</span>
+                        <div class="min-icon-box" style="background: #ECFDF5; color: #059669;">💸</div>
                     </div>
-                    <div class="rev-mini-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <p>This Month Revenue</p>
-                            <span style="color: #7B1FA2;">📊</span>
+                    <div class="min-card">
+                        <div class="min-info">
+                            <p>Fiscal Month Accumulation</p>
+                            <h4 id="rev-month">₹8,45,200</h4>
+                            <span style="font-size: 0.7rem; color: var(--success); font-weight: 800;">↑ 15% Projection</span>
                         </div>
-                        <h4 id="rev-month">₹8,45,200</h4>
-                        <span class="trend" style="color: var(--success);">↑ 15% from last month</span>
+                        <div class="min-icon-box" style="background: #F5F3FF; color: #7C3AED;">📊</div>
                     </div>
-                    <div class="rev-mini-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <p>Pending Payments</p>
-                            <span style="color: var(--warning);">🕒</span>
+                    <div class="min-card">
+                        <div class="min-info">
+                            <p>Outstanding Receivable</p>
+                            <h4 id="rev-pending">₹1,25,600</h4>
+                            <span style="font-size: 0.7rem; color: #94A3B8; font-weight: 800;">Pending 5 Files</span>
                         </div>
-                        <h4 id="rev-pending">₹1,25,600</h4>
-                        <span class="trend" style="color: #999;">5 Bookings</span>
+                        <div class="min-icon-box" style="background: #FFF7ED; color: #D97706;">🕒</div>
                     </div>
-                    <div class="rev-mini-card">
-                        <div style="display: flex; justify-content: space-between;">
-                            <p>Total Guests</p>
-                            <span style="color: var(--info);">👥</span>
+                    <div class="min-card">
+                        <div class="min-info">
+                            <p>Customer Interaction Index</p>
+                            <h4 id="stat-total-guests">96</h4>
+                            <span style="font-size: 0.7rem; color: var(--success); font-weight: 800;">↑ 18% Retention</span>
                         </div>
-                        <h4 id="stat-total-guests">96</h4>
-                        <span class="trend" style="color: var(--success);">↑ 18% from last month</span>
+                        <div class="min-icon-box" style="background: #EFF6FF; color: #1E40AF;">👥</div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: BOOKINGS -->
-            <div id="tab-bookings" class="tab-pane hidden">
-                <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 25px;">
-                    <div class="horizontal-filter" style="display: flex; gap: 15px; padding: 20px; align-items: flex-end;">
-                        <div class="input-group" style="margin-bottom: 0; flex: 1;">
-                            <label>Date of</label>
-                            <select id="filter-date-type" style="padding: 8px;">
-                                <option value="check-in">Check-in</option>
-                                <option value="reservation">Reservation</option>
-                                <option value="check-out">Check-out</option>
-                            </select>
-                        </div>
-                        <div class="input-group" style="margin-bottom: 0; flex: 1;">
-                            <label>From</label>
-                            <input type="date" id="filter-from-date" style="padding: 6px;">
-                        </div>
-                        <div class="input-group" style="margin-bottom: 0; flex: 1;">
-                            <label>Until</label>
-                            <input type="date" id="filter-until-date" style="padding: 6px;">
-                        </div>
-                        <button onclick="toggleMoreFilters()" style="background: white; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; cursor: pointer;">More filters ⌵</button>
-                        <button onclick="applyBookingFilters()" style="background: var(--primary); color: white; border: none; padding: 8px 25px; border-radius: 8px; font-weight: 700; cursor: pointer;">Show</button>
-                    </div>
-                    <div id="more-filters" class="more-filters-container hidden" style="padding: 20px; background: #fafafa; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
-                        <div class="filter-column">
-                            <h4 style="font-size: 0.8rem; margin-bottom: 10px;">Status</h4>
-                            <label style="display: block; font-size: 0.8rem; margin-bottom: 5px;"><input type="checkbox" name="status-filter" value="booked"> Confirmed</label>
-                            <label style="display: block; font-size: 0.8rem;"><input type="checkbox" name="status-filter" value="cancelled"> Cancelled</label>
-                        </div>
-                        <div class="filter-column">
-                            <h4 style="font-size: 0.8rem; margin-bottom: 10px;">Search</h4>
-                            <input type="text" id="filter-search-advanced" placeholder="Name or ID..." style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <table class="data-table">
+            <!-- OTHER TABS (Simplified for Parity) -->
+            <div id="tab-bookings" class="page-content hidden">
+                 <div class="card-panel">
+                    <div class="panel-head"><h3>Full Reservation Directory</h3></div>
+                    <table class="enterprise-table">
                         <thead>
                             <tr>
-                                <th>Booking ID</th>
-                                <th>Guest</th>
-                                <th>Room #</th>
+                                <th>Reference</th>
+                                <th>Guest Name</th>
+                                <th>Phone</th>
+                                <th>Room</th>
                                 <th>Dates</th>
                                 <th>Amount</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th>Controls</th>
                             </tr>
                         </thead>
-                        <tbody id="all-bookings-body">
-                            <!-- Injected -->
-                        </tbody>
+                        <tbody id="all-bookings-body"></tbody>
                     </table>
-                </div>
+                 </div>
             </div>
 
-            <!-- TAB: ROOMS -->
-            <div id="tab-rooms" class="tab-pane hidden">
-                <div class="card-header">
-                    <h2>Property Rooms</h2>
-                    <button class="btn-new-booking" onclick="openRoomModal()">+ Add New Room</button>
-                </div>
-                <div id="admin-rooms-grid" class="rooms-admin-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
-                    <!-- Injected -->
-                </div>
+            <div id="tab-rooms" class="page-content hidden">
+                <div class="panel-head"><h2>Managed Properties</h2><button class="btn-booking" onclick="openRoomModal()">+ Add New Inventory</button></div>
+                <div id="admin-rooms-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;"></div>
             </div>
 
-            <!-- TAB: INVENTORY -->
-            <div id="tab-inventory" class="tab-pane hidden">
-                <div class="card">
-                    <h3>Inventory Control</h3>
-                    <div class="inventory-form" style="margin-top:20px;">
-                        <div class="input-row">
-                            <div class="input-group">
-                                <label>From Date</label>
-                                <input type="date" id="inv-from">
-                            </div>
-                            <div class="input-group">
-                                <label>To Date</label>
-                                <input type="date" id="inv-to">
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>Room Types</label>
-                            <div id="inv-room-types" class="checkbox-group" style="display: flex; gap: 15px; flex-wrap: wrap;"></div>
-                        </div>
-                        <button class="btn-new-booking" onclick="applyInventoryChange()">Apply Inventory Changes</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB: SETTINGS -->
-            <div id="tab-settings" class="tab-pane hidden">
-                <div class="card">
-                    <h3>Hotel Settings</h3>
-                    <div class="settings-form" style="margin-top:20px;">
-                        <div class="input-group">
-                            <label>Hotel Name</label>
-                            <input type="text" id="set-hotel-name">
-                        </div>
-                        <div class="input-group">
-                            <label>Address</label>
-                            <input type="text" id="set-hotel-address">
-                        </div>
-                        <div class="input-group">
-                            <label>Description</label>
-                            <textarea id="set-hotel-desc" rows="4"></textarea>
-                        </div>
-                        <button class="btn-new-booking" onclick="savePropertySettings()">Save Profile</button>
-                    </div>
+            <div id="tab-settings" class="page-content hidden">
+                <div class="card-panel" style="max-width: 800px;">
+                    <h3 style="margin-bottom: 24px;">Property Configuration</h3>
+                    <div class="input-row"><div style="flex:1"><label>Legal Hotel Name</label><input type="text" id="set-hotel-name" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;"></div></div>
+                    <div class="input-row" style="margin-top:20px;"><div style="flex:1"><label>Physical Address</label><input type="text" id="set-hotel-address" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;"></div></div>
+                    <button class="btn-booking" style="margin-top:30px;" onclick="savePropertySettings()">Commit Changes</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL: MANUAL BOOKING -->
-    <div id="manual-booking-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>New Booking</h2>
-                <span class="close-icon" onclick="closeManualBookingModal()">&times;</span>
+    <!-- MODAL: MANUAL ENTRY -->
+    <div id="manual-booking-modal" class="modal-base hidden">
+        <div class="modal-win">
+            <div class="win-head"><h2>New Reservation Entry</h2><span style="cursor:pointer; font-size:1.5rem;" onclick="closeManualBookingModal()">&times;</span></div>
+            <div class="form-row"><div><label>Guest Portfolio Name</label><input type="text" id="mb-name"></div><div><label>Contact Authentication</label><input type="text" id="mb-phone"></div></div>
+            <div class="form-row"><div><label>Arrival Sequence</label><input type="date" id="mb-checkin" onchange="calcNights()"></div><div><label>Departure Cycle</label><input type="date" id="mb-checkout" onchange="calcNights()"></div></div>
+            <div class="form-row"><div><label>Inventory Type</label><select id="mb-room-type" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;"></select></div><div><label>Negotiated Daily Rate</label><input type="number" id="mb-rent" oninput="calcTotal()"></div></div>
+            <div style="background: #F8FAFC; padding: 24px; border-radius: 16px; margin-bottom: 32px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 700; color: #64748B;">Calculated Total Allotment:</span>
+                <h2 id="mb-total-display" style="font-weight: 800; color: var(--primary);">₹0</h2>
             </div>
-            <div class="input-group"><label>Guest Name *</label><input type="text" id="mb-name"></div>
-            <div class="input-row">
-                <div class="input-group"><label>Phone *</label><input type="text" id="mb-phone"></div>
-                <div class="input-group"><label>Adults</label><input type="number" id="mb-adults" value="2"></div>
-            </div>
-            <div class="input-row">
-                <div class="input-group"><label>Check-in</label><input type="date" id="mb-checkin" onchange="calcNights()"></div>
-                <div class="input-group"><label>Check-out</label><input type="date" id="mb-checkout" onchange="calcNights()"></div>
-            </div>
-            <div class="input-row">
-                <div class="input-group"><label>Room Type</label><select id="mb-room-type"></select></div>
-                <div class="input-group"><label>Rent / Night</label><input type="number" id="mb-rent" oninput="calcTotal()"></div>
-            </div>
-            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between;"><span>Total Amount</span><b id="mb-total-display">₹0</b></div>
-            </div>
-            <button id="btn-save-manual" class="btn-new-booking" style="width: 100%;" onclick="saveManualBooking()">Confirm Booking</button>
-        </div>
-    </div>
-
-    <!-- MODAL: ROOM -->
-    <div id="room-modal" class="modal hidden">
-        <div class="modal-content">
-            <div class="modal-header"><h2>Add Room</h2><span class="close-icon" onclick="closeRoomModal()">&times;</span></div>
-            <div class="input-group"><label>Room Number</label><input type="text" id="room-number"></div>
-            <div class="input-group"><label>Room Type</label><input type="text" id="room-type"></div>
-            <button id="btn-save-room" class="btn-new-booking" style="width: 100%;">Save Room</button>
+            <button class="btn-booking" style="width: 100%; padding: 18px;" onclick="saveManualBooking()">Process Final Authorization</button>
         </div>
     </div>
 
     <script>
-        // --- EMBEDDED JAVASCRIPT ---
+        // --- ENTERPRISE DASHBOARD LOGIC ---
         const firebaseConfig = {
           apiKey: "AIzaSyBw6jDr8wRKeMMR7TiX8YiB0kO1wIfEmbE",
           authDomain: "roomserviceapk.firebaseapp.com",
@@ -637,296 +525,288 @@
           appId: "1:987842436715:web:04d22839d4ca52c61e1b2e"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const auth = firebase.auth();
 
-        // UI Elements
-        const loginOverlay = document.getElementById('login-overlay');
-        const adminApp = document.getElementById('admin-app');
-        const btnLogin = document.getElementById('btn-login');
-        const btnLogout = document.getElementById('btn-logout');
-        const loginError = document.getElementById('login-error');
-
         let hotelId = "GangaHomes_001";
         let allBookings = [];
         let allRooms = [];
+        let occupancyChart;
 
         // --- AUTHENTICATION ---
         auth.onAuthStateChanged(user => {
+            const overlay = document.getElementById('login-overlay');
+            const app = document.getElementById('admin-app');
             if (user) {
-                loginOverlay.classList.add('hidden');
-                adminApp.classList.remove('hidden');
-                const adminName = user.email.split('@')[0];
-                document.getElementById('sidebar-user-name').innerText = adminName.charAt(0).toUpperCase() + adminName.slice(1);
-                document.getElementById('header-greeting').innerText = "Welcome back, " + adminName.charAt(0).toUpperCase() + adminName.slice(1) + "!";
-                initDashboard();
+                overlay.classList.add('hidden');
+                app.classList.remove('hidden');
+                const adminName = user.email.split('@')[0].toUpperCase();
+                document.getElementById('sidebar-user-name').innerText = adminName;
+                document.getElementById('header-greeting').innerText = `Welcome back, ${adminName}!`;
+                initEnterprisePortal();
             } else {
-                loginOverlay.classList.remove('hidden');
-                adminApp.classList.add('hidden');
+                overlay.classList.remove('hidden');
+                app.classList.add('hidden');
             }
         });
 
-        btnLogin.onclick = () => {
+        document.getElementById('btn-login').onclick = () => {
             const email = document.getElementById('admin-email').value;
             const password = document.getElementById('admin-password').value;
-            auth.signInWithEmailAndPassword(email, password)
-                .catch(err => {
-                    loginError.innerText = err.message;
-                    loginError.classList.remove('hidden');
-                });
-        };
-
-        btnLogout.onclick = () => auth.signOut();
-
-        // --- NAVIGATION ---
-        window.switchTab = (tabId) => {
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-
-            const target = document.getElementById('tab-' + tabId);
-            if (target) target.classList.remove('hidden');
-
-            document.querySelectorAll('.nav-item').forEach(item => {
-                if (item.getAttribute('onclick')?.includes(tabId)) {
-                    item.classList.add('active');
-                }
+            auth.signInWithEmailAndPassword(email, password).catch(err => {
+                const errBox = document.getElementById('login-error');
+                errBox.innerText = "Authentication Failure: Access Denied";
+                errBox.classList.remove('hidden');
             });
         };
 
-        // --- DASHBOARD LOGIC ---
-        function initDashboard() {
-            listenForBookings();
-            listenForRooms();
-            syncSettings();
-            updateDateDisplay();
+        document.getElementById('btn-logout').onclick = () => auth.signOut();
+
+        function switchTab(id) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.remove('hidden');
+
+            // Mark active nav
+            const items = document.querySelectorAll('.nav-item');
+            items.forEach(it => {
+                if(it.getAttribute('onclick')?.includes(id)) it.classList.add('active');
+            });
         }
 
-        function updateDateDisplay() {
+        function initEnterprisePortal() {
+            updateGlobalDate();
+            listenForRealtimeInventory();
+            listenForRealtimeReservations();
+            initCharts();
+            syncSystemProfile();
+        }
+
+        function updateGlobalDate() {
             const now = new Date();
-            const options = { day: '2-digit', month: 'short', year: 'numeric' };
-            document.getElementById('current-date-display').innerText = now.toLocaleDateString('en-GB', options);
+            document.getElementById('current-date-display').innerText = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
         }
 
-        function listenForBookings() {
+        function initCharts() {
+            const ctx = document.getElementById('occupancyChart').getContext('2d');
+            occupancyChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Occupied', 'Available', 'Maintenance'],
+                    datasets: [{
+                        data: [25, 7, 0],
+                        backgroundColor: ['#10B981', '#3B82F6', '#F59E0B'],
+                        borderWidth: 0,
+                        cutout: '80%'
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function listenForRealtimeInventory() {
+            db.ref('hotels').child(hotelId).child('rooms').on('value', snap => {
+                allRooms = [];
+                snap.forEach(c => allRooms.push(c.val()));
+                renderPCInventory();
+                updateAllotmentSelect();
+                refreshOccupancyData();
+            });
+        }
+
+        function renderPCInventory() {
+            const grid = document.getElementById('dashboard-rooms-grid');
+            const fullGrid = document.getElementById('admin-rooms-grid');
+
+            const html = allRooms.slice(0, 8).map(r => `
+                <div class="room-unit ${r.isAvailable ? 'available' : 'occupied'}">
+                    ${r.roomNumber}
+                    <span>${r.isAvailable ? 'AVAILABLE' : 'RESERVED'}</span>
+                </div>
+            `).join('');
+            if(grid) grid.innerHTML = html;
+
+            if(fullGrid) {
+                fullGrid.innerHTML = allRooms.map(r => `
+                    <div class="card-panel" style="padding:20px; text-align:center;">
+                        <div style="font-size:2rem; margin-bottom:12px;">🏨</div>
+                        <h4 style="font-weight:800;">UNIT ${r.roomNumber}</h4>
+                        <p style="font-size:0.7rem; color:#888; margin-top:4px;">${r.roomType.toUpperCase()}</p>
+                        <div class="status-tag ${r.isAvailable ? 'tag-confirmed' : 'tag-checkin'}" style="margin-top:16px; display:inline-block;">
+                            ${r.isAvailable ? 'AVAILABLE' : 'RESERVED'}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function listenForRealtimeReservations() {
             db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
                 allBookings = [];
                 snap.forEach(child => allBookings.push(child.val()));
                 allBookings.sort((a, b) => b.timestamp - a.timestamp);
 
-                renderDashboardStats();
-                renderRecentBookings(allBookings.slice(0, 5));
-                renderAllBookings(allBookings);
+                renderEnterpriseTable(allBookings.slice(0, 5), 'recent-bookings-body');
+                renderEnterpriseTable(allBookings, 'all-bookings-body', true);
+                calculateOperationalMetrics();
             });
         }
 
-        function renderDashboardStats() {
+        function renderEnterpriseTable(data, elementId, withControls = false) {
+            const body = document.getElementById(elementId);
+            if(!body) return;
+
+            body.innerHTML = data.map(b => `
+                <tr>
+                    <td style="color:var(--primary); font-family:monospace; font-size:0.8rem;">#REF_${(b.id || '').slice(-6).toUpperCase()}</td>
+                    <td>
+                        <div style="font-weight:800;">${b.guestName}</div>
+                        <div style="font-size:0.7rem; color:#888;">${b.numberOfGuests} PAX Portfolio</div>
+                    </td>
+                    <td style="font-weight:800;">Unit ${b.roomNumber || 'TBA'}</td>
+                    <td style="font-size:0.8rem;">
+                        <span style="color:#059669;">In: ${formatShortDate(b.checkInDate)}</span><br>
+                        <span style="color:#DC2626;">Out: ${formatShortDate(b.checkOutDate)}</span>
+                    </td>
+                    <td style="font-weight:800;">₹${(b.totalAmount || 0).toLocaleString()}</td>
+                    <td>
+                        <span class="status-tag ${b.status === 'CHECKED_IN' ? 'tag-checkin' : (b.status === 'BOOKED' ? 'tag-confirmed' : 'tag-upcoming')}">
+                            ${b.status || 'PENDING'}
+                        </span>
+                    </td>
+                    ${withControls ? `<td><button onclick="updateStatus('${b.id}', 'CHECKED_IN')" style="padding:6px 12px; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-size:0.7rem; font-weight:800;">AUTH CHECK-IN</button></td>` : ''}
+                </tr>
+            `).join('');
+        }
+
+        function calculateOperationalMetrics() {
             const today = new Date().setHours(0,0,0,0);
-            const todayBookings = allBookings.filter(b => new Date(b.checkInDate).setHours(0,0,0,0) === today);
-            const todayCheckouts = allBookings.filter(b => new Date(b.checkOutDate).setHours(0,0,0,0) === today);
+            const inToday = allBookings.filter(b => isSameDay(b.checkInDate, today)).length;
+            const outToday = allBookings.filter(b => isSameDay(b.checkOutDate, today)).length;
 
             document.getElementById('stat-total-bookings').innerText = allBookings.length;
-            document.getElementById('stat-checkins').innerText = todayBookings.length;
-            document.getElementById('stat-checkouts').innerText = todayCheckouts.length;
+            document.getElementById('stat-checkins').innerText = inToday;
+            document.getElementById('stat-checkouts').innerText = outToday;
 
-            const revenue = allBookings.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
-            document.getElementById('rev-month').innerText = "₹" + revenue.toLocaleString();
+            const monthRev = allBookings.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
+            document.getElementById('rev-month').innerText = "₹" + monthRev.toLocaleString();
             document.getElementById('stat-total-guests').innerText = allBookings.reduce((sum, b) => sum + (parseInt(b.numberOfGuests) || 0), 0);
         }
 
-        function renderRecentBookings(bookings) {
-            const body = document.getElementById('recent-bookings-body');
-            if (!body) return;
-            body.innerHTML = bookings.map(b => `
-                <tr>
-                    <td>#${(b.id || '').slice(-6)}</td>
-                    <td><b>${b.guestName}</b></td>
-                    <td>Room ${b.roomNumber || 'TBA'}</td>
-                    <td>${formatDate(b.checkInDate)}</td>
-                    <td>${formatDate(b.checkOutDate)}</td>
-                    <td><span class="status-pill ${(b.status || 'BOOKED').toLowerCase()}">${b.status || 'BOOKED'}</span></td>
-                </tr>
-            `).join('');
+        function refreshOccupancyData() {
+            const occupied = allRooms.filter(r => !r.isAvailable).length;
+            const available = allRooms.length - occupied;
+            const rate = allRooms.length > 0 ? Math.round((occupied / allRooms.length) * 100) : 0;
+
+            document.getElementById('stat-occupancy').innerText = rate + "%";
+            document.getElementById('chart-total-rooms').innerText = allRooms.length;
+            document.getElementById('meta-occupied').innerText = `${occupied} (${rate}%)`;
+            document.getElementById('meta-available').innerText = `${available} (${100 - rate}%)`;
+
+            if(occupancyChart) {
+                occupancyChart.data.datasets[0].data = [occupied, available, 0];
+                occupancyChart.update();
+            }
         }
 
-        function renderAllBookings(bookings) {
-            const body = document.getElementById('all-bookings-body');
-            if (!body) return;
-            body.innerHTML = bookings.map(b => `
-                <tr>
-                    <td>#${(b.id || '').slice(-6)}</td>
-                    <td><b>${b.guestName}</b><br><small>${b.guestPhone || ''}</small></td>
-                    <td>${b.roomNumber || 'TBA'}</td>
-                    <td>${formatDate(b.checkInDate)} - ${formatDate(b.checkOutDate)}</td>
-                    <td>₹${b.totalAmount || 0}</td>
-                    <td><span class="status-pill ${(b.status || 'BOOKED').toLowerCase()}">${b.status || 'BOOKED'}</span></td>
-                    <td>
-                        <button class="btn-action approve" onclick="updateStatus('${b.id}', 'CHECKED_IN')" style="border: 1px solid #eee; background: white; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Check-in</button>
-                    </td>
-                </tr>
-            `).join('');
+        function formatShortDate(ts) {
+            if(!ts) return '-';
+            return new Date(ts).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
         }
 
-        function formatDate(ts) {
-            if (!ts) return '-';
-            return new Date(ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        function isSameDay(d1, d2) {
+            return new Date(d1).setHours(0,0,0,0) === new Date(d2).setHours(0,0,0,0);
         }
 
-        window.updateStatus = (id, newStatus) => {
-            db.ref('hotels').child(hotelId).child('bookings').child(id).update({ status: newStatus });
+        window.updateStatus = (id, status) => {
+            db.ref('hotels').child(hotelId).child('bookings').child(id).update({ status });
         };
 
-        // --- ROOM MANAGEMENT ---
-        function listenForRooms() {
-            db.ref('hotels').child(hotelId).child('rooms').on('value', snap => {
-                allRooms = [];
-                snap.forEach(c => allRooms.push(c.val()));
-                renderAdminRooms();
-                renderDashboardRoomGrid();
-                updateRoomTypeSelect();
-                renderInventoryRoomTypes();
-            });
-        }
-
-        function renderDashboardRoomGrid() {
-            const grid = document.getElementById('dashboard-rooms-grid');
-            if (!grid) return;
-            // Show first 8-12 rooms on dashboard
-            grid.innerHTML = allRooms.slice(0, 8).map(r => `
-                <div class="room-box ${r.isAvailable ? 'available' : 'occupied'}">
-                    <span>${r.roomNumber}</span>
-                    ${r.isAvailable ? 'Available' : 'Occupied'}
-                </div>
-            `).join('');
-        }
-
-        function renderAdminRooms() {
-            const roomsGrid = document.getElementById('admin-rooms-grid');
-            if (!roomsGrid) return;
-            roomsGrid.innerHTML = allRooms.map(r => `
-                <div class="card" style="padding: 15px;">
-                    <div style="height: 120px; background: #f0f0f0; border-radius: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🛏️</div>
-                    <h4>${r.roomType} - Room ${r.roomNumber}</h4>
-                    <p style="font-size: 0.8rem; color: #7f8c8d; margin: 5px 0;">Max Guests: ${r.maxGuests || 2}</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                        <span class="status-pill ${r.isAvailable ? 'confirmed' : 'checked_in'}">${r.isAvailable ? 'Available' : 'Occupied'}</span>
-                        <button onclick="deleteRoom('${r.roomNumber}')" style="color: #e74c3c; background: none; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 700;">Delete</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        window.openRoomModal = () => document.getElementById('room-modal').classList.remove('hidden');
-        window.closeRoomModal = () => document.getElementById('room-modal').classList.add('hidden');
-
-        // --- MANUAL BOOKING ---
-        const mbModal = document.getElementById('manual-booking-modal');
-        window.openManualBookingModal = () => {
-            mbModal.classList.remove('hidden');
+        // --- MANUAL ENTRY ---
+        function openManualBookingModal() {
+            document.getElementById('manual-booking-modal').classList.remove('hidden');
             const today = new Date().toISOString().split('T')[0];
             const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
             document.getElementById('mb-checkin').value = today;
             document.getElementById('mb-checkout').value = tomorrow;
             calcNights();
-        };
-        window.closeManualBookingModal = () => mbModal.classList.add('hidden');
-
-        window.calcNights = () => {
-            const start = document.getElementById('mb-checkin').value;
-            const end = document.getElementById('mb-checkout').value;
-            if (start && end) {
-                const diff = Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24));
-                window.currentNights = diff <= 0 ? 1 : diff;
-                calcTotal();
-            }
-        };
-
-        window.calcTotal = () => {
-            const rent = parseFloat(document.getElementById('mb-rent').value) || 0;
-            const total = (window.currentNights || 1) * rent;
-            document.getElementById('mb-total-display').innerText = "₹" + total.toLocaleString();
-        };
-
-        function updateRoomTypeSelect() {
-            const select = document.getElementById('mb-room-type');
-            if (!select) return;
-            const types = [...new Set(allRooms.map(r => r.roomType))];
-            select.innerHTML = types.length ? types.map(t => `<option>${t}</option>`).join('') : '<option>No rooms available</option>';
         }
 
-        window.saveManualBooking = () => {
+        function closeManualBookingModal() {
+            document.getElementById('manual-booking-modal').classList.add('hidden');
+        }
+
+        function calcNights() {
+            const s = new Date(document.getElementById('mb-checkin').value);
+            const e = new Date(document.getElementById('mb-checkout').value);
+            const diff = Math.ceil((e - s) / (1000 * 60 * 60 * 24));
+            window.nights = diff <= 0 ? 1 : diff;
+            calcTotal();
+        }
+
+        function calcTotal() {
+            const rent = parseFloat(document.getElementById('mb-rent').value) || 0;
+            const total = (window.nights || 1) * rent;
+            document.getElementById('mb-total-display').innerText = "₹" + total.toLocaleString();
+        }
+
+        function updateAllotmentSelect() {
+            const sel = document.getElementById('mb-room-type');
+            if(!sel) return;
+            const types = [...new Set(allRooms.map(r => r.roomType))];
+            sel.innerHTML = types.map(t => `<option>${t}</option>`).join('');
+        }
+
+        function saveManualBooking() {
             const name = document.getElementById('mb-name').value;
             const phone = document.getElementById('mb-phone').value;
-            const roomType = document.getElementById('mb-room-type').value;
+            const type = document.getElementById('mb-room-type').value;
             const rent = parseFloat(document.getElementById('mb-rent').value) || 0;
 
-            if (!name || !phone) return alert("Fill required fields");
+            if(!name || !phone) return alert("Required Metadata Missing");
 
-            const room = allRooms.find(r => r.roomType === roomType);
+            const room = allRooms.find(r => r.roomType === type);
             const booking = {
-                id: 'BK' + Date.now().toString().slice(-8),
+                id: 'BK_' + Date.now(),
                 hotelId: hotelId,
                 guestName: name,
                 guestPhone: phone,
-                numberOfGuests: parseInt(document.getElementById('mb-adults').value) || 2,
+                numberOfGuests: 2,
                 checkInDate: new Date(document.getElementById('mb-checkin').value).getTime(),
                 checkOutDate: new Date(document.getElementById('mb-checkout').value).getTime(),
                 roomNumber: room ? room.roomNumber : "TBA",
-                totalAmount: (window.currentNights || 1) * rent,
+                totalAmount: (window.nights || 1) * rent,
                 status: "BOOKED",
                 timestamp: Date.now()
             };
 
-            db.ref('hotels').child(hotelId).child('bookings/' + booking.id).set(booking)
-                .then(() => {
-                    alert("Booking Confirmed!");
-                    closeManualBookingModal();
-                });
-        };
+            db.ref('hotels').child(hotelId).child('bookings/' + booking.id).set(booking).then(() => {
+                alert("Authorization Successful - Record Committed");
+                closeManualBookingModal();
+            });
+        }
 
-        // --- SETTINGS & INVENTORY ---
-        function syncSettings() {
+        function syncSystemProfile() {
             db.ref('hotels').child(hotelId).child('business_details').on('value', snap => {
                 const d = snap.val();
-                if (d) {
+                if(d) {
                     document.getElementById('set-hotel-name').value = d.hotelName || "";
                     document.getElementById('set-hotel-address').value = d.address || "";
-                    document.getElementById('set-hotel-desc').value = d.hotelDescription || "";
                 }
             });
         }
 
-        window.savePropertySettings = () => {
+        function savePropertySettings() {
             const data = {
                 hotelName: document.getElementById('set-hotel-name').value,
-                address: document.getElementById('set-hotel-address').value,
-                hotelDescription: document.getElementById('set-hotel-desc').value
+                address: document.getElementById('set-hotel-address').value
             };
-            db.ref('hotels').child(hotelId).child('business_details').update(data).then(() => alert("Saved!"));
-        };
-
-        function renderInventoryRoomTypes() {
-            const container = document.getElementById('inv-room-types');
-            if (!container) return;
-            const types = [...new Set(allRooms.map(r => r.roomType))];
-            container.innerHTML = types.map(t => `<label><input type="checkbox" value="${t}"> ${t}</label>`).join('');
+            db.ref('hotels').child(hotelId).child('business_details').update(data).then(() => alert("Profile Synchronized"));
         }
-
-        window.toggleMoreFilters = () => document.getElementById('more-filters').classList.toggle('hidden');
-
-        window.applyBookingFilters = () => {
-            const from = document.getElementById('filter-from-date').value;
-            const until = document.getElementById('filter-until-date').value;
-            const search = document.getElementById('filter-search-advanced').value.toLowerCase();
-
-            let filtered = allBookings;
-            if (from) filtered = filtered.filter(b => b.checkInDate >= new Date(from).getTime());
-            if (until) filtered = filtered.filter(b => b.checkInDate <= new Date(until).getTime());
-            if (search) filtered = filtered.filter(b => b.guestName.toLowerCase().includes(search) || b.id.toLowerCase().includes(search));
-
-            renderAllBookings(filtered);
-        };
     </script>
 </body>
 </html>
