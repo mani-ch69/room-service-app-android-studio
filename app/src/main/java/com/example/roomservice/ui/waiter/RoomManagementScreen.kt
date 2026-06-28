@@ -305,8 +305,8 @@ fun AddEditRoomDialog(
     
     val hotelId by HotelSession.hotelId.collectAsState()
 
-    val isDuplicateRoom = remember(roomNumber, roomType, rooms) {
-        rooms.any { it.roomNumber == roomNumber && it.roomType == roomType && it.roomNumber != initialRoom?.roomNumber }
+    val isDuplicateRoom = remember(roomType, rooms) {
+        rooms.any { it.roomNumber == roomType && it.roomNumber != initialRoom?.roomNumber }
     }
 
     Dialog(
