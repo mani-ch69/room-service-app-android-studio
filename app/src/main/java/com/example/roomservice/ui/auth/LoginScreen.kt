@@ -289,42 +289,6 @@ fun LoginScreen(
                     )
                 }
             }
-
-            Spacer(Modifier.height(40.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    modifier = Modifier.size(54.dp),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                    shadowElevation = 2.dp,
-                    onClick = { 
-                        isProcessing = true
-                        val client = googleSignInClient
-                        if (client != null) {
-                            client.signOut().addOnCompleteListener {
-                                googleLauncher.launch(client.signInIntent)
-                            }
-                        } else {
-                            isProcessing = false
-                            Toast.makeText(context, "Google Sign-In not available", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
-                            contentDescription = "Google",
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                }
-            }
         }
 
         Column(
