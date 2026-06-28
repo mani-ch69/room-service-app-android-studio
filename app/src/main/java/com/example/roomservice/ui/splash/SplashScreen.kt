@@ -38,7 +38,7 @@ fun SplashScreen(onAnimationFinished: () -> Unit) {
             )
             
             Text(
-                text = "HOTEL & RESORT",
+                text = "HOME STAY'S CHAIN",
                 color = Color.Gray,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
