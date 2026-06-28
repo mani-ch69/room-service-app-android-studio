@@ -4,7 +4,8 @@ import java.net.URLEncoder
 import java.util.UUID
 
 data class Room(
-    var roomNumber: String = "",
+    var roomNumber: String = "", // Used as Category Name/ID now
+    var totalUnits: Int = 1,     // NEW: Number of rooms of this type
     var hotelId: String = "HOTEL_ID_01",
     var qrToken: String = UUID.randomUUID().toString(),
     var roomType: String = "Deluxe Room",

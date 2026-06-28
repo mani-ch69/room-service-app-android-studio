@@ -180,7 +180,7 @@ fun PropertyRoomCard(
                         fontSize = 18.sp
                     )
                     Text(
-                        text = "Room No: ${room.roomNumber}",
+                        text = "Total Units: ${room.totalUnits}",
                         color = Color.White.copy(alpha = 0.9f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -193,7 +193,7 @@ fun PropertyRoomCard(
                 StatLine("Maximum guests:", "${room.maxGuests} guests")
                 StatLine("Maximum adults:", "${room.maxAdults} adults")
                 StatLine("Maximum children:", "${room.maxChildren} children")
-                StatLine("Number of this type:", "$typeCount")
+                StatLine("Total Units:", "${room.totalUnits}")
 
                 Spacer(Modifier.height(16.dp))
 
@@ -291,9 +291,8 @@ fun AddEditRoomDialog(
     onConfirm: (Room) -> Unit,
     onDeleteClick: (() -> Unit)? = null
 ) {
-    val nextAvail = remember(rooms) { val used = rooms.mapNotNull { it.roomNumber.toIntOrNull() }.toSet(); var next = 1; while (used.contains(next)) next++; next.toString() }
-    var roomNumber by remember { mutableStateOf(initialRoom?.roomNumber ?: nextAvail) }
     var roomType by remember { mutableStateOf(initialRoom?.roomType ?: "") }
+    var totalUnits by remember { mutableIntStateOf(initialRoom?.totalUnits ?: 1) }
     var smokingPolicy by remember { mutableStateOf(initialRoom?.smokingPolicy ?: "I have both smoking and non-smoking options for this room type") }
     var floorLevel by remember { mutableStateOf(initialRoom?.floorLevel ?: "No selection") }
     var bedType by remember { mutableStateOf(initialRoom?.bedType ?: "") }
@@ -336,18 +335,12 @@ fun AddEditRoomDialog(
                 ) {
                     // 1. Please Select Section
                     item {
-                        FormSectionCard("Please select") {
+                        FormSectionCard("Room Configuration") {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 DropdownField("Room type", listOf("Single", "Double", "Deluxe", "Suite", "Budget Double Room"), roomType) { roomType = it }
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedTextField(
-                                        value = roomNumber, 
-                                        onValueChange = { roomNumber = it }, 
-                                        label = { Text("Number of rooms (of this type)") },
-                                        modifier = Modifier.weight(1f),
-                                        shape = RoundedCornerShape(4.dp)
-                                    )
-                                }
+                                
+                                OccupancyCounter("Number of rooms (of this type):", totalUnits) { totalUnits = it }
+                                
                                 DropdownField("Smoking policy", listOf("Non-smoking", "Smoking allowed", "I have both smoking and non-smoking options for this room type"), smokingPolicy) { smokingPolicy = it }
 
                                 if (isDuplicateRoom) {
@@ -457,9 +450,10 @@ fun AddEditRoomDialog(
                         Spacer(Modifier.height(12.dp))
                         Button(
                             onClick = { 
-                                if (roomNumber.isNotBlank() && !isDuplicateRoom) {
+                                if (roomType.isNotBlank()) {
                                     onConfirm(Room(
-                                        roomNumber = roomNumber, 
+                                        roomNumber = roomType, // Use Type as ID for now
+                                        totalUnits = totalUnits,
                                         hotelId = hotelId ?: "", 
                                         roomType = roomType, 
                                         smokingPolicy = smokingPolicy, 
