@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="./portal_admin.js"></script>
     <style>
          :root {
             --primary: #B38E3D;
@@ -1303,6 +1302,30 @@
         };
 
         document.getElementById('btn-logout').onclick = () => auth.signOut();
+
+        window.openRoomModal = () => {
+            const modal = document.getElementById('room-modal');
+            if (!modal) return;
+            document.getElementById('rm-room-number').value = '';
+            document.getElementById('rm-room-type').value = 'Single';
+            document.getElementById('rm-floor-level').value = 'Ground floor';
+            document.getElementById('rm-total-units').value = 1;
+            document.getElementById('rm-smoking-policy').value = 'Non-smoking';
+            document.getElementById('rm-max-guests').value = 2;
+            document.getElementById('rm-max-adults').value = 2;
+            document.getElementById('rm-max-children').value = 0;
+            document.getElementById('rm-bed-type').value = 'King';
+            document.getElementById('rm-number-of-beds').value = 1;
+            document.getElementById('rm-bathroom-private').value = 'yes';
+            document.getElementById('rm-image-url').value = '';
+            document.getElementById('rm-available').value = 'true';
+            modal.classList.remove('hidden');
+        };
+
+        window.closeRoomModal = () => {
+            const modal = document.getElementById('room-modal');
+            if (modal) modal.classList.add('hidden');
+        };
 
         function switchTab(id) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
