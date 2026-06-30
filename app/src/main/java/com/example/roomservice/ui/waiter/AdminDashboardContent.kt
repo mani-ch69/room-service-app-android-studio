@@ -328,6 +328,14 @@ fun DashboardBookingCardRedesigned(
                     )
                     
                     Text(
+                        text = "Booking ID: ${if (!booking.bookingNumber.isNullOrBlank()) booking.bookingNumber else "Pending..."}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+                    
+                    Text(
                         text = "Booked on: ${SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(booking.timestamp))}",
                         fontSize = 11.sp,
                         color = Color.Gray
@@ -451,8 +459,12 @@ fun DashboardBookingCardRedesigned(
             initialBooking = booking,
             onDismiss = { showEditDialog = false },
             onConfirm = { updated ->
+                val finalBooking = if (updated.bookingNumber.isNullOrBlank()) {
+                    updated.copy(bookingNumber = (1000000000L..9999999999L).random().toString())
+                } else updated
+                
                 com.google.firebase.database.FirebaseDatabase.getInstance().getReference("hotels")
-                    .child(booking.hotelId).child("bookings").child(booking.id).setValue(updated)
+                    .child(booking.hotelId).child("bookings").child(booking.id).setValue(finalBooking)
                 showEditDialog = false
             },
             onDeleteClick = {

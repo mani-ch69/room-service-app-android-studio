@@ -154,6 +154,7 @@ fun AddBookingDialog(
                                 val assignedRoom = rooms.find { it.roomType == selectedType }?.roomNumber ?: ""
                                 onConfirm(Booking(
                                     id = initialBooking?.id ?: UUID.randomUUID().toString(),
+                                    bookingNumber = if (initialBooking == null || initialBooking.bookingNumber.isEmpty()) (1000000000L..9999999999L).random().toString() else initialBooking.bookingNumber,
                                     hotelId = hotelId ?: "",
                                     roomNumber = assignedRoom,
                                     guestName = guestName,

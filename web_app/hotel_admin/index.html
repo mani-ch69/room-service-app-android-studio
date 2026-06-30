@@ -529,6 +529,7 @@
                     <div><label>Number of this type</label><input type="number" id="rm-units" value="1"></div>
                 </div>
                 <div class="form-row">
+                    <div><label>Floor Level</label><input type="text" id="rm-floor" placeholder="e.g. 1st Floor"></div>
                     <div><label>Smoking Policy</label>
                         <select id="rm-smoking" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
                             <option>Non-smoking</option>
@@ -536,7 +537,6 @@
                             <option>Both available</option>
                         </select>
                     </div>
-                    <div><label>Floor Level</label><input type="text" id="rm-floor" placeholder="e.g. 1st Floor"></div>
                 </div>
             </div>
 
@@ -849,6 +849,10 @@
                 .then(() => {
                     alert("Room added successfully!");
                     closeRoomModal();
+                })
+                .catch(err => {
+                    console.error("Save error:", err);
+                    alert("Error saving room: " + err.message);
                 });
         }
         function openManualBookingModal() {

@@ -48,7 +48,10 @@ class AdminMenuViewModel : ViewModel() {
 
     fun addBooking(booking: Booking) {
         viewModelScope.launch {
-            BookingRepository.addBooking(booking)
+            val finalBooking = if (booking.bookingNumber.isNullOrBlank()) {
+                booking.copy(bookingNumber = (1000000000L..9999999999L).random().toString())
+            } else booking
+            BookingRepository.addBooking(finalBooking)
         }
     }
 

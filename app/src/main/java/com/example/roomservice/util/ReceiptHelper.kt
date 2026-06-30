@@ -46,9 +46,9 @@ object ReceiptHelper {
         val outstanding = booking.totalAmount - booking.advancePaid
 
         return """
-            *${business.hotelName.uppercase()}*
+            *GANGA HOMES*
             ${business.address}
-            Contact: ${business.phone}
+            Contact: +919198065441 / +915423567944
             
             *BOOKING RECEIPT*
             --------------------------
@@ -119,9 +119,9 @@ object ReceiptHelper {
             </head>
             <body>
                 <div class="header">
-                    <div class="hotel-name">${business.hotelName}</div>
+                    <div class="hotel-name">GANGA HOMES</div>
                     <div>${business.address}</div>
-                    <div>Phone: ${business.phone}</div>
+                    <div>Phone: +919198065441 / +915423567944</div>
                     <div>GSTIN: ${business.gstNumber}</div>
                 </div>
 
