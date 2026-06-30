@@ -61,7 +61,8 @@ window.switchTab = (tabId) => {
     if (target) target.classList.remove('hidden');
 
     document.querySelectorAll('.nav-item').forEach(item => {
-        if (item.getAttribute('onclick') ? .includes(tabId)) {
+        const onclick = item.getAttribute('onclick') || '';
+        if (onclick.includes(tabId)) {
             item.classList.add('active');
         }
     });
@@ -189,8 +190,68 @@ function renderAdminRooms() {
     `).join('');
 }
 
-window.openRoomModal = () => document.getElementById('room-modal').classList.remove('hidden');
-window.closeRoomModal = () => document.getElementById('room-modal').classList.add('hidden');
+window.openRoomModal = () => {
+    const modal = document.getElementById('room-modal');
+    if (!modal) return;
+    document.getElementById('rm-room-number').value = '';
+    document.getElementById('rm-room-type').value = '';
+    document.getElementById('rm-floor-level').value = 'Ground floor';
+    document.getElementById('rm-total-units').value = 1;
+    document.getElementById('rm-max-guests').value = 2;
+    document.getElementById('rm-max-adults').value = 2;
+    document.getElementById('rm-max-children').value = 0;
+    document.getElementById('rm-bed-type').value = 'King Size';
+    document.getElementById('rm-image-url').value = '';
+    document.getElementById('rm-available').value = 'true';
+    modal.classList.remove('hidden');
+};
+
+window.closeRoomModal = () => {
+    const modal = document.getElementById('room-modal');
+    if (modal) modal.classList.add('hidden');
+};
+
+function saveRoom() {
+    const roomNumber = document.getElementById('rm-room-number').value.trim();
+    const roomType = document.getElementById('rm-room-type').value.trim();
+    if (!roomNumber || !roomType) {
+        return alert('Room number and room type are required.');
+    }
+
+    const roomData = {
+        roomNumber,
+        roomType,
+        floorLevel: document.getElementById('rm-floor-level').value || 'Ground floor',
+        totalUnits: parseInt(document.getElementById('rm-total-units').value) || 1,
+        maxGuests: parseInt(document.getElementById('rm-max-guests').value) || 2,
+        maxAdults: parseInt(document.getElementById('rm-max-adults').value) || 2,
+        maxChildren: parseInt(document.getElementById('rm-max-children').value) || 0,
+        bedType: document.getElementById('rm-bed-type').value || 'King Size',
+        imageUrl: document.getElementById('rm-image-url').value || '',
+        isAvailable: document.getElementById('rm-available').value === 'true',
+        hotelId: hotelId,
+        qrToken: 'QR_' + Date.now(),
+        smokingPolicy: 'Non-smoking',
+        numBathrooms: 1,
+        isBathroomPrivate: true,
+        roomSize: '250 sqft',
+        hasAc: true,
+        isBathroomInside: true,
+        hasGeyser: true,
+        hasKettle: true,
+        timestamp: Date.now()
+    };
+
+    db.ref('hotels').child(hotelId).child('rooms').child(roomNumber).set(roomData)
+        .then(() => {
+            alert('Room added successfully.');
+            closeRoomModal();
+        })
+        .catch(err => {
+            console.error('Room save failed', err);
+            alert('Could not add room. Please try again.');
+        });
+}
 
 // --- MANUAL BOOKING ---
 const mbModal = document.getElementById('manual-booking-modal');
