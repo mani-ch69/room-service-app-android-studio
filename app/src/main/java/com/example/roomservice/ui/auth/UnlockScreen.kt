@@ -223,7 +223,7 @@ fun UnlockScreen(
                 verticalAlignment = Alignment.Bottom
             ) {
                 Text(
-                    text = "Staff Control",
+                    text = "Admin69",
                     color = Color.White.copy(alpha = 0.4f),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold

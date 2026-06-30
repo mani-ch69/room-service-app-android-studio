@@ -50,7 +50,8 @@ fun AddBookingDialog(
     rooms: List<Room>,
     initialBooking: Booking? = null,
     onDismiss: () -> Unit,
-    onConfirm: (Booking) -> Unit
+    onConfirm: (Booking) -> Unit,
+    onDeleteClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -58,8 +59,24 @@ fun AddBookingDialog(
     // FORM STATE
     var guestName by remember { mutableStateOf(initialBooking?.guestName ?: "") }
     var guestPhone by remember { mutableStateOf(initialBooking?.guestPhone ?: "") }
-    var adults by remember { mutableIntStateOf(initialBooking?.numberOfGuests ?: 2) }
+    
+    var selectedType by remember { mutableStateOf(initialBooking?.roomNumber?.let { rn -> rooms.find { it.roomNumber == rn }?.roomType } ?: if(rooms.isNotEmpty()) rooms[0].roomType else "") }
+    
+    val selectedRoom = remember(selectedType, rooms) { rooms.find { it.roomType == selectedType } }
+    val maxAdultsLimit = selectedRoom?.maxAdults ?: 5
+    val maxChildrenLimit = selectedRoom?.maxChildren ?: 5
+    val maxTotalLimit = selectedRoom?.maxGuests ?: 10
+
+    var adults by remember { mutableIntStateOf(initialBooking?.numberOfGuests?.coerceAtMost(maxAdultsLimit) ?: 2.coerceAtMost(maxAdultsLimit)) }
     var children by remember { mutableIntStateOf(0) }
+    
+    LaunchedEffect(selectedType) {
+        if (adults > maxAdultsLimit) adults = maxAdultsLimit
+        if (children > maxChildrenLimit) children = maxChildrenLimit
+        if (adults + children > maxTotalLimit) {
+            children = (maxTotalLimit - adults).coerceAtLeast(0)
+        }
+    }
     
     var checkInDate by remember { mutableLongStateOf(initialBooking?.checkInDate ?: System.currentTimeMillis()) }
     var checkOutDate by remember { mutableLongStateOf(initialBooking?.checkOutDate ?: (System.currentTimeMillis() + 86400000L)) }
@@ -73,11 +90,9 @@ fun AddBookingDialog(
     
     var specialRequests by remember { mutableStateOf("") }
     
-    val agents = remember { listOf("Website Booking", "Individual Bookings", "booking.com", "Agoda", "Airbnb", "Goibibo", "yatra.com", "trivago", "Clear Trip", "Make My Trip") }
-    var selectedAgent by remember { mutableStateOf(initialBooking?.bookingAgent ?: "Website Booking") }
+    val agents = remember { listOf("Website Booking", "Manual Booking", "booking.com", "Agoda", "Airbnb", "Goibibo", "yatra.com", "trivago", "Clear Trip", "Make My Trip") }
+    var selectedAgent by remember { mutableStateOf(initialBooking?.bookingAgent ?: "Manual Booking") }
     
-    var selectedType by remember { mutableStateOf(initialBooking?.roomNumber?.let { rn -> rooms.find { it.roomNumber == rn }?.roomType } ?: if(rooms.isNotEmpty()) rooms[0].roomType else "") }
-
     // APP STATE
     var isSaving by remember { mutableStateOf(false) }
     var showSaveDialog by remember { mutableStateOf(false) }
@@ -91,8 +106,7 @@ fun AddBookingDialog(
     var showPhotoOptions by remember { mutableStateOf(false) }
 
     // DATE PICKERS
-    var showCheckInPicker by remember { mutableStateOf(false) }
-    var showCheckOutPicker by remember { mutableStateOf(false) }
+    var showRangePicker by remember { mutableStateOf(false) }
 
     // CALCULATIONS
     val nights by remember(checkInDate, checkOutDate) {
@@ -110,7 +124,7 @@ fun AddBookingDialog(
     val remaining = totalAmount - advanceVal
 
     // UI STATE
-    var expandedSection by remember { mutableStateOf("guest") }
+    var expandedSection by remember { mutableStateOf("stay") }
     val hotelId by com.example.roomservice.data.HotelSession.hotelId.collectAsState()
     val df = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
@@ -120,6 +134,13 @@ fun AddBookingDialog(
                 TopAppBar(
                     title = { Text(if (initialBooking == null) "New Manual Booking" else "Edit Booking", fontWeight = FontWeight.Bold) },
                     navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
+                    actions = {
+                        if (initialBooking != null && onDeleteClick != null) {
+                            IconButton(onClick = onDeleteClick) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
+                            }
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
                 )
             },
@@ -164,6 +185,29 @@ fun AddBookingDialog(
             }
         ) { padding ->
             LazyColumn(modifier = Modifier.padding(padding).fillMaxSize().background(Color(0xFFF8F9FA)), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // STAY DETAILS
+                item {
+                    BookingAccordionSection("Stay Details", Icons.Default.CalendarMonth, expandedSection == "stay", { expandedSection = if(expandedSection == "stay") "" else "stay" }) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            OutlinedTextField(
+                                value = "${df.format(Date(checkInDate))} - ${df.format(Date(checkOutDate))}",
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Check-in & Check-out Dates *") },
+                                modifier = Modifier.fillMaxWidth().clickable { showRangePicker = true },
+                                enabled = false,
+                                colors = OutlinedTextFieldDefaults.colors(disabledTextColor = Color.Black, disabledBorderColor = Color.LightGray, disabledLabelColor = Color.Gray),
+                                shape = RoundedCornerShape(8.dp),
+                                trailingIcon = { Icon(Icons.Default.CalendarToday, null) }
+                            )
+                            Box(modifier = Modifier.background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) { Text("$nights Nights", fontWeight = FontWeight.Bold, fontSize = 14.sp) }
+                            val roomTypeOptions = remember(rooms) { rooms.map { it.roomType }.distinct() }
+                            SimpleDropdown("Room Type *", roomTypeOptions, selectedType) { selectedType = it }
+                            SimpleDropdown("Booking Agent", agents, selectedAgent) { selectedAgent = it }
+                        }
+                    }
+                }
+
                 // GUEST DETAILS
                 item {
                     BookingAccordionSection("Guest Details", Icons.Default.Person, expandedSection == "guest", { expandedSection = if(expandedSection == "guest") "" else "guest" }) {
@@ -171,23 +215,12 @@ fun AddBookingDialog(
                             OutlinedTextField(value = guestName, onValueChange = { guestName = it }, label = { Text("Guest Name *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp))
                             OutlinedTextField(value = guestPhone, onValueChange = { guestPhone = it }, label = { Text("Mobile Number *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), leadingIcon = { Icon(Icons.Default.Phone, null, tint = Color.Gray) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Column(modifier = Modifier.weight(1f)) { Text("Adults *", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(adults) { adults = it } }
-                                Column(modifier = Modifier.weight(1f)) { Text("Children", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(children) { children = it } }
+                                val allowedAdults = (maxTotalLimit - children).coerceAtMost(maxAdultsLimit)
+                                val allowedChildren = (maxTotalLimit - adults).coerceAtMost(maxChildrenLimit)
+                                
+                                Column(modifier = Modifier.weight(1f)) { Text("Adults (Max $maxAdultsLimit)", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(adults, maxValue = allowedAdults) { adults = it } }
+                                Column(modifier = Modifier.weight(1f)) { Text("Children (Max $maxChildrenLimit)", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(children, maxValue = allowedChildren) { children = it } }
                             }
-                        }
-                    }
-                }
-
-                // STAY DETAILS
-                item {
-                    BookingAccordionSection("Stay Details", Icons.Default.CalendarMonth, expandedSection == "stay", { expandedSection = if(expandedSection == "stay") "" else "stay" }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedTextField(value = df.format(Date(checkInDate)), onValueChange = {}, readOnly = true, label = { Text("Check-in Date *") }, modifier = Modifier.fillMaxWidth().clickable { showCheckInPicker = true }, enabled = false, colors = OutlinedTextFieldDefaults.colors(disabledTextColor = Color.Black, disabledBorderColor = Color.LightGray, disabledLabelColor = Color.Gray), shape = RoundedCornerShape(8.dp), trailingIcon = { Icon(Icons.Default.CalendarToday, null) })
-                            OutlinedTextField(value = df.format(Date(checkOutDate)), onValueChange = {}, readOnly = true, label = { Text("Check-out Date *") }, modifier = Modifier.fillMaxWidth().clickable { showCheckOutPicker = true }, enabled = false, colors = OutlinedTextFieldDefaults.colors(disabledTextColor = Color.Black, disabledBorderColor = Color.LightGray, disabledLabelColor = Color.Gray), shape = RoundedCornerShape(8.dp), trailingIcon = { Icon(Icons.Default.CalendarToday, null) })
-                            Box(modifier = Modifier.background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) { Text("$nights Nights", fontWeight = FontWeight.Bold, fontSize = 14.sp) }
-                            val roomTypeOptions = remember(rooms) { rooms.map { it.roomType }.distinct() }
-                            SimpleDropdown("Room Type *", roomTypeOptions, selectedType) { selectedType = it }
-                            SimpleDropdown("Booking Agent", agents, selectedAgent) { selectedAgent = it }
                         }
                     }
                 }
@@ -244,13 +277,41 @@ fun AddBookingDialog(
         }
 
         // PICKERS
-        if (showCheckInPicker) {
-            val state = rememberDatePickerState(initialSelectedDateMillis = checkInDate)
-            DatePickerDialog(onDismissRequest = { showCheckInPicker = false }, confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { checkInDate = it }; showCheckInPicker = false }) { Text("OK") } }) { DatePicker(state = state) }
-        }
-        if (showCheckOutPicker) {
-            val state = rememberDatePickerState(initialSelectedDateMillis = checkOutDate)
-            DatePickerDialog(onDismissRequest = { showCheckOutPicker = false }, confirmButton = { TextButton(onClick = { state.selectedDateMillis?.let { checkOutDate = it }; showCheckOutPicker = false }) { Text("OK") } }) { DatePicker(state = state) }
+        if (showRangePicker) {
+            val dateRangePickerState = rememberDateRangePickerState(
+                initialSelectedStartDateMillis = checkInDate,
+                initialSelectedEndDateMillis = checkOutDate,
+                selectableDates = object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                        val today = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
+                        return utcTimeMillis >= today
+                    }
+                }
+            )
+            DatePickerDialog(
+                onDismissRequest = { showRangePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        dateRangePickerState.selectedStartDateMillis?.let { checkInDate = it }
+                        dateRangePickerState.selectedEndDateMillis?.let { checkOutDate = it }
+                        showRangePicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRangePicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DateRangePicker(
+                    state = dateRangePickerState,
+                    modifier = Modifier.weight(1f).padding(16.dp),
+                    title = { Text("Select Stay Dates", modifier = Modifier.padding(16.dp)) }
+                )
+            }
         }
         if (showPhotoOptions) {
             AlertDialog(onDismissRequest = { showPhotoOptions = false }, title = { Text("Select ID Photo") }, text = { Text("Choose a source for the photo") }, confirmButton = { TextButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraImageUri?.let { cameraLauncher.launch(it) } else permissionLauncher.launch(Manifest.permission.CAMERA); showPhotoOptions = false }) { Text("CAMERA") } }, dismissButton = { TextButton(onClick = { galleryLauncher.launch("image/*"); showPhotoOptions = false }) { Text("GALLERY") } })
@@ -275,11 +336,11 @@ fun BookingAccordionSection(title: String, icon: ImageVector, isExpanded: Boolea
 }
 
 @Composable
-fun SimpleCounter(value: Int, onValueChange: (Int) -> Unit) {
+fun SimpleCounter(value: Int, maxValue: Int = Int.MAX_VALUE, onValueChange: (Int) -> Unit) {
     Row(modifier = Modifier.fillMaxWidth().height(48.dp).background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp)), verticalAlignment = Alignment.CenterVertically) {
         IconButton(onClick = { if(value > 0) onValueChange(value - 1) }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Remove, null) }
         Text(text = "$value", modifier = Modifier.weight(1f), textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
-        IconButton(onClick = { onValueChange(value + 1) }, modifier = Modifier.weight(1f)) { Icon(Icons.Default.Add, null) }
+        IconButton(onClick = { if(value < maxValue) onValueChange(value + 1) }, modifier = Modifier.weight(1f), enabled = value < maxValue) { Icon(Icons.Default.Add, null) }
     }
 }
 

@@ -333,7 +333,7 @@ fun DashboardBookingCardRedesigned(
                         color = Color.Gray
                     )
                     
-                    if (booking.bookingAgent != "Individual Customer") {
+                    if (booking.bookingAgent != "Manual Booking") {
                         Surface(
                             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                             shape = RoundedCornerShape(4.dp),
@@ -360,9 +360,6 @@ fun DashboardBookingCardRedesigned(
                     }
                     IconButton(onClick = { showEditDialog = true }, modifier = Modifier.size(36.dp)) { 
                         Icon(Icons.Default.Edit, null, tint = Color.Gray, modifier = Modifier.size(20.dp)) 
-                    }
-                    IconButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.size(36.dp)) { 
-                        Icon(Icons.Default.Delete, null, tint = Color.Red.copy(alpha = 0.6f), modifier = Modifier.size(20.dp)) 
                     }
                 }
             }
@@ -457,6 +454,10 @@ fun DashboardBookingCardRedesigned(
                 com.google.firebase.database.FirebaseDatabase.getInstance().getReference("hotels")
                     .child(booking.hotelId).child("bookings").child(booking.id).setValue(updated)
                 showEditDialog = false
+            },
+            onDeleteClick = {
+                showEditDialog = false
+                showDeleteConfirm = true
             }
         )
     }

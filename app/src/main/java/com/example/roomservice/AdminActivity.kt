@@ -271,7 +271,6 @@ fun AdminNavigation() {
         composable("settings") {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
-                onGeneralSettingsClick = { navController.navigate("general_settings") },
                 onSecuritySettingsClick = { navController.navigate("security_settings") }
             )
         }

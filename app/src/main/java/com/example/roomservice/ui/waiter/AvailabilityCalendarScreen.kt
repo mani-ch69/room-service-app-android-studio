@@ -101,14 +101,27 @@ fun TypeAvailabilityCalendar(
                     Text(text = type, fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color.Black)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = "${rooms.size} Rooms", fontSize = 12.sp, color = Color.Gray)
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "Bulk Edit",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clickable { showBulkEdit = true }
-                        )
+                        Spacer(Modifier.width(12.dp))
+                        Surface(
+                            onClick = { showBulkEdit = true },
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Edit, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "Bulk Edit",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
                     }
                 }
                 
@@ -263,11 +276,10 @@ fun BulkEditDialog(
     onDismiss: () -> Unit
 ) {
     var fromDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var toDate by remember { mutableLongStateOf(System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000L)) }
+    var toDate by remember { mutableLongStateOf(System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000L)) }
     var selectedDays by remember { mutableStateOf(setOf(1, 2, 3, 4, 5, 6, 7)) }
     
-    var showFromDatePicker by remember { mutableStateOf(false) }
-    var showToDatePicker by remember { mutableStateOf(false) }
+    var showRangePicker by remember { mutableStateOf(false) }
 
     var expandedSection by remember { mutableStateOf<String?>(null) }
     
@@ -309,36 +321,21 @@ fun BulkEditDialog(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    OutlinedTextField(
-                                        value = df.format(Date(fromDate)),
-                                        onValueChange = {},
-                                        readOnly = true,
-                                        label = { Text("From:") },
-                                        modifier = Modifier.weight(1f).clickable { showFromDatePicker = true },
-                                        enabled = false,
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            disabledTextColor = Color.Black,
-                                            disabledBorderColor = Color.LightGray,
-                                            disabledLabelColor = Color.Gray
-                                        ),
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    OutlinedTextField(
-                                        value = df.format(Date(toDate)),
-                                        onValueChange = {},
-                                        readOnly = true,
-                                        label = { Text("Up to and including:") },
-                                        modifier = Modifier.weight(1f).clickable { showToDatePicker = true },
-                                        enabled = false,
-                                        colors = OutlinedTextFieldDefaults.colors(
-                                            disabledTextColor = Color.Black,
-                                            disabledBorderColor = Color.LightGray,
-                                            disabledLabelColor = Color.Gray
-                                        ),
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                }
+                                OutlinedTextField(
+                                    value = "${df.format(Date(fromDate))} - ${df.format(Date(toDate))}",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Select date range:") },
+                                    modifier = Modifier.fillMaxWidth().clickable { showRangePicker = true },
+                                    enabled = false,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        disabledTextColor = Color.Black,
+                                        disabledBorderColor = Color.LightGray,
+                                        disabledLabelColor = Color.Gray
+                                    ),
+                                    shape = RoundedCornerShape(8.dp),
+                                    trailingIcon = { Icon(Icons.Default.CalendarMonth, null) }
+                                )
                                 
                                 Text("Which days of the week do you want to apply changes to?", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                                 
@@ -529,33 +526,40 @@ fun BulkEditDialog(
         }
     }
 
-    if (showFromDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = fromDate)
+    if (showRangePicker) {
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = fromDate,
+            initialSelectedEndDateMillis = toDate,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    val today = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                        set(java.util.Calendar.HOUR_OF_DAY, 0)
+                        set(java.util.Calendar.MINUTE, 0)
+                        set(java.util.Calendar.SECOND, 0)
+                        set(java.util.Calendar.MILLISECOND, 0)
+                    }.timeInMillis
+                    return utcTimeMillis >= today
+                }
+            }
+        )
         DatePickerDialog(
-            onDismissRequest = { showFromDatePicker = false },
+            onDismissRequest = { showRangePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { fromDate = it }
-                    showFromDatePicker = false
+                    dateRangePickerState.selectedStartDateMillis?.let { fromDate = it }
+                    dateRangePickerState.selectedEndDateMillis?.let { toDate = it }
+                    showRangePicker = false
                 }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRangePicker = false }) { Text("Cancel") }
             }
         ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    if (showToDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = toDate)
-        DatePickerDialog(
-            onDismissRequest = { showToDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { toDate = it }
-                    showToDatePicker = false
-                }) { Text("OK") }
-            }
-        ) {
-            DatePicker(state = datePickerState)
+            DateRangePicker(
+                state = dateRangePickerState,
+                modifier = Modifier.weight(1f).padding(16.dp),
+                title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
+            )
         }
     }
 }

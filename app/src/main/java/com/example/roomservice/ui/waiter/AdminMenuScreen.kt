@@ -91,6 +91,10 @@ fun AdminMenuScreen(
                         "hotel_property_detail" -> "Property Detail"
                         "hotel_availability" -> "Availability Planner"
                         "pricing_guest" -> "Pricing per guest"
+                        "settings_details" -> "Settings"
+                        "general_settings" -> "General Setting"
+                        "security_settings" -> "App Security"
+                        "app_lock" -> "App Lock"
                         else -> "More"
                     }
                     Text(text = title, fontWeight = FontWeight.Black)
@@ -138,7 +142,12 @@ fun AdminMenuScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             when (selectedBottomTab) {
-                "home" -> AdminDashboardContent(roomStatuses = roomStatuses, bookings = bookings, onAddBooking = { viewModel.addBooking(it) })
+                "home" -> AdminDashboardContent(
+                    roomStatuses = roomStatuses, 
+                    bookings = bookings, 
+                    onAddBooking = { viewModel.addBooking(it) },
+                    onDeleteBooking = { viewModel.deleteBooking(it) }
+                )
                 "settings" -> {
                     when (moreTabSubScreen) {
                         "main" -> AdminMoreContent(
@@ -169,7 +178,7 @@ fun AdminMenuScreen(
                             RoomManagementScreen { moreTabSubScreen = "hotel_property_detail" }
                             if (showAddRoomDialog) AddEditRoomDialog(rooms, null, { showAddRoomDialog = false }, { com.example.roomservice.data.RoomRepository.addRoom(it); showAddRoomDialog = false })
                         }
-                        "settings_details" -> SettingsScreen({ moreTabSubScreen = "main" }, { moreTabSubScreen = "general_settings" }, { moreTabSubScreen = "security_settings" })
+                        "settings_details" -> SettingsScreen({ moreTabSubScreen = "main" }, { moreTabSubScreen = "security_settings" })
                         "general_settings" -> GeneralSettingsScreen({ moreTabSubScreen = "settings_details" }, onProfileClick)
                         "security_settings" -> SecuritySettingsScreen({ moreTabSubScreen = "settings_details" }, { moreTabSubScreen = "app_lock" })
                         "app_lock" -> AppLockSettingsScreen { moreTabSubScreen = "security_settings" }

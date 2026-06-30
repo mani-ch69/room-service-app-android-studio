@@ -215,7 +215,7 @@
                 <div class="nav-item"><i>❌</i> Cancellations</div>
 
                 <div class="nav-label">Properties</div>
-                <div class="nav-item" onclick="switchTab('rooms')"><i>🏢</i> Inventory Grid</div>
+                <div class="nav-item" onclick="switchTab('rooms')"><i>🏢</i> Room Details</div>
                 <div class="nav-item" onclick="switchTab('inventory')"><i>📦</i> Allotment Control</div>
                 <div class="nav-item"><i>🏠</i> Housekeeping</div>
 
@@ -487,7 +487,7 @@
             </div>
 
             <div id="tab-rooms" class="page-content hidden">
-                <div class="panel-head"><h2>Managed Properties</h2><button class="btn-booking" onclick="openRoomModal()">+ Add New Inventory</button></div>
+                <div class="panel-head"><h2>Room Details</h2><button class="btn-booking" onclick="openRoomModal()">+ Add New Room</button></div>
                 <div id="admin-rooms-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;"></div>
             </div>
 
@@ -517,6 +517,49 @@
         </div>
     </div>
 
+    <!-- MODAL: ROOM MANAGEMENT -->
+    <div id="room-modal" class="modal-base hidden">
+        <div class="modal-win" style="width: 700px;">
+            <div class="win-head"><h2>Room Details Configuration</h2><span style="cursor:pointer; font-size:1.5rem;" onclick="closeRoomModal()">&times;</span></div>
+
+            <div style="background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 24px;">
+                <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--primary);">Room Basics</h4>
+                <div class="form-row">
+                    <div><label>Room Type</label><input type="text" id="rm-type" placeholder="e.g. Deluxe Room"></div>
+                    <div><label>Number of this type</label><input type="number" id="rm-units" value="1"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Smoking Policy</label>
+                        <select id="rm-smoking" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
+                            <option>Non-smoking</option>
+                            <option>Smoking allowed</option>
+                            <option>Both available</option>
+                        </select>
+                    </div>
+                    <div><label>Floor Level</label><input type="text" id="rm-floor" placeholder="e.g. 1st Floor"></div>
+                </div>
+            </div>
+
+            <div style="background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 24px;">
+                <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--primary);">Bedding & Occupancy</h4>
+                <div class="form-row">
+                    <div><label>Bed Type</label><input type="text" id="rm-bed-type" placeholder="King/Queen/Single"></div>
+                    <div><label>No. of Beds</label><input type="number" id="rm-bed-count" value="1"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Max Guests</label><input type="number" id="rm-max-guests" value="2"></div>
+                    <div><label>Max Adults</label><input type="number" id="rm-max-adults" value="2"></div>
+                </div>
+                <div class="form-row">
+                    <div><label>Max Children</label><input type="number" id="rm-max-children" value="0"></div>
+                    <div><label>Number of Bathrooms</label><input type="number" id="rm-bath-count" value="1"></div>
+                </div>
+            </div>
+
+            <button class="btn-booking" style="width: 100%; padding: 18px;" onclick="saveRoom()">Commit Room to Inventory</button>
+        </div>
+    </div>
+
     <script>
         // --- ENTERPRISE DASHBOARD LOGIC ---
         const firebaseConfig = {
@@ -543,6 +586,7 @@
             const overlay = document.getElementById('login-overlay');
             const app = document.getElementById('admin-app');
             if (user) {
+                hotelId = user.uid; // Dynamically set hotelId to user UID
                 overlay.classList.add('hidden');
                 app.classList.remove('hidden');
                 const adminName = user.email.split('@')[0].toUpperCase();
@@ -622,6 +666,16 @@
             });
         }
 
+        function formatRoomId(roomNumber) {
+            if (!roomNumber) return "0000000000";
+            let hash = 0;
+            for (let i = 0; i < roomNumber.length; i++) {
+                hash = ((hash << 5) - hash) + roomNumber.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash).toString().padStart(10, '0').slice(-10);
+        }
+
         function renderPCInventory() {
             const grid = document.getElementById('dashboard-rooms-grid');
             const fullGrid = document.getElementById('admin-rooms-grid');
@@ -636,17 +690,38 @@
 
             if(fullGrid) {
                 fullGrid.innerHTML = allRooms.map(r => `
-                    <div class="card-panel" style="padding:20px; text-align:center;">
-                        <div style="font-size:2rem; margin-bottom:12px;">🏨</div>
-                        <h4 style="font-weight:800;">UNIT ${r.roomNumber}</h4>
-                        <p style="font-size:0.7rem; color:#888; margin-top:4px;">${r.roomType.toUpperCase()}</p>
-                        <div class="status-tag ${r.isAvailable ? 'tag-confirmed' : 'tag-checkin'}" style="margin-top:16px; display:inline-block;">
-                            ${r.isAvailable ? 'AVAILABLE' : 'RESERVED'}
+                    <div class="card-panel" style="padding:0; overflow:hidden; border: 1px solid #eee;">
+                        <div style="height: 140px; background: #f8fafc; display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; border-bottom: 1px solid #f1f5f9;">
+                            ${r.imageUrl ? `<img src="${r.imageUrl}" style="width:100%; height:100%; object-fit:cover;">` : '🛏️'}
+                            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.6); color: white; padding: 8px 12px; text-align: left;">
+                                <div style="font-weight: 800; font-size: 0.9rem;">${r.roomType}</div>
+                                <div style="font-size: 0.7rem; opacity: 0.9;">Room ID: ${formatRoomId(r.roomNumber)}</div>
+                            </div>
+                        </div>
+                        <div style="padding: 16px; text-align: left;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; color: #64748b; font-weight: 600;">
+                                <div>Max Guests: <span style="color:black;">${r.maxGuests || 2}</span></div>
+                                <div>Max Adults: <span style="color:black;">${r.maxAdults || 2}</span></div>
+                                <div>Max Children: <span style="color:black;">${r.maxChildren || 0}</span></div>
+                                <div>Count: <span style="color:black;">${r.totalUnits || 1}</span></div>
+                            </div>
+                            <div style="margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 0.7rem; font-weight: 800; color: #64748b;">Number of this type: <span style="color:var(--primary);">${r.totalUnits || 1}</span></div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="deleteRoom('${r.roomNumber}')" style="background:none; border:none; color:#ef4444; font-size:0.8rem; cursor:pointer;">🗑️</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `).join('');
             }
         }
+
+        window.deleteRoom = (roomNumber) => {
+            if(confirm(`Are you sure you want to delete room ${roomNumber}?`)) {
+                db.ref('hotels').child(hotelId).child('rooms').child(roomNumber).remove();
+            }
+        };
 
         function listenForRealtimeReservations() {
             db.ref('hotels').child(hotelId).child('bookings').on('value', snap => {
@@ -730,7 +805,52 @@
             db.ref('hotels').child(hotelId).child('bookings').child(id).update({ status });
         };
 
-        // --- MANUAL ENTRY ---
+        // --- ROOM MANAGEMENT ---
+        function openRoomModal() {
+            document.getElementById('room-modal').classList.remove('hidden');
+        }
+
+        function closeRoomModal() {
+            document.getElementById('room-modal').classList.add('hidden');
+        }
+
+        function saveRoom() {
+            const type = document.getElementById('rm-type').value;
+            const units = parseInt(document.getElementById('rm-units').value) || 1;
+            const smoking = document.getElementById('rm-smoking').value;
+            const floor = document.getElementById('rm-floor').value;
+            const bedType = document.getElementById('rm-bed-type').value;
+            const bedCount = parseInt(document.getElementById('rm-bed-count').value) || 1;
+            const maxGuests = parseInt(document.getElementById('rm-max-guests').value) || 2;
+            const maxAdults = parseInt(document.getElementById('rm-max-adults').value) || 2;
+            const maxChildren = parseInt(document.getElementById('rm-max-children').value) || 0;
+            const bathCount = parseInt(document.getElementById('rm-bath-count').value) || 1;
+
+            if(!type) return alert("Room Type is mandatory");
+
+            const room = {
+                roomNumber: type, // Using type as key for parity with current app logic
+                roomType: type,
+                totalUnits: units,
+                smokingPolicy: smoking,
+                floorLevel: floor,
+                bedType: bedType,
+                numberOfBeds: bedCount,
+                maxGuests: maxGuests,
+                maxAdults: maxAdults,
+                maxChildren: maxChildren,
+                numBathrooms: bathCount,
+                hotelId: hotelId,
+                isAvailable: true,
+                imageUrl: ""
+            };
+
+            db.ref('hotels').child(hotelId).child('rooms').child(room.roomNumber).set(room)
+                .then(() => {
+                    alert("Room added successfully!");
+                    closeRoomModal();
+                });
+        }
         function openManualBookingModal() {
             document.getElementById('manual-booking-modal').classList.remove('hidden');
             const today = new Date().toISOString().split('T')[0];

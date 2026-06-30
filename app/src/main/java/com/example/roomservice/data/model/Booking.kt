@@ -16,7 +16,7 @@ data class Booking(
     val numberOfGuests: Int = 1,
     val guestIdentities: List<GuestIdentity> = emptyList(),
     val status: BookingStatus = BookingStatus.BOOKED,
-    val bookingAgent: String = "Individual Customer",
+    val bookingAgent: String = "Manual Booking",
     val timestamp: Long = System.currentTimeMillis()
 )
 

@@ -49,6 +49,9 @@ import com.example.roomservice.data.model.Room
 import com.example.roomservice.util.QRCodeGenerator
 import com.example.roomservice.ui.util.zoomClick
 import com.example.roomservice.util.SecurityManager
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.launch
+import java.util.UUID
 import java.io.File
 import java.io.FileOutputStream
 
@@ -56,11 +59,51 @@ import java.io.FileOutputStream
 @Composable
 fun RoomManagementScreen(onBackClick: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val rooms by RoomRepository.rooms.collectAsState()
+    
     var showAddDialog by remember { mutableStateOf(false) }
     var selectedRoomForDetails by remember { mutableStateOf<Room?>(null) }
     var selectedRoomForQR by remember { mutableStateOf<Room?>(null) }
     var roomToDelete by remember { mutableStateOf<String?>(null) }
+    
+    // Photo Upload State
+    var showPhotoOptions by remember { mutableStateOf(false) }
+    var selectedRoomForUpload by remember { mutableStateOf<Room?>(null) }
+    var isUploading by remember { mutableStateOf(false) }
+
+    val cameraImageUri = remember { 
+        try { 
+            val file = File(context.cacheDir, "temp_room_photo.jpg")
+            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file) 
+        } catch (e: Exception) { null } 
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && cameraImageUri != null && selectedRoomForUpload != null) {
+            uploadRoomPhoto(context, cameraImageUri, selectedRoomForUpload!!, { isUploading = it }) { updatedRoom ->
+                RoomRepository.updateRoom(updatedRoom)
+                selectedRoomForUpload = null
+            }
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null && selectedRoomForUpload != null) {
+            uploadRoomPhoto(context, uri, selectedRoomForUpload!!, { isUploading = it }) { updatedRoom ->
+                RoomRepository.updateRoom(updatedRoom)
+                selectedRoomForUpload = null
+            }
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted && cameraImageUri != null) {
+            cameraLauncher.launch(cameraImageUri)
+        } else {
+            Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF1F5F9))) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -85,7 +128,10 @@ fun RoomManagementScreen(onBackClick: () -> Unit) {
                         typeCount = roomsOfTypeCount,
                         onEdit = { selectedRoomForDetails = room },
                         onDelete = { roomToDelete = room.roomNumber },
-                        onUpload = { /* Photo upload logic */ }
+                        onUpload = { 
+                            selectedRoomForUpload = room
+                            showPhotoOptions = true
+                        }
                     )
                 }
 
@@ -115,6 +161,42 @@ fun RoomManagementScreen(onBackClick: () -> Unit) {
             )
         }
         if (selectedRoomForQR != null) QRDialog(selectedRoomForQR!!, { selectedRoomForQR = null }, { bitmap -> shareQRCode(context, bitmap, selectedRoomForQR!!.roomNumber) })
+        
+        if (showPhotoOptions) {
+            AlertDialog(
+                onDismissRequest = { showPhotoOptions = false },
+                title = { Text("Update Room Photo") },
+                text = { Text("Choose a source for the room photo") },
+                confirmButton = {
+                    TextButton(onClick = { 
+                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                            cameraImageUri?.let { cameraLauncher.launch(it) }
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                        }
+                        showPhotoOptions = false 
+                    }) { Text("CAMERA") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { 
+                        galleryLauncher.launch("image/*")
+                        showPhotoOptions = false 
+                    }) { Text("GALLERY") }
+                }
+            )
+        }
+
+        if (isUploading) {
+            Dialog(onDismissRequest = {}) {
+                Box(
+                    modifier = Modifier.size(100.dp).background(Color.White, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF007BFF))
+                }
+            }
+        }
+
         if (roomToDelete != null) {
             AlertDialog(
                 onDismissRequest = { roomToDelete = null },
@@ -180,7 +262,7 @@ fun PropertyRoomCard(
                         fontSize = 18.sp
                     )
                     Text(
-                        text = "Total Units: ${room.totalUnits}",
+                        text = "Room ID: ${formatRoomId(room.roomNumber)}",
                         color = Color.White.copy(alpha = 0.9f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -193,7 +275,7 @@ fun PropertyRoomCard(
                 StatLine("Maximum guests:", "${room.maxGuests} guests")
                 StatLine("Maximum adults:", "${room.maxAdults} adults")
                 StatLine("Maximum children:", "${room.maxChildren} children")
-                StatLine("Total Units:", "${room.totalUnits}")
+                StatLine("Number of this type:", "${room.totalUnits}")
 
                 Spacer(Modifier.height(16.dp))
 
@@ -210,15 +292,6 @@ fun PropertyRoomCard(
                         border = BorderStroke(1.dp, Color.LightGray)
                     ) {
                         Text("Edit", fontSize = 13.sp, color = Color.Black, fontWeight = FontWeight.Bold)
-                    }
-                    OutlinedButton(
-                        onClick = onDelete,
-                        modifier = Modifier.weight(1f).height(40.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        border = BorderStroke(1.dp, Color.LightGray)
-                    ) {
-                        Text("Delete", fontSize = 13.sp, color = Color.Black, fontWeight = FontWeight.Bold)
                     }
                     Button(
                         onClick = onUpload,
@@ -339,7 +412,7 @@ fun AddEditRoomDialog(
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 DropdownField("Room type", listOf("Single", "Double", "Deluxe", "Suite", "Budget Double Room"), roomType) { roomType = it }
                                 
-                                OccupancyCounter("Number of rooms (of this type):", totalUnits) { totalUnits = it }
+                                OccupancyCounter("Number of this type:", totalUnits) { totalUnits = it }
                                 
                                 DropdownField("Smoking policy", listOf("Non-smoking", "Smoking allowed", "I have both smoking and non-smoking options for this room type"), smokingPolicy) { smokingPolicy = it }
 
@@ -550,6 +623,41 @@ fun DropdownField(label: String, options: List<String>, selected: String, onSele
             } 
         }
     }
+}
+
+private fun formatRoomId(roomNumber: String): String {
+    val hash = roomNumber.hashCode().toLong().let { if (it < 0) -it else it }
+    return String.format("%010d", hash % 10000000000L)
+}
+
+private fun uploadRoomPhoto(
+    context: Context, 
+    uri: Uri, 
+    room: Room, 
+    setLoading: (Boolean) -> Unit,
+    onSuccess: (Room) -> Unit
+) {
+    setLoading(true)
+    val storageRef = FirebaseStorage.getInstance().reference
+        .child("hotels")
+        .child(room.hotelId)
+        .child("rooms")
+        .child(room.roomNumber)
+        .child("${UUID.randomUUID()}.jpg")
+
+    storageRef.putFile(uri)
+        .addOnSuccessListener {
+            storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                val updatedRoom = room.copy(imageUrl = downloadUri.toString())
+                onSuccess(updatedRoom)
+                setLoading(false)
+                Toast.makeText(context, "Photo uploaded successfully", Toast.LENGTH_SHORT).show()
+            }
+        }
+        .addOnFailureListener {
+            setLoading(false)
+            Toast.makeText(context, "Failed to upload photo: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
 }
 
 private fun shareQRCode(context: Context, bitmap: Bitmap, roomNumber: String) {

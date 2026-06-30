@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
-    onGeneralSettingsClick: () -> Unit,
     onSecuritySettingsClick: () -> Unit
 ) {
     LazyColumn(
@@ -33,15 +32,7 @@ fun SettingsScreen(
     ) {
         item {
             SettingsCardItem(
-                title = "General Setting",
-                subtitle = "Edit Profile, App language, and basic info",
-                icon = Icons.Default.Settings,
-                onClick = onGeneralSettingsClick
-            )
-        }
-        item {
-            SettingsCardItem(
-                title = "Security Setting",
+                title = "App Security",
                 subtitle = "App Lock, PIN, and Biometric security",
                 icon = Icons.Default.Security,
                 onClick = onSecuritySettingsClick
