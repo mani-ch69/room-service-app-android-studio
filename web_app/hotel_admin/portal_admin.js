@@ -1,12 +1,12 @@
 // Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBw6jDr8wRKeMMR7TiX8YiB0kO1wIfEmbE",
-  authDomain: "roomserviceapk.firebaseapp.com",
-  databaseURL: "https://roomserviceapk-default-rtdb.firebaseio.com",
-  projectId: "roomserviceapk",
-  storageBucket: "roomserviceapk.firebasestorage.app",
-  messagingSenderId: "987842436715",
-  appId: "1:987842436715:web:04d22839d4ca52c61e1b2e"
+    apiKey: "AIzaSyBw6jDr8wRKeMMR7TiX8YiB0kO1wIfEmbE",
+    authDomain: "roomserviceapk.firebaseapp.com",
+    databaseURL: "https://roomserviceapk-default-rtdb.firebaseio.com",
+    projectId: "roomserviceapk",
+    storageBucket: "roomserviceapk.firebasestorage.app",
+    messagingSenderId: "987842436715",
+    appId: "1:987842436715:web:04d22839d4ca52c61e1b2e"
 };
 
 // Initialize Firebase
@@ -61,7 +61,7 @@ window.switchTab = (tabId) => {
     if (target) target.classList.remove('hidden');
 
     document.querySelectorAll('.nav-item').forEach(item => {
-        if (item.getAttribute('onclick')?.includes(tabId)) {
+        if (item.getAttribute('onclick') ? .includes(tabId)) {
             item.classList.add('active');
         }
     });
@@ -94,9 +94,9 @@ function listenForBookings() {
 }
 
 function renderDashboardStats() {
-    const today = new Date().setHours(0,0,0,0);
-    const todayBookings = allBookings.filter(b => new Date(b.checkInDate).setHours(0,0,0,0) === today);
-    const todayCheckouts = allBookings.filter(b => new Date(b.checkOutDate).setHours(0,0,0,0) === today);
+    const today = new Date().setHours(0, 0, 0, 0);
+    const todayBookings = allBookings.filter(b => new Date(b.checkInDate).setHours(0, 0, 0, 0) === today);
+    const todayCheckouts = allBookings.filter(b => new Date(b.checkOutDate).setHours(0, 0, 0, 0) === today);
 
     document.getElementById('stat-total-bookings').innerText = allBookings.length;
     document.getElementById('stat-checkins').innerText = todayBookings.length;
