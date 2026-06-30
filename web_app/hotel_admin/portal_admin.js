@@ -194,13 +194,16 @@ window.openRoomModal = () => {
     const modal = document.getElementById('room-modal');
     if (!modal) return;
     document.getElementById('rm-room-number').value = '';
-    document.getElementById('rm-room-type').value = '';
+    document.getElementById('rm-room-type').value = 'Single';
     document.getElementById('rm-floor-level').value = 'Ground floor';
     document.getElementById('rm-total-units').value = 1;
+    document.getElementById('rm-smoking-policy').value = 'Non-smoking';
     document.getElementById('rm-max-guests').value = 2;
     document.getElementById('rm-max-adults').value = 2;
     document.getElementById('rm-max-children').value = 0;
-    document.getElementById('rm-bed-type').value = 'King Size';
+    document.getElementById('rm-bed-type').value = 'King';
+    document.getElementById('rm-number-of-beds').value = 1;
+    document.getElementById('rm-bathroom-private').value = 'yes';
     document.getElementById('rm-image-url').value = '';
     document.getElementById('rm-available').value = 'true';
     modal.classList.remove('hidden');
@@ -226,14 +229,15 @@ function saveRoom() {
         maxGuests: parseInt(document.getElementById('rm-max-guests').value) || 2,
         maxAdults: parseInt(document.getElementById('rm-max-adults').value) || 2,
         maxChildren: parseInt(document.getElementById('rm-max-children').value) || 0,
-        bedType: document.getElementById('rm-bed-type').value || 'King Size',
+        bedType: document.getElementById('rm-bed-type').value || 'King',
+        numberOfBeds: parseInt(document.getElementById('rm-number-of-beds').value) || 1,
         imageUrl: document.getElementById('rm-image-url').value || '',
         isAvailable: document.getElementById('rm-available').value === 'true',
         hotelId: hotelId,
         qrToken: 'QR_' + Date.now(),
-        smokingPolicy: 'Non-smoking',
+        smokingPolicy: document.getElementById('rm-smoking-policy').value || 'Non-smoking',
         numBathrooms: 1,
-        isBathroomPrivate: true,
+        isBathroomPrivate: document.getElementById('rm-bathroom-private').value === 'yes',
         roomSize: '250 sqft',
         hasAc: true,
         isBathroomInside: true,
