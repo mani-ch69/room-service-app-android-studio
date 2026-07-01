@@ -487,8 +487,20 @@
             </div>
 
             <div id="tab-rooms" class="page-content hidden">
-                <div class="room-form-container">
-                    <h2 style="margin-bottom: 24px;">Room Details</h2>
+                <div class="panel-head">
+                    <h2>Room Details</h2>
+                    <button id="btn-show-room-form" class="btn-booking" onclick="showRoomForm()">+ Add New Room</button>
+                </div>
+
+                <!-- ROOM LISTING GRID (Initially Visible) -->
+                <div id="admin-rooms-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 24px;"></div>
+
+                <!-- REDESIGNED ROOM FORM (Initially Hidden) -->
+                <div id="room-form-section" class="room-form-container hidden" style="margin-top: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3>Create a new room</h3>
+                        <button class="btn-action" onclick="hideRoomForm()" style="background:#f1f5f9; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-weight:700;">Cancel</button>
+                    </div>
 
                     <!-- Section 1: Please Select -->
                     <div class="form-section">
@@ -911,6 +923,18 @@
             document.getElementById('room-modal').classList.add('hidden');
         }
 
+        function showRoomForm() {
+            document.getElementById('admin-rooms-grid').classList.add('hidden');
+            document.getElementById('room-form-section').classList.remove('hidden');
+            document.getElementById('btn-show-room-form').classList.add('hidden');
+        }
+
+        function hideRoomForm() {
+            document.getElementById('admin-rooms-grid').classList.remove('hidden');
+            document.getElementById('room-form-section').classList.add('hidden');
+            document.getElementById('btn-show-room-form').classList.remove('hidden');
+        }
+
         function updateCounter(id, delta) {
             const el = document.getElementById(id);
             let val = parseInt(el.innerText) + delta;
@@ -957,7 +981,7 @@
             db.ref('hotels').child(hotelId).child('rooms').child(room.roomNumber).set(room)
                 .then(() => {
                     alert("Room details saved successfully!");
-                    switchTab('dashboard'); // Redirect after save
+                    hideRoomForm(); // Hide form and show list again
                 })
                 .catch(err => {
                     console.error("Save error:", err);
