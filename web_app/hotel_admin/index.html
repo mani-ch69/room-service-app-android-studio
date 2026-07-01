@@ -487,8 +487,145 @@
             </div>
 
             <div id="tab-rooms" class="page-content hidden">
-                <div class="panel-head"><h2>Room Details</h2><button class="btn-booking" onclick="openRoomModal()">+ Add New Room</button></div>
-                <div id="admin-rooms-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;"></div>
+                <div class="room-form-container">
+                    <h2 style="margin-bottom: 24px;">Room Details</h2>
+
+                    <!-- Section 1: Please Select -->
+                    <div class="form-section">
+                        <h3>Please select</h3>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label>Room type</label>
+                                <select id="rm-type">
+                                    <option value="">Please select</option>
+                                    <option>Single</option>
+                                    <option>Double</option>
+                                    <option>Deluxe</option>
+                                    <option>Suite</option>
+                                    <option>Budget Double Room</option>
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label>Smoking policy</label>
+                                <select id="rm-smoking">
+                                    <option>Non-smoking</option>
+                                    <option>Smoking allowed</option>
+                                    <option>I have both smoking and non-smoking options for this room type</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-field" style="max-width: 50%;">
+                            <label>Number of rooms (of this type)</label>
+                            <input type="number" id="rm-units" value="1">
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Room Location -->
+                    <div class="form-section">
+                        <h3>Room location</h3>
+                        <div class="form-field" style="max-width: 50%;">
+                            <label>Floor Level</label>
+                            <select id="rm-floor">
+                                <option>No selection</option>
+                                <option>Ground floor</option>
+                                <option>1st floor</option>
+                                <option>2nd floor</option>
+                                <option>3rd floor</option>
+                                <option>Basement</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Bed Options -->
+                    <div class="form-section">
+                        <h3>Bed options</h3>
+                        <div style="background:#f8fafc; padding:16px; border-radius:4px;">
+                            <p style="font-size:0.75rem; font-weight:700; color:#007bff; margin-bottom:12px;">Standard Arrangement</p>
+                            <div class="form-grid">
+                                <div class="form-field">
+                                    <label>What kind of beds are available in this room?</label>
+                                    <select id="rm-bed-type">
+                                        <option>Single</option>
+                                        <option>Double</option>
+                                        <option>Queen</option>
+                                        <option>King</option>
+                                        <option>Twin</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label>Number of beds</label>
+                                    <select id="rm-bed-count">
+                                        <option>1</option>
+                                        <option>2</option>
+                                        <option>3</option>
+                                        <option>4</option>
+                                        <option>5</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Occupancy -->
+                    <div class="form-section">
+                        <h3>Occupancy</h3>
+                        <p style="font-size:0.75rem; color:#64748b; margin-bottom:16px;">You can adjust your occupancy later. To attract more family bookings, make sure you set children rates and add extra beds.</p>
+
+                        <div class="occupancy-row">
+                            <span class="occupancy-label">Maximum guests</span>
+                            <div class="counter-box">
+                                <button class="counter-btn" onclick="updateCounter('rm-max-guests', -1)">-</button>
+                                <div id="rm-max-guests" class="counter-val">2</div>
+                                <button class="counter-btn" onclick="updateCounter('rm-max-guests', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="occupancy-row">
+                            <span class="occupancy-label">Maximum adults</span>
+                            <div class="counter-box">
+                                <button class="counter-btn" onclick="updateCounter('rm-max-adults', -1)">-</button>
+                                <div id="rm-max-adults" class="counter-val">2</div>
+                                <button class="counter-btn" onclick="updateCounter('rm-max-adults', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="occupancy-row" style="border:none;">
+                            <span class="occupancy-label">Maximum children</span>
+                            <div class="counter-box">
+                                <button class="counter-btn" onclick="updateCounter('rm-max-children', -1)">-</button>
+                                <div id="rm-max-children" class="counter-val">0</div>
+                                <button class="counter-btn" onclick="updateCounter('rm-max-children', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Bathroom Options -->
+                    <div class="form-section">
+                        <h3>Bathroom options</h3>
+                        <div class="form-field" style="max-width: 50%;">
+                            <label>Number of bathrooms</label>
+                            <select id="rm-bath-count">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                            </select>
+                        </div>
+                        <div class="bathroom-box">
+                            <p style="font-weight:700;">Bathroom 1</p>
+                            <p style="font-size:0.75rem; color:#64748b;">Is the bathroom private? (not shared with host or other guests)</p>
+                            <div class="radio-group">
+                                <label class="radio-item"><input type="radio" name="bath-private" checked value="true"> Yes</label>
+                                <label class="radio-item"><input type="radio" name="bath-private" value="false"> No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-alert">
+                        When you click Continue, don't forget to add availability & prices, photos, and amenities right after!
+                    </div>
+
+                    <div class="footer-actions">
+                        <button class="btn-continue" onclick="saveRoom()">Continue</button>
+                    </div>
+                </div>
             </div>
 
             <div id="tab-settings" class="page-content hidden">
@@ -517,48 +654,7 @@
         </div>
     </div>
 
-    <!-- MODAL: ROOM MANAGEMENT -->
-    <div id="room-modal" class="modal-base hidden">
-        <div class="modal-win" style="width: 700px;">
-            <div class="win-head"><h2>Room Details Configuration</h2><span style="cursor:pointer; font-size:1.5rem;" onclick="closeRoomModal()">&times;</span></div>
-
-            <div style="background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 24px;">
-                <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--primary);">Room Basics</h4>
-                <div class="form-row">
-                    <div><label>Room Type</label><input type="text" id="rm-type" placeholder="e.g. Deluxe Room"></div>
-                    <div><label>Number of this type</label><input type="number" id="rm-units" value="1"></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Floor Level</label><input type="text" id="rm-floor" placeholder="e.g. 1st Floor"></div>
-                    <div><label>Smoking Policy</label>
-                        <select id="rm-smoking" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;">
-                            <option>Non-smoking</option>
-                            <option>Smoking allowed</option>
-                            <option>Both available</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div style="background: #F1F5F9; padding: 16px; border-radius: 12px; margin-bottom: 24px;">
-                <h4 style="font-size: 0.9rem; margin-bottom: 12px; color: var(--primary);">Bedding & Occupancy</h4>
-                <div class="form-row">
-                    <div><label>Bed Type</label><input type="text" id="rm-bed-type" placeholder="King/Queen/Single"></div>
-                    <div><label>No. of Beds</label><input type="number" id="rm-bed-count" value="1"></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Max Guests</label><input type="number" id="rm-max-guests" value="2"></div>
-                    <div><label>Max Adults</label><input type="number" id="rm-max-adults" value="2"></div>
-                </div>
-                <div class="form-row">
-                    <div><label>Max Children</label><input type="number" id="rm-max-children" value="0"></div>
-                    <div><label>Number of Bathrooms</label><input type="number" id="rm-bath-count" value="1"></div>
-                </div>
-            </div>
-
-            <button class="btn-booking" style="width: 100%; padding: 18px;" onclick="saveRoom()">Commit Room to Inventory</button>
-        </div>
-    </div>
+<!-- REMOVED OLD ROOM MODAL TO USE IN-PAGE FORM -->
 
     <script>
         // --- ENTERPRISE DASHBOARD LOGIC ---
@@ -815,6 +911,13 @@
             document.getElementById('room-modal').classList.add('hidden');
         }
 
+        function updateCounter(id, delta) {
+            const el = document.getElementById(id);
+            let val = parseInt(el.innerText) + delta;
+            if (val < 0) val = 0;
+            el.innerText = val;
+        }
+
         function saveRoom() {
             const type = document.getElementById('rm-type').value;
             const units = parseInt(document.getElementById('rm-units').value) || 1;
@@ -822,10 +925,13 @@
             const floor = document.getElementById('rm-floor').value;
             const bedType = document.getElementById('rm-bed-type').value;
             const bedCount = parseInt(document.getElementById('rm-bed-count').value) || 1;
-            const maxGuests = parseInt(document.getElementById('rm-max-guests').value) || 2;
-            const maxAdults = parseInt(document.getElementById('rm-max-adults').value) || 2;
-            const maxChildren = parseInt(document.getElementById('rm-max-children').value) || 0;
+
+            const maxGuests = parseInt(document.getElementById('rm-max-guests').innerText) || 2;
+            const maxAdults = parseInt(document.getElementById('rm-max-adults').innerText) || 2;
+            const maxChildren = parseInt(document.getElementById('rm-max-children').innerText) || 0;
+
             const bathCount = parseInt(document.getElementById('rm-bath-count').value) || 1;
+            const isPrivate = document.querySelector('input[name="bath-private"]:checked').value === "true";
 
             if(!type) return alert("Room Type is mandatory");
 
@@ -842,6 +948,7 @@
                 maxAdults: maxAdults,
                 maxChildren: maxChildren,
                 numBathrooms: bathCount,
+                isBathroomPrivate: isPrivate,
                 hotelId: hotelId,
                 isAvailable: true,
                 imageUrl: ""
@@ -849,8 +956,8 @@
 
             db.ref('hotels').child(hotelId).child('rooms').child(room.roomNumber).set(room)
                 .then(() => {
-                    alert("Room added successfully!");
-                    closeRoomModal();
+                    alert("Room details saved successfully!");
+                    switchTab('dashboard'); // Redirect after save
                 })
                 .catch(err => {
                     console.error("Save error:", err);
