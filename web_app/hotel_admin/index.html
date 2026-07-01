@@ -682,7 +682,7 @@
 
             const html = allRooms.slice(0, 8).map(r => `
                 <div class="room-unit ${r.isAvailable ? 'available' : 'occupied'}">
-                    ${r.roomNumber}
+                    ${r.roomType}
                     <span>${r.isAvailable ? 'AVAILABLE' : 'RESERVED'}</span>
                 </div>
             `).join('');
@@ -783,6 +783,7 @@
 
             document.getElementById('stat-occupancy').innerText = rate + "%";
             document.getElementById('chart-total-rooms').innerText = allRooms.length;
+            if(document.getElementById('stat-total-rooms')) document.getElementById('stat-total-rooms').innerText = allRooms.length;
             document.getElementById('meta-occupied').innerText = `${occupied} (${rate}%)`;
             document.getElementById('meta-available').innerText = `${available} (${100 - rate}%)`;
 
@@ -828,8 +829,9 @@
 
             if(!type) return alert("Room Type is mandatory");
 
+            const roomId = 'RM_' + Date.now();
             const room = {
-                roomNumber: type, // Using type as key for parity with current app logic
+                roomNumber: roomId,
                 roomType: type,
                 totalUnits: units,
                 smokingPolicy: smoking,

@@ -29,6 +29,9 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.roomservice.data.model.Booking
 import com.example.roomservice.data.model.BookingStatus
 import com.example.roomservice.data.model.Room
+import com.example.roomservice.ui.common.DateDisplayBox
+import com.example.roomservice.ui.common.CommonDateRangePicker
+import com.example.roomservice.ui.common.DateRangeUtils
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -321,21 +324,20 @@ fun BulkEditDialog(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(
-                                    value = "${df.format(Date(fromDate))} - ${df.format(Date(toDate))}",
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    label = { Text("Select date range:") },
-                                    modifier = Modifier.fillMaxWidth().clickable { showRangePicker = true },
-                                    enabled = false,
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        disabledTextColor = Color.Black,
-                                        disabledBorderColor = Color.LightGray,
-                                        disabledLabelColor = Color.Gray
-                                    ),
-                                    shape = RoundedCornerShape(8.dp),
-                                    trailingIcon = { Icon(Icons.Default.CalendarMonth, null) }
-                                )
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    DateDisplayBox(
+                                        label = "From *",
+                                        value = df.format(Date(fromDate)),
+                                        onClick = { showRangePicker = true },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    DateDisplayBox(
+                                        label = "To *",
+                                        value = df.format(Date(toDate)),
+                                        onClick = { showRangePicker = true },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                                 
                                 Text("Which days of the week do you want to apply changes to?", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                                 
@@ -532,35 +534,18 @@ fun BulkEditDialog(
             initialSelectedEndDateMillis = toDate,
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                    val today = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
-                        set(java.util.Calendar.HOUR_OF_DAY, 0)
-                        set(java.util.Calendar.MINUTE, 0)
-                        set(java.util.Calendar.SECOND, 0)
-                        set(java.util.Calendar.MILLISECOND, 0)
-                    }.timeInMillis
-                    return utcTimeMillis >= today
+                    return DateRangeUtils.isSelectableFromToday(utcTimeMillis)
                 }
             }
         )
-        DatePickerDialog(
-            onDismissRequest = { showRangePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    dateRangePickerState.selectedStartDateMillis?.let { fromDate = it }
-                    dateRangePickerState.selectedEndDateMillis?.let { toDate = it }
-                    showRangePicker = false
-                }) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRangePicker = false }) { Text("Cancel") }
+        CommonDateRangePicker(
+            state = dateRangePickerState,
+            onDismiss = { showRangePicker = false },
+            onConfirm = { start, end ->
+                start?.let { fromDate = it }
+                end?.let { toDate = it }
             }
-        ) {
-            DateRangePicker(
-                state = dateRangePickerState,
-                modifier = Modifier.weight(1f).padding(16.dp),
-                title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
-            )
-        }
+        )
     }
 }
 

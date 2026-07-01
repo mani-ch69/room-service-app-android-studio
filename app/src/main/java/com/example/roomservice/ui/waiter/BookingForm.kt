@@ -38,6 +38,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.roomservice.data.model.*
+import com.example.roomservice.ui.common.DateDisplayBox
+import com.example.roomservice.ui.common.CommonDateRangePicker
+import com.example.roomservice.ui.common.DateRangeUtils
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -83,6 +86,9 @@ fun AddBookingDialog(
     
     var roomRent by remember { mutableStateOf("") }
     var advancePaid by remember { mutableStateOf(initialBooking?.advancePaid?.toInt()?.toString() ?: "") }
+    var discount by remember { mutableStateOf(initialBooking?.discount?.toInt()?.toString() ?: "") }
+    var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
+    var upiTransactionId by remember { mutableStateOf(initialBooking?.upiTransactionId ?: "") }
     var paymentMode by remember { mutableStateOf("UPI") }
     
     var idType by remember { mutableStateOf("Aadhar Card") }
@@ -119,8 +125,10 @@ fun AddBookingDialog(
     }
     
     val pricePerNight = roomRent.toDoubleOrNull() ?: 0.0
-    val totalAmount = pricePerNight * nights
-    val advanceVal = advancePaid.toDoubleOrNull() ?: 0.0
+    val subtotalAmount = pricePerNight * nights
+    val discountVal = discount.toDoubleOrNull() ?: 0.0
+    val totalAmount = subtotalAmount - discountVal
+    val advanceVal = if (isFullPay) totalAmount else (advancePaid.toDoubleOrNull() ?: 0.0)
     val remaining = totalAmount - advanceVal
 
     // UI STATE
@@ -163,6 +171,9 @@ fun AddBookingDialog(
                                     checkOutDate = checkOutDate,
                                     totalAmount = totalAmount,
                                     advancePaid = advanceVal,
+                                    discount = discountVal,
+                                    isFullPay = isFullPay,
+                                    upiTransactionId = upiTransactionId,
                                     numberOfGuests = adults + children,
                                     status = initialBooking?.status ?: BookingStatus.BOOKED,
                                     bookingAgent = selectedAgent
@@ -190,21 +201,23 @@ fun AddBookingDialog(
                 item {
                     BookingAccordionSection("Stay Details", Icons.Default.CalendarMonth, expandedSection == "stay", { expandedSection = if(expandedSection == "stay") "" else "stay" }) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedTextField(
-                                value = "${df.format(Date(checkInDate))} - ${df.format(Date(checkOutDate))}",
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("Check-in & Check-out Dates *") },
-                                modifier = Modifier.fillMaxWidth().clickable { showRangePicker = true },
-                                enabled = false,
-                                colors = OutlinedTextFieldDefaults.colors(disabledTextColor = Color.Black, disabledBorderColor = Color.LightGray, disabledLabelColor = Color.Gray),
-                                shape = RoundedCornerShape(8.dp),
-                                trailingIcon = { Icon(Icons.Default.CalendarToday, null) }
-                            )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                DateDisplayBox(
+                                    label = "Check-in Date *",
+                                    value = df.format(Date(checkInDate)),
+                                    onClick = { showRangePicker = true },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                DateDisplayBox(
+                                    label = "Check-out Date *",
+                                    value = df.format(Date(checkOutDate)),
+                                    onClick = { showRangePicker = true },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                             Box(modifier = Modifier.background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) { Text("$nights Nights", fontWeight = FontWeight.Bold, fontSize = 14.sp) }
                             val roomTypeOptions = remember(rooms) { rooms.map { it.roomType }.distinct() }
                             SimpleDropdown("Room Type *", roomTypeOptions, selectedType) { selectedType = it }
-                            SimpleDropdown("Booking Agent", agents, selectedAgent) { selectedAgent = it }
                         }
                     }
                 }
@@ -231,10 +244,31 @@ fun AddBookingDialog(
                     BookingAccordionSection("Payment Details", Icons.Default.Wallet, expandedSection == "payment", { expandedSection = if(expandedSection == "payment") "" else "payment" }) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             OutlinedTextField(value = roomRent, onValueChange = { roomRent = it }, label = { Text("Room Rent / Night *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                            OutlinedTextField(value = totalAmount.toInt().toString(), onValueChange = {}, readOnly = true, label = { Text("Total Amount") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") })
-                            OutlinedTextField(value = advancePaid, onValueChange = { advancePaid = it }, label = { Text("Advance Paid") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                            Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF9C4), RoundedCornerShape(8.dp)).padding(16.dp)) { Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Remaining Amount", fontWeight = FontWeight.Medium); Text("₹ ${remaining.toInt()}", fontWeight = FontWeight.Bold) } }
+                            OutlinedTextField(value = (pricePerNight * nights).toInt().toString(), onValueChange = {}, readOnly = true, label = { Text("Subtotal Amount") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") })
+                            
+                            OutlinedTextField(value = discount, onValueChange = { discount = it }, label = { Text("Discount") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { isFullPay = !isFullPay }) {
+                                Checkbox(checked = isFullPay, onCheckedChange = { isFullPay = it })
+                                Text("Full Pay", fontWeight = FontWeight.Medium)
+                            }
+
+                            if (!isFullPay) {
+                                OutlinedTextField(value = advancePaid, onValueChange = { advancePaid = it }, label = { Text("Advance Paid") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                            }
+
+                            Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF9C4), RoundedCornerShape(8.dp)).padding(16.dp)) { 
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Total Amount", fontWeight = FontWeight.Medium); Text("₹ ${totalAmount.toInt()}", fontWeight = FontWeight.Bold) }
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Remaining Amount", fontWeight = FontWeight.Medium); Text("₹ ${remaining.toInt()}", fontWeight = FontWeight.Bold) }
+                                }
+                            }
+                            
                             SimpleDropdown("Payment Mode *", listOf("UPI", "Cash", "Card", "Net Banking"), paymentMode) { paymentMode = it }
+                            
+                            if (paymentMode == "UPI") {
+                                OutlinedTextField(value = upiTransactionId, onValueChange = { upiTransactionId = it }, label = { Text("UPI Transaction Number") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), leadingIcon = { Icon(Icons.Default.QrCode, null, tint = Color.Gray) })
+                            }
                         }
                     }
                 }
@@ -284,35 +318,18 @@ fun AddBookingDialog(
                 initialSelectedEndDateMillis = checkOutDate,
                 selectableDates = object : SelectableDates {
                     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                        val today = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
-                            set(Calendar.HOUR_OF_DAY, 0)
-                            set(Calendar.MINUTE, 0)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }.timeInMillis
-                        return utcTimeMillis >= today
+                        return DateRangeUtils.isSelectableFromToday(utcTimeMillis)
                     }
                 }
             )
-            DatePickerDialog(
-                onDismissRequest = { showRangePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        dateRangePickerState.selectedStartDateMillis?.let { checkInDate = it }
-                        dateRangePickerState.selectedEndDateMillis?.let { checkOutDate = it }
-                        showRangePicker = false
-                    }) { Text("OK") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showRangePicker = false }) { Text("Cancel") }
+            CommonDateRangePicker(
+                state = dateRangePickerState,
+                onDismiss = { showRangePicker = false },
+                onConfirm = { start, end ->
+                    start?.let { checkInDate = it }
+                    end?.let { checkOutDate = it }
                 }
-            ) {
-                DateRangePicker(
-                    state = dateRangePickerState,
-                    modifier = Modifier.weight(1f).padding(16.dp),
-                    title = { Text("Select Stay Dates", modifier = Modifier.padding(16.dp)) }
-                )
-            }
+            )
         }
         if (showPhotoOptions) {
             AlertDialog(onDismissRequest = { showPhotoOptions = false }, title = { Text("Select ID Photo") }, text = { Text("Choose a source for the photo") }, confirmButton = { TextButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraImageUri?.let { cameraLauncher.launch(it) } else permissionLauncher.launch(Manifest.permission.CAMERA); showPhotoOptions = false }) { Text("CAMERA") } }, dismissButton = { TextButton(onClick = { galleryLauncher.launch("image/*"); showPhotoOptions = false }) { Text("GALLERY") } })

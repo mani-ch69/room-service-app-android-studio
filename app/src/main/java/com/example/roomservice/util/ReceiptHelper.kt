@@ -41,9 +41,11 @@ object ReceiptHelper {
         val checkIn = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkInDate))
         val checkOut = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkOutDate))
 
-        val gst = booking.totalAmount * 0.12
-        val subtotal = booking.totalAmount - gst
+        val gst = (booking.totalAmount + booking.discount) * 0.12
+        val subtotal = (booking.totalAmount + booking.discount) - gst
         val outstanding = booking.totalAmount - booking.advancePaid
+
+        val upiText = if (booking.upiTransactionId.isNotEmpty()) "\nUPI Ref: ${booking.upiTransactionId}" else ""
 
         return """
             *GANGA HOMES*
@@ -62,10 +64,11 @@ object ReceiptHelper {
             --------------------------
             Room Charges: ₹${String.format(Locale.getDefault(), "%.2f", subtotal)}
             GST (12%): ₹${String.format(Locale.getDefault(), "%.2f", gst)}
+            Discount: ₹${String.format(Locale.getDefault(), "%.2f", booking.discount)}
             *Total: ₹${String.format(Locale.getDefault(), "%.2f", booking.totalAmount)}*
             
             Advance Paid: ₹${String.format(Locale.getDefault(), "%.2f", booking.advancePaid)}
-            *Outstanding: ₹${String.format(Locale.getDefault(), "%.2f", outstanding)}*
+            *Outstanding: ₹${String.format(Locale.getDefault(), "%.2f", outstanding)}*$upiText
             --------------------------
             Date: $dateStr
             
@@ -100,9 +103,13 @@ object ReceiptHelper {
         val checkIn = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkInDate))
         val checkOut = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkOutDate))
 
-        val gst = booking.totalAmount * 0.12 // Simulation: 12% GST
-        val subtotal = booking.totalAmount - gst
+        val gst = (booking.totalAmount + booking.discount) * 0.12 // Simulation: 12% GST
+        val subtotal = (booking.totalAmount + booking.discount) - gst
         val outstanding = booking.totalAmount - booking.advancePaid
+
+        val upiRow = if (booking.upiTransactionId.isNotEmpty()) {
+            "<div class=\"info-line\"><span>UPI Ref:</span> <b>${booking.upiTransactionId}</b></div>"
+        } else ""
 
         return """
             <html>
@@ -144,12 +151,14 @@ object ReceiptHelper {
 
                 <div class="info-line"><span>Room Charges:</span> <span>₹${String.format("%.2f", subtotal)}</span></div>
                 <div class="info-line"><span>GST (12%):</span> <span>₹${String.format("%.2f", gst)}</span></div>
+                <div class="info-line"><span>Discount:</span> <span>-₹${String.format("%.2f", booking.discount)}</span></div>
                 <div class="info-line total"><span>Total:</span> <span>₹${String.format("%.2f", booking.totalAmount)}</span></div>
                 
                 <div class="divider"></div>
                 
                 <div class="info-line"><span>Advance Paid:</span> <span>₹${String.format("%.2f", booking.advancePaid)}</span></div>
                 <div class="info-line"><span>Outstanding:</span> <b style="color:red;">₹${String.format("%.2f", outstanding)}</b></div>
+                $upiRow
 
                 <div class="divider"></div>
                 <div class="footer">

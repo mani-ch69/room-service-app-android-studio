@@ -17,6 +17,9 @@ data class Booking(
     val guestIdentities: List<GuestIdentity> = emptyList(),
     val status: BookingStatus = BookingStatus.BOOKED,
     val bookingAgent: String = "Manual Booking",
+    val discount: Double = 0.0,
+    val isFullPay: Boolean = false,
+    val upiTransactionId: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )
 

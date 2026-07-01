@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomservice.data.model.*
+import com.example.roomservice.ui.common.DateDisplayBox
+import com.example.roomservice.ui.common.CommonDateRangePicker
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,6 +37,7 @@ fun BookingManagementScreen(
     var dateFrom by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var dateTo by remember { mutableLongStateOf(System.currentTimeMillis() + 86400000L) }
     var isMoreFiltersExpanded by remember { mutableStateOf(false) }
+    var showRangePicker by remember { mutableStateOf(false) }
     
     // Status Filters
     val selectedStatuses = remember { mutableStateListOf<String>() }
@@ -85,8 +88,8 @@ fun BookingManagementScreen(
                     FilterDropdownField("Date of", listOf("Reservation", "Check-in", "Check-out", "Invoice", "Stay"), dateOfType) { dateOfType = it }
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        DatePickerField("From", sdf.format(Date(dateFrom)), Modifier.weight(1f)) { dateFrom = it }
-                        DatePickerField("Until", sdf.format(Date(dateTo)), Modifier.weight(1f)) { dateTo = it }
+                        DateDisplayBox("From", sdf.format(Date(dateFrom)), { showRangePicker = true }, Modifier.weight(1f))
+                        DateDisplayBox("Until", sdf.format(Date(dateTo)), { showRangePicker = true }, Modifier.weight(1f))
                     }
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -168,6 +171,22 @@ fun BookingManagementScreen(
             }
         }
     }
+
+    if (showRangePicker) {
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = dateFrom,
+            initialSelectedEndDateMillis = dateTo
+        )
+        CommonDateRangePicker(
+            state = dateRangePickerState,
+            onDismiss = { showRangePicker = false },
+            onConfirm = { start, end ->
+                start?.let { dateFrom = it }
+                end?.let { dateTo = it }
+                applyFilters()
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -208,52 +227,6 @@ fun FilterDropdownField(label: String, options: List<String>, selected: String, 
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3Api::class)
-fun DatePickerField(label: String, value: String, modifier: Modifier = Modifier, onDateSelected: (Long) -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
-
-    Column(modifier = modifier) {
-        Text(label, fontSize = 12.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .clickable { showDialog = true }
-                .border(1.dp, Color.LightGray, RoundedCornerShape(12.dp)),
-            color = Color(0xFFF8FAFC),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = value, fontSize = 14.sp, color = Color.Black)
-                Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp), tint = Color.Gray)
-            }
-        }
-    }
-
-    if (showDialog) {
-        DatePickerDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { onDateSelected(it) }
-                    showDialog = false
-                }) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) { Text("Cancel") }
-            }
-        ) {
-            DatePicker(state = datePickerState)
         }
     }
 }

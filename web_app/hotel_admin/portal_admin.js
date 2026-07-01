@@ -102,6 +102,7 @@ function renderDashboardStats() {
     document.getElementById('stat-total-bookings').innerText = allBookings.length;
     document.getElementById('stat-checkins').innerText = todayBookings.length;
     document.getElementById('stat-checkouts').innerText = todayCheckouts.length;
+    if(document.getElementById('stat-total-rooms')) document.getElementById('stat-total-rooms').innerText = allRooms.length;
 
     const revenue = allBookings.reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0);
     document.getElementById('rev-month').innerText = "₹" + revenue.toLocaleString();
@@ -181,7 +182,7 @@ function renderDashboardRoomGrid() {
     if (!grid) return;
     grid.innerHTML = allRooms.slice(0, 8).map(r => `
         <div class="room-unit ${r.isAvailable ? 'available' : 'occupied'}">
-            ${r.roomNumber}
+            ${r.roomType}
             <span>${r.isAvailable ? 'AVAILABLE' : 'RESERVED'}</span>
         </div>
     `).join('');
@@ -244,8 +245,9 @@ window.saveRoom = () => {
 
     if (!type) return alert("Room Type is mandatory");
 
+    const roomId = 'RM_' + Date.now();
     const room = {
-        roomNumber: type, // Using type as key for parity with current app logic
+        roomNumber: roomId,
         roomType: type,
         totalUnits: units,
         smokingPolicy: smoking,

@@ -293,7 +293,7 @@ fun DashboardBookingCardRedesigned(
         rooms.find { it.roomNumber == booking.roomNumber }?.roomType ?: ""
     }
 
-    val outstanding = booking.totalAmount - booking.advancePaid
+    val outstanding = booking.totalAmount - booking.advancePaid - booking.discount
     val nights = remember(booking.checkInDate, booking.checkOutDate) {
         val n = ((booking.checkOutDate - booking.checkInDate) / 86400000L).toInt()
         if (n <= 0) 1 else n

@@ -108,7 +108,7 @@ fun RoomManagementScreen(onBackClick: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF1F5F9))) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
-                "Room Details", 
+                "Room Detail",
                 modifier = Modifier.padding(16.dp), 
                 style = MaterialTheme.typography.titleLarge, 
                 fontWeight = FontWeight.Bold,
@@ -392,7 +392,7 @@ fun AddEditRoomDialog(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = { Text(if (initialRoom == null) "Room Details" else "Edit Room", fontWeight = FontWeight.Bold) },
+                    title = { Text(if (initialRoom == null) "Room Detail" else "Edit Room", fontWeight = FontWeight.Bold) },
                     navigationIcon = {
                         IconButton(onClick = onDismiss) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.Black)
@@ -525,7 +525,7 @@ fun AddEditRoomDialog(
                             onClick = { 
                                 if (roomType.isNotBlank()) {
                                     onConfirm(Room(
-                                        roomNumber = roomType, // Use Type as ID for now
+                                        roomNumber = initialRoom?.roomNumber ?: "RM_${System.currentTimeMillis()}", // Fix: Use unique ID, keep existing if editing
                                         totalUnits = totalUnits,
                                         hotelId = hotelId ?: "", 
                                         roomType = roomType, 

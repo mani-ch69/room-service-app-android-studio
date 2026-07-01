@@ -85,7 +85,7 @@ fun AdminMenuScreen(
                 title = { 
                     val title = if (selectedBottomTab == "home") "DASHBOARD" else when(moreTabSubScreen) {
                         "hotel_stays" -> "Hotel & Stay's"
-                        "hotel_rooms_list" -> "Rooms"
+                        "hotel_rooms_list" -> "Room Detail"
                         "hotel_bookings" -> "Bookings"
                         "hotel_rates_menu" -> "Rates & Availability"
                         "hotel_property_detail" -> "Property Detail"

@@ -18,6 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomservice.data.model.Room
+import com.example.roomservice.ui.common.CommonDateRangePicker
+import com.example.roomservice.ui.common.DateDisplayBox
+import com.example.roomservice.ui.common.DateRangeUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,6 +36,7 @@ fun OpenCloseRoomsScreen(
     val daysOfWeek = remember { mutableStateListOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat") }
     val selectedRoomTypes = remember { mutableStateListOf<String>() }
     var isOpenStatus by remember { mutableStateOf(true) }
+    var showRangePicker by remember { mutableStateOf(false) }
 
     val sdf = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
     val roomTypes = remember(rooms) { rooms.map { it.roomType }.distinct() }
@@ -72,8 +76,8 @@ fun OpenCloseRoomsScreen(
                 SectionCard("Which dates do you want to make changes to?") {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            DatePickerField("From Date:", sdf.format(Date(fromDate)), Modifier.weight(1f)) { fromDate = it }
-                            DatePickerField("To Date:", sdf.format(Date(toDate)), Modifier.weight(1f)) { toDate = it }
+                            DateDisplayBox("From Date:", sdf.format(Date(fromDate)), { showRangePicker = true }, Modifier.weight(1f))
+                            DateDisplayBox("To Date:", sdf.format(Date(toDate)), { showRangePicker = true }, Modifier.weight(1f))
                         }
                         
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -132,6 +136,26 @@ fun OpenCloseRoomsScreen(
             
             item { Spacer(Modifier.height(100.dp)) }
         }
+    }
+
+    if (showRangePicker) {
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = fromDate,
+            initialSelectedEndDateMillis = toDate,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return DateRangeUtils.isSelectableFromToday(utcTimeMillis)
+                }
+            }
+        )
+        CommonDateRangePicker(
+            state = dateRangePickerState,
+            onDismiss = { showRangePicker = false },
+            onConfirm = { start, end ->
+                start?.let { fromDate = it }
+                end?.let { toDate = it }
+            }
+        )
     }
 }
 
