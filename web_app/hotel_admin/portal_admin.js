@@ -336,6 +336,7 @@ window.saveManualBooking = () => {
         roomRent: rent,
         totalAmount: (window.currentNights || 1) * rent,
         advancePaid: 0,
+        paymentMode: "Cash",
         discount: 0,
         status: "BOOKED",
         timestamp: Date.now()

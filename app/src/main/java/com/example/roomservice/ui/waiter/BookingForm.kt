@@ -90,12 +90,12 @@ fun AddBookingDialog(
             if (diff <= 0) 1 else diff
         }
     }
-    var roomRent by remember { mutableStateOf(initialBooking?.roomRent?.toInt()?.toString() ?: (if (initialBooking != null) (initialBooking.totalAmount / initialNights).toInt().toString() else "")) }
+    var roomRent by remember { mutableStateOf(initialBooking?.roomRent?.toInt()?.toString() ?: (if (initialBooking != null && initialBooking.totalAmount > 0) (initialBooking.totalAmount / initialNights).toInt().toString() else "")) }
     var advancePaid by remember { mutableStateOf(initialBooking?.advancePaid?.toInt()?.toString() ?: "") }
-    var discount by remember { mutableStateOf(initialBooking?.discount?.toInt()?.toString() ?: "") }
+    var discount by remember { mutableStateOf(if(initialBooking?.discount ?: 0.0 > 0) initialBooking?.discount?.toInt()?.toString() ?: "" else "") }
     var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
     var upiTransactionId by remember { mutableStateOf(initialBooking?.upiTransactionId ?: "") }
-    var paymentMode by remember { mutableStateOf("UPI") }
+    var paymentMode by remember { mutableStateOf(initialBooking?.paymentMode ?: "UPI") }
     
     var idType by remember { mutableStateOf("Aadhar Card") }
     var idNumber by remember { mutableStateOf("") }
@@ -178,6 +178,7 @@ fun AddBookingDialog(
                                     roomRent = pricePerNight,
                                     totalAmount = totalAmount,
                                     advancePaid = advanceVal,
+                                    paymentMode = paymentMode,
                                     discount = discountVal,
                                     isFullPay = isFullPay,
                                     upiTransactionId = upiTransactionId,

@@ -14,6 +14,7 @@ data class Booking(
     val roomRent: Double = 0.0,
     val totalAmount: Double = 0.0,
     val advancePaid: Double = 0.0,
+    val paymentMode: String = "Cash",
     val numberOfGuests: Int = 1,
     val guestIdentities: List<GuestIdentity> = emptyList(),
     val status: BookingStatus = BookingStatus.BOOKED,
