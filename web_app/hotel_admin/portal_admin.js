@@ -333,7 +333,10 @@ window.saveManualBooking = () => {
         checkInDate: new Date(document.getElementById('mb-checkin').value).getTime(),
         checkOutDate: new Date(document.getElementById('mb-checkout').value).getTime(),
         roomNumber: room ? room.roomNumber : "TBA",
+        roomRent: rent,
         totalAmount: (window.currentNights || 1) * rent,
+        advancePaid: 0,
+        discount: 0,
         status: "BOOKED",
         timestamp: Date.now()
     };

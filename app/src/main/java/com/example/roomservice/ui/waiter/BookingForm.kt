@@ -84,7 +84,13 @@ fun AddBookingDialog(
     var checkInDate by remember { mutableLongStateOf(initialBooking?.checkInDate ?: System.currentTimeMillis()) }
     var checkOutDate by remember { mutableLongStateOf(initialBooking?.checkOutDate ?: (System.currentTimeMillis() + 86400000L)) }
     
-    var roomRent by remember { mutableStateOf("") }
+    val initialNights = remember(initialBooking) {
+        if (initialBooking == null) 1 else {
+            val diff = ((initialBooking.checkOutDate - initialBooking.checkInDate) / 86400000L).toInt()
+            if (diff <= 0) 1 else diff
+        }
+    }
+    var roomRent by remember { mutableStateOf(initialBooking?.roomRent?.toInt()?.toString() ?: (if (initialBooking != null) (initialBooking.totalAmount / initialNights).toInt().toString() else "")) }
     var advancePaid by remember { mutableStateOf(initialBooking?.advancePaid?.toInt()?.toString() ?: "") }
     var discount by remember { mutableStateOf(initialBooking?.discount?.toInt()?.toString() ?: "") }
     var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
@@ -169,6 +175,7 @@ fun AddBookingDialog(
                                     guestPhone = guestPhone,
                                     checkInDate = checkInDate,
                                     checkOutDate = checkOutDate,
+                                    roomRent = pricePerNight,
                                     totalAmount = totalAmount,
                                     advancePaid = advanceVal,
                                     discount = discountVal,

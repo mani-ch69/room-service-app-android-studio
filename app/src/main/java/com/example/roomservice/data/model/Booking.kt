@@ -11,6 +11,7 @@ data class Booking(
     val guestPhone: String = "",
     val checkInDate: Long = 0L,
     val checkOutDate: Long = 0L,
+    val roomRent: Double = 0.0,
     val totalAmount: Double = 0.0,
     val advancePaid: Double = 0.0,
     val numberOfGuests: Int = 1,
