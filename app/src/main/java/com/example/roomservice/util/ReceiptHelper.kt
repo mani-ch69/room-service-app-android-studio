@@ -117,6 +117,7 @@ object ReceiptHelper {
                 <style>
                     body { font-family: 'Courier New', Courier, monospace; width: 300px; padding: 10px; margin: 0; }
                     .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+                    .logo-img { width: 100px; margin-bottom: 10px; border-radius: 8px; }
                     .hotel-name { font-size: 20px; font-weight: bold; text-transform: uppercase; }
                     .info-line { display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px; }
                     .divider { border-top: 1px dashed #000; margin: 10px 0; }
@@ -126,6 +127,7 @@ object ReceiptHelper {
             </head>
             <body>
                 <div class="header">
+                    <img src="https://i.ibb.co/Xf7yZ8N/gh-stay-logo.jpg" class="logo-img">
                     <div class="hotel-name">GANGA HOMES</div>
                     <div>${business.address}</div>
                     <div>Phone: +919198065441 / +915423567944</div>
