@@ -228,15 +228,82 @@
 
         <!-- SETTINGS MODULE -->
         <div id="tab-settings" class="container tab-pane hidden">
-            <div class="page-header"><h1>Portal Settings</h1></div>
-            <div class="card" style="max-width:600px;">
-                <h3>Hotel Information</h3>
-                <div style="margin-top:20px;">
-                    <label style="display:block; margin-bottom:8px; font-weight:700; color:#64748b; font-size:0.75rem;">Legal Hotel Name</label>
-                    <input type="text" id="set-hotel-name" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:16px;">
-                    <label style="display:block; margin-bottom:8px; font-weight:700; color:#64748b; font-size:0.75rem;">Address</label>
-                    <input type="text" id="set-hotel-address" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:24px;">
-                    <button class="btn btn-primary" style="width:100%;" onclick="savePropertySettings()">Commit Changes</button>
+            <div class="page-header">
+                <div>
+                    <h1>Settings</h1>
+                    <p style="color:#64748b;">Manage your hotel preferences and system settings.</p>
+                </div>
+                <button class="btn btn-primary" onclick="saveAllSettings()">💾 Save Changes</button>
+            </div>
+
+            <div class="settings-container">
+                <!-- Sidebar Nav -->
+                <div class="settings-sidebar">
+                    <div class="settings-nav-item active">👤 General Settings</div>
+                    <div class="settings-nav-item">🏢 Hotel Profile</div>
+                    <div class="settings-nav-item">🛌 Room Settings</div>
+                    <div class="settings-nav-item">📑 Rates & Policies</div>
+                    <div class="settings-nav-item">💰 Taxes & Charges</div>
+                    <div class="settings-nav-item">📅 Booking Settings</div>
+                    <div class="settings-nav-item">💳 Payment Settings</div>
+                    <div class="settings-nav-item">✉️ Email & SMS</div>
+                    <div class="settings-nav-item">👥 User Management</div>
+                    <div class="settings-nav-item">⚙️ System Prefs</div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="settings-content">
+                    <!-- General Settings -->
+                    <div class="settings-card">
+                        <h3>General Settings</h3>
+                        <div class="settings-form-grid">
+                            <div class="input-wrap"><label>Hotel Name</label><input type="text" id="set-hotel-name" value="Ganga Homes"></div>
+                            <div class="input-wrap"><label>Hotel Phone</label><input type="text" value="+91 9876543210"></div>
+                            <div class="input-wrap"><label>Time Zone</label><select><option>Asia/Kolkata (GMT +05:30)</option></select></div>
+                            <div class="input-wrap"><label>Hotel Email</label><input type="email" value="info@gangahomes.com"></div>
+                            <div class="input-wrap"><label>Date Format</label><select><option>DD MMM YYYY (29 Jun 2026)</option></select></div>
+                            <div class="input-wrap"><label>Language</label><select><option>English</option></select></div>
+                        </div>
+                        <label class="checkbox-row"><input type="checkbox" checked> <span>Enable notifications for important alerts</span></label>
+                    </div>
+
+                    <!-- Hotel Profile -->
+                    <div class="settings-card">
+                        <h3>Hotel Profile</h3>
+                        <div class="input-wrap"><label>Address</label><textarea id="set-hotel-address" rows="2">B-8/67, Assi Ghat Road, Varanasi, Uttar Pradesh - 221005</textarea></div>
+                        <div class="settings-form-grid" style="margin-top:8px;">
+                            <div class="input-wrap"><label>Website</label><input type="text" value="www.gangahomes.com"></div>
+                            <div class="logo-upload-box">
+                                <div class="logo-preview">👑</div>
+                                <button class="btn-upload">↑ Upload New Logo</button>
+                                <p style="font-size:0.6rem; color:#64748b;">PNG, JPG or SVG. Max size 2MB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rates & Policies -->
+                    <div class="settings-card">
+                        <h3>Rates & Policies</h3>
+                        <div class="settings-form-grid">
+                            <div class="input-wrap"><label>Default Check-in Time</label><input type="text" value="12:00 PM"></div>
+                            <div class="input-wrap"><label>Default Check-out Time</label><input type="text" value="11:00 AM"></div>
+                        </div>
+                        <div class="input-wrap" style="margin-top:8px;"><label>Cancellation Policy</label><textarea rows="2">Free cancellation up to 24 hours before check-in. After that, 1 night charge will be applicable.</textarea></div>
+                    </div>
+
+                    <!-- Payment Settings -->
+                    <div class="settings-card">
+                        <h3>Payment Settings</h3>
+                        <div class="input-wrap"><label>Default Payment Mode</label><select><option>UPI</option><option>Cash</option></select></div>
+                        <div class="input-wrap"><label>UPI ID</label><input type="text" value="gangahomes@upi"></div>
+                        <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <b style="font-size:0.75rem;">Bank Details</b>
+                                <button class="btn btn-outline" style="font-size:0.6rem; padding:4px 8px;">Edit</button>
+                            </div>
+                            <p style="font-size:0.7rem; color:#64748b; line-height:1.4;">HDFC Bank<br>Account Name: Ganga Homes<br>Number: 50200012345678<br>IFSC: HDFC0000334</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
