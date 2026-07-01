@@ -90,7 +90,7 @@ fun AddBookingDialog(
             if (diff <= 0) 1 else diff
         }
     }
-    var roomRent by remember { mutableStateOf(initialBooking?.roomRent?.toInt()?.toString() ?: (if (initialBooking != null && initialBooking.totalAmount > 0) (initialBooking.totalAmount / initialNights).toInt().toString() else "")) }
+    var roomRent by remember { mutableStateOf(if(initialBooking != null) (initialBooking.roomRent.toInt().toString()) else "") }
     var advancePaid by remember { mutableStateOf(initialBooking?.advancePaid?.toInt()?.toString() ?: "") }
     var discount by remember { mutableStateOf(if(initialBooking != null && initialBooking.discount > 0) initialBooking.discount.toInt().toString() else "") }
     var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
@@ -133,7 +133,14 @@ fun AddBookingDialog(
     val pricePerNight = roomRent.toDoubleOrNull() ?: 0.0
     val subtotalAmount = pricePerNight * nights
     val discountVal = discount.toDoubleOrNull() ?: 0.0
-    val totalAmount = subtotalAmount - discountVal
+    
+    // Fix: If editing and roomRent hasn't changed, use initial totalAmount to prevent calculation overwrites
+    val totalAmount = if (initialBooking != null && roomRent == initialBooking.roomRent.toInt().toString()) {
+        initialBooking.totalAmount
+    } else {
+        subtotalAmount - discountVal
+    }
+
     val advanceVal = if (isFullPay) totalAmount else (advancePaid.toDoubleOrNull() ?: 0.0)
     val remaining = totalAmount - advanceVal
 
