@@ -295,12 +295,22 @@ fun PropertyRoomCard(
                     }
                     Button(
                         onClick = onUpload,
-                        modifier = Modifier.weight(1.5f).height(40.dp),
+                        modifier = Modifier.weight(1.2f).height(40.dp),
                         shape = RoundedCornerShape(4.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF)),
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text("Upload photos", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Photos", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                    OutlinedButton(
+                        onClick = onDelete,
+                        modifier = Modifier.weight(0.8f).height(40.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        contentPadding = PaddingValues(0.dp),
+                        border = BorderStroke(1.dp, Color.Red),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
+                    ) {
+                        Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
                     }
                 }
             }
@@ -398,7 +408,18 @@ fun AddEditRoomDialog(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.Black)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                    actions = {
+                        if (initialRoom != null && onDeleteClick != null) {
+                            IconButton(onClick = onDeleteClick) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Room",
+                                    tint = Color.Red
+                                )
+                            }
+                        }
+                    }
                 )
 
                 LazyColumn(
