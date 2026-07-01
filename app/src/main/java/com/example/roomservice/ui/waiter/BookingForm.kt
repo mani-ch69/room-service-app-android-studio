@@ -92,13 +92,13 @@ fun AddBookingDialog(
     }
     var roomRent by remember { mutableStateOf(initialBooking?.roomRent?.toInt()?.toString() ?: (if (initialBooking != null && initialBooking.totalAmount > 0) (initialBooking.totalAmount / initialNights).toInt().toString() else "")) }
     var advancePaid by remember { mutableStateOf(initialBooking?.advancePaid?.toInt()?.toString() ?: "") }
-    var discount by remember { mutableStateOf(if(initialBooking?.discount ?: 0.0 > 0) initialBooking?.discount?.toInt()?.toString() ?: "" else "") }
+    var discount by remember { mutableStateOf(if(initialBooking != null && initialBooking.discount > 0) initialBooking.discount.toInt().toString() else "") }
     var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
     var upiTransactionId by remember { mutableStateOf(initialBooking?.upiTransactionId ?: "") }
     var paymentMode by remember { mutableStateOf(initialBooking?.paymentMode ?: "UPI") }
     
-    var idType by remember { mutableStateOf("Aadhar Card") }
-    var idNumber by remember { mutableStateOf("") }
+    var idType by remember { mutableStateOf(initialBooking?.guestIdentities?.firstOrNull()?.idType ?: "Aadhar Card") }
+    var idNumber by remember { mutableStateOf(initialBooking?.guestIdentities?.firstOrNull()?.idNumber ?: "") }
     
     var specialRequests by remember { mutableStateOf("") }
     
@@ -183,6 +183,7 @@ fun AddBookingDialog(
                                     isFullPay = isFullPay,
                                     upiTransactionId = upiTransactionId,
                                     numberOfGuests = adults + children,
+                                    guestIdentities = listOf(GuestIdentity(idType = idType, idNumber = idNumber)),
                                     status = initialBooking?.status ?: BookingStatus.BOOKED,
                                     bookingAgent = selectedAgent
                                 ))
