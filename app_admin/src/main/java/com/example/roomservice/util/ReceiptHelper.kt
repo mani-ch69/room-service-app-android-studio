@@ -41,7 +41,7 @@ object ReceiptHelper {
         val checkIn = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkInDate))
         val checkOut = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkOutDate))
 
-        val gst = (booking.totalAmount + booking.discount) * 0.12
+        val gst = (booking.totalAmount + booking.discount) * 0.05
         val subtotal = (booking.totalAmount + booking.discount) - gst
         val outstanding = booking.totalAmount - booking.advancePaid
 
@@ -63,7 +63,7 @@ object ReceiptHelper {
             Check-Out: $checkOut
             --------------------------
             Room Charges: ₹${String.format(Locale.getDefault(), "%.2f", subtotal)}
-            GST (12%): ₹${String.format(Locale.getDefault(), "%.2f", gst)}
+            GST (5%): ₹${String.format(Locale.getDefault(), "%.2f", gst)}
             Discount: ₹${String.format(Locale.getDefault(), "%.2f", booking.discount)}
             *Total: ₹${String.format(Locale.getDefault(), "%.2f", booking.totalAmount)}*
             
@@ -104,7 +104,7 @@ object ReceiptHelper {
         val checkIn = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkInDate))
         val checkOut = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkOutDate))
 
-        val gst = (booking.totalAmount + booking.discount) * 0.12 // Simulation: 12% GST
+        val gst = (booking.totalAmount + booking.discount) * 0.05 // Simulation: 5% GST
         val subtotal = (booking.totalAmount + booking.discount) - gst
         val outstanding = booking.totalAmount - booking.advancePaid
 
@@ -128,7 +128,7 @@ object ReceiptHelper {
             </head>
             <body>
                 <div class="header">
-                    <img src="https://i.ibb.co/Xf7yZ8N/gh-stay-logo.jpg" class="logo-img">
+                    <img src="https://i.ibb.co/6P0f9pL/ganga-homes-logo.jpg" class="logo-img">
                     <div class="hotel-name">GANGA HOMES</div>
                     <div>${business.address}</div>
                     <div>Phone: +919198065441 / +915423567944</div>
@@ -153,7 +153,7 @@ object ReceiptHelper {
                 <div class="divider"></div>
 
                 <div class="info-line"><span>Room Charges:</span> <span>₹${String.format("%.2f", subtotal)}</span></div>
-                <div class="info-line"><span>GST (12%):</span> <span>₹${String.format("%.2f", gst)}</span></div>
+                <div class="info-line"><span>GST (5%):</span> <span>₹${String.format("%.2f", gst)}</span></div>
                 <div class="info-line"><span>Discount:</span> <span>-₹${String.format("%.2f", booking.discount)}</span></div>
                 <div class="info-line total"><span>Total:</span> <span>₹${String.format("%.2f", booking.totalAmount)}</span></div>
                 
