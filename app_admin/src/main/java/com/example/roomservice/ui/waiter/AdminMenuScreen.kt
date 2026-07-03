@@ -115,19 +115,6 @@ fun AdminMenuScreen(
                     }
                 },
                 actions = {
-                    if (selectedBottomTab == "home") {
-                        Button(
-                            onClick = { showAddBookingDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("New Booking", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
                     if (moreTabSubScreen == "hotel_rooms_list") IconButton(onClick = { showAddRoomDialog = true }) { Icon(Icons.Default.Add, null) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
