@@ -191,7 +191,7 @@ fun AddBookingDialog(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text(if (initialBooking == null) "New Manual Booking" else "Edit Booking", fontWeight = FontWeight.Bold) },
+                    title = { Text(if (initialBooking == null) "New Manual Reservation" else "Edit Reservation", fontWeight = FontWeight.Bold) },
                     navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                     actions = {
                         if (initialBooking != null && onDeleteClick != null) {
@@ -253,7 +253,7 @@ fun AddBookingDialog(
                         if (isSaving) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                         } else {
-                            Text("Save Booking", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Text("Save Reservation", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                         }
                     }
                 }
@@ -421,7 +421,7 @@ fun AddBookingDialog(
             AlertDialog(
                 onDismissRequest = { showSaveDialog = false; onDismiss() },
                 title = { Text("Success") },
-                text = { Text("Booking has been saved successfully.") },
+                text = { Text("Reservation has been saved successfully.") },
                 confirmButton = { Button(onClick = { showSaveDialog = false; onDismiss() }) { Text("OK") } }
             )
         }
