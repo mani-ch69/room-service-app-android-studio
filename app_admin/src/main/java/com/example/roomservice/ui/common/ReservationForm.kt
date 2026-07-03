@@ -99,10 +99,19 @@ fun ReservationFormContent(
     var discount by remember { mutableStateOf(initialBooking?.discount?.toInt()?.toString() ?: "") }
     var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
     var paymentMode by remember { mutableStateOf(initialBooking?.paymentMode ?: "UPI") }
+    
     var idType by remember { mutableStateOf(initialBooking?.guestIdentities?.firstOrNull()?.idType ?: "Aadhar Card") }
     var idNumber by remember { mutableStateOf(initialBooking?.guestIdentities?.firstOrNull()?.idNumber ?: "") }
     var specialRequests by remember { mutableStateOf("") }
     var selectedAgent by remember { mutableStateOf(initialBooking?.bookingAgent ?: "Manual Reservation") }
+
+    // ID PHOTO STATE
+    var selectedIdUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraImageUri = remember { try { val file = File(context.cacheDir, "temp_id.jpg"); FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file) } catch (e: Exception) { null } }
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { if (it) selectedIdUri = cameraImageUri }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { if (it != null) selectedIdUri = it }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { if (it && cameraImageUri != null) cameraLauncher.launch(cameraImageUri) }
+    var showPhotoOptions by remember { mutableStateOf(false) }
 
     // --- CALCULATIONS ---
     val nights by remember(checkInDate, checkOutDate) {
@@ -214,11 +223,36 @@ fun ReservationFormContent(
                 }
             }
         }
+
+        // ID PROOF
+        BookingAccordionSection("ID Proof", Icons.Default.Badge, expandedSection == "id", { expandedSection = if(expandedSection == "id") "" else "id" }) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SimpleDropdown("ID Type *", listOf("Aadhar Card", "PAN Card", "Passport", "Voter ID"), idType) { idType = it }
+                OutlinedTextField(value = idNumber, onValueChange = { idNumber = it }, label = { Text("ID Number *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                
+                Box(modifier = Modifier.fillMaxWidth().height(150.dp).border(1.dp, Color.LightGray, RoundedCornerShape(8.dp)).background(Color.White).clickable { showPhotoOptions = true }, contentAlignment = Alignment.Center) {
+                    if (selectedIdUri != null) { AsyncImage(model = selectedIdUri, contentDescription = null, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop) }
+                    else { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.CloudUpload, null, tint = Color(0xFF1976D2), modifier = Modifier.size(32.dp)); Text("Tap to upload ID Photo", color = Color(0xFF1976D2), fontSize = 14.sp) } }
+                }
+            }
+        }
+
+        // SPECIAL REQUESTS
+        BookingAccordionSection("Special Requests / Notes", Icons.Default.EditNote, expandedSection == "notes", { expandedSection = if(expandedSection == "notes") "" else "notes" }) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Special Requests / Remarks", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                OutlinedTextField(value = specialRequests, onValueChange = { specialRequests = it }, placeholder = { Text("Enter any special request or note", color = Color.LightGray) }, modifier = Modifier.fillMaxWidth().height(120.dp), shape = RoundedCornerShape(8.dp))
+            }
+        }
     }
 
     // RANGE PICKER DIALOG
     if (showRangePicker) {
         val dateRangePickerState = rememberDateRangePickerState(initialSelectedStartDateMillis = checkInDate, initialSelectedEndDateMillis = checkOutDate)
         com.example.roomservice.ui.common.CommonDateRangePicker(state = dateRangePickerState, onDismiss = { showRangePicker = false }, onConfirm = { start, end -> start?.let { checkInDate = it }; end?.let { checkOutDate = it } })
+    }
+
+    if (showPhotoOptions) {
+        AlertDialog(onDismissRequest = { showPhotoOptions = false }, title = { Text("Select ID Photo") }, text = { Text("Choose a source for the photo") }, confirmButton = { TextButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraImageUri?.let { cameraLauncher.launch(it) } else permissionLauncher.launch(Manifest.permission.CAMERA); showPhotoOptions = false }) { Text("CAMERA") } }, dismissButton = { TextButton(onClick = { galleryLauncher.launch("image/*"); showPhotoOptions = false }) { Text("GALLERY") } })
     }
 }
