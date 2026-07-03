@@ -105,7 +105,7 @@ fun AdminMenuScreen(
                         "general_settings" -> "General Setting"
                         "security_settings" -> "App Security"
                         "app_lock" -> "App Lock"
-                        else -> "More"
+                        else -> "Property Detail"
                     }
                     Text(text = title, fontWeight = FontWeight.Black)
                 },
