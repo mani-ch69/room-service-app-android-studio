@@ -178,6 +178,7 @@ fun AdminMenuScreen(
                         "hotel_prop_general_info" -> GeneralInfoStatusScreen()
                         "hotel_prop_amenities" -> RoomAmenitiesScreen()
                         "hotel_prop_profile" -> YourProfileScreen()
+                        "hotel_prop_messaging" -> MessagingPreferencesScreen()
                         "hotel_rooms_list" -> {
                             RoomManagementScreen { moreTabSubScreen = "hotel_property_detail" }
                             if (showAddRoomDialog) AddEditRoomDialog(rooms, null, { showAddRoomDialog = false }, { com.example.roomservice.data.RoomRepository.addRoom(it); showAddRoomDialog = false })
