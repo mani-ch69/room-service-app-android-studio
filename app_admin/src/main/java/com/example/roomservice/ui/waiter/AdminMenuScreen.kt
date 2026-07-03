@@ -315,8 +315,6 @@ fun PropertyDetailMenu(onGeneralInfoClick: () -> Unit, onVatTaxClick: () -> Unit
         item { MoreMenuItem("Room details", Icons.Default.Bed, onRoomDetailsClick) }
         item { MoreMenuItem("Room Amenities", Icons.Default.HotTub, onAmenitiesClick) }
         item { MoreMenuItem("Your Profile", Icons.Default.AccountBox, onProfileClick) }
-        item { MoreMenuItem("View Your Descriptions", Icons.Default.Description, onDescriptionsClick) }
         item { MoreMenuItem("Messaging Preferences", Icons.Default.Message, onMessagingClick) }
-        item { MoreMenuItem("Sustainability", Icons.Default.Eco, onSustainabilityClick, isNew = true) }
     }
 }

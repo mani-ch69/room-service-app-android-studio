@@ -146,7 +146,7 @@ fun AmenityItem(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if(option == "All") "All rooms" else if(option == "Some") "Some rooms" else "None",
+                            text = if(option == "All") "All" else if(option == "Some") "Some" else "None",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (isSelected) Color.White else Color(0xFF1976D2)
