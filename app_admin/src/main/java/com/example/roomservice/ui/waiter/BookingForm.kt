@@ -1,20 +1,11 @@
 package com.example.roomservice.ui.waiter
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -22,30 +13,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import coil.compose.AsyncImage
 import com.example.roomservice.data.model.*
-import com.example.roomservice.ui.common.DateDisplayBox
-import com.example.roomservice.ui.common.CommonDateRangePicker
-import com.example.roomservice.ui.common.DateRangeUtils
+import com.example.roomservice.ui.common.ReservationFormContent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
-import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,135 +37,13 @@ fun AddBookingDialog(
     onConfirm: (Booking) -> Unit,
     onDeleteClick: (() -> Unit)? = null
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
-    // FETCH ALL BOOKINGS FOR VALIDATION
     val viewModel: AdminMenuViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val allBookings by viewModel.bookings.collectAsState()
 
-    // FORM STATE
-    var guestName by remember { mutableStateOf(initialBooking?.guestName ?: "") }
-    var guestPhone by remember { mutableStateOf(initialBooking?.guestPhone ?: "") }
-    
-    var checkInDate by remember { mutableLongStateOf(initialBooking?.checkInDate ?: System.currentTimeMillis()) }
-    var checkOutDate by remember { mutableLongStateOf(initialBooking?.checkOutDate ?: (System.currentTimeMillis() + 86400000L)) }
-
-    // ROOM AVAILABILITY LOGIC
-    val availabilityMap = remember(checkInDate, checkOutDate, allBookings, rooms, initialBooking) {
-        val map = mutableMapOf<String, Int>()
-        val distinctTypes = rooms.map { it.roomType }.distinct()
-        
-        distinctTypes.forEach { type ->
-            val totalRoomsOfType = rooms.count { it.roomType == type }
-            
-            // Count active bookings for this type that overlap with selected dates
-            val overlappingBookings = allBookings.filter { b ->
-                if (b.status == BookingStatus.CANCELLED) return@filter false
-                if (b.id == initialBooking?.id) return@filter false // Don't count current booking if editing
-                
-                val bRoom = rooms.find { it.roomNumber == b.roomNumber }
-                if (bRoom?.roomType != type) return@filter false
-                
-                // Overlap check: (StartA <= EndB) and (EndA >= StartB)
-                // We use checkOutDate - 1ms to treat checkout day as "half-day"
-                val overlap = b.checkInDate < checkOutDate && b.checkOutDate > checkInDate
-                overlap
-            }
-            
-            map[type] = (totalRoomsOfType - overlappingBookings.size).coerceAtLeast(0)
-        }
-        map
-    }
-
-    var selectedType by remember { 
-        mutableStateOf(
-            initialBooking?.roomNumber?.let { rn -> rooms.find { it.roomNumber == rn }?.roomType } 
-            ?: availabilityMap.entries.find { it.value > 0 }?.key 
-            ?: if(rooms.isNotEmpty()) rooms[0].roomType else ""
-        ) 
-    }
-    
-    val selectedRoom = remember(selectedType, rooms) { rooms.find { it.roomType == selectedType } }
-    val maxAdultsLimit = selectedRoom?.maxAdults ?: 5
-    val maxChildrenLimit = selectedRoom?.maxChildren ?: 5
-    val maxTotalLimit = selectedRoom?.maxGuests ?: 10
-
-    var adults by remember { mutableIntStateOf(initialBooking?.numberOfGuests?.coerceAtMost(maxAdultsLimit) ?: 2.coerceAtMost(maxAdultsLimit)) }
-    var children by remember { mutableIntStateOf(0) }
-    
-    LaunchedEffect(selectedType) {
-        if (adults > maxAdultsLimit) adults = maxAdultsLimit
-        if (children > maxChildrenLimit) children = maxChildrenLimit
-        if (adults + children > maxTotalLimit) {
-            children = (maxTotalLimit - adults).coerceAtLeast(0)
-        }
-    }
-    
-    val initialNights = remember(initialBooking) {
-        if (initialBooking == null) 1 else {
-            val diff = ((initialBooking.checkOutDate - initialBooking.checkInDate) / 86400000L).toInt()
-            if (diff <= 0) 1 else diff
-        }
-    }
-    var roomRent by remember { mutableStateOf(if(initialBooking != null) (initialBooking.roomRent.toInt().toString()) else "") }
-    var advancePaid by remember { mutableStateOf(initialBooking?.advancePaid?.toInt()?.toString() ?: "") }
-    var discount by remember { mutableStateOf(if(initialBooking != null && initialBooking.discount > 0) initialBooking.discount.toInt().toString() else "") }
-    var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
-    var upiTransactionId by remember { mutableStateOf(initialBooking?.upiTransactionId ?: "") }
-    var paymentMode by remember { mutableStateOf(initialBooking?.paymentMode ?: "UPI") }
-    
-    var idType by remember { mutableStateOf(initialBooking?.guestIdentities?.firstOrNull()?.idType ?: "Aadhar Card") }
-    var idNumber by remember { mutableStateOf(initialBooking?.guestIdentities?.firstOrNull()?.idNumber ?: "") }
-    
-    var specialRequests by remember { mutableStateOf("") }
-    
-    val agents = remember { listOf("Website Booking", "Manual Booking", "booking.com", "Agoda", "Airbnb", "Goibibo", "yatra.com", "trivago", "Clear Trip", "Make My Trip") }
-    var selectedAgent by remember { mutableStateOf(initialBooking?.bookingAgent ?: "Manual Booking") }
-    
-    // APP STATE
+    var currentBookingData by remember { mutableStateOf(initialBooking ?: Booking()) }
     var isSaving by remember { mutableStateOf(false) }
     var showSaveDialog by remember { mutableStateOf(false) }
-
-    // ID PHOTO STATE
-    var selectedIdUri by remember { mutableStateOf<Uri?>(null) }
-    val cameraImageUri = remember { try { val file = File(context.cacheDir, "temp_id.jpg"); FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file) } catch (e: Exception) { null } }
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { if (it) selectedIdUri = cameraImageUri }
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { if (it != null) selectedIdUri = it }
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { if (it && cameraImageUri != null) cameraLauncher.launch(cameraImageUri) }
-    var showPhotoOptions by remember { mutableStateOf(false) }
-
-    // DATE PICKERS
-    var showRangePicker by remember { mutableStateOf(false) }
-
-    // CALCULATIONS
-    val nights by remember(checkInDate, checkOutDate) {
-        derivedStateOf {
-            val start = Calendar.getInstance().apply { timeInMillis = checkInDate; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
-            val end = Calendar.getInstance().apply { timeInMillis = checkOutDate; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
-            val diff = ((end.timeInMillis - start.timeInMillis) / 86400000L).toInt()
-            if (diff <= 0) 1 else diff
-        }
-    }
-    
-    val pricePerNight = roomRent.toDoubleOrNull() ?: 0.0
-    val subtotalAmount = pricePerNight * nights
-    val discountVal = discount.toDoubleOrNull() ?: 0.0
-    
-    // Fix: If editing and roomRent hasn't changed, use initial totalAmount to prevent calculation overwrites
-    val totalAmount = if (initialBooking != null && roomRent == initialBooking.roomRent.toInt().toString()) {
-        initialBooking.totalAmount
-    } else {
-        subtotalAmount - discountVal
-    }
-
-    val advanceVal = if (isFullPay) totalAmount else (advancePaid.toDoubleOrNull() ?: 0.0)
-    val remaining = totalAmount - advanceVal
-
-    // UI STATE
-    var expandedSection by remember { mutableStateOf("stay") }
-    val hotelId by com.example.roomservice.data.HotelSession.hotelId.collectAsState()
-    val df = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Scaffold(
@@ -195,9 +53,7 @@ fun AddBookingDialog(
                     navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
                     actions = {
                         if (initialBooking != null && onDeleteClick != null) {
-                            IconButton(onClick = onDeleteClick) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red)
-                            }
+                            IconButton(onClick = onDeleteClick) { Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red) }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -209,38 +65,13 @@ fun AddBookingDialog(
                         onClick = {
                             scope.launch {
                                 isSaving = true
-                                delay(1000) // Feedback delay
-                                
-                                // Logic to find a room of selected type that is NOT booked for these dates
-                                val bookedRoomNumbers = allBookings.filter { b ->
-                                    if (b.status == BookingStatus.CANCELLED) return@filter false
-                                    if (b.id == initialBooking?.id) return@filter false
-                                    b.checkInDate < checkOutDate && b.checkOutDate > checkInDate
-                                }.map { it.roomNumber }
-                                
-                                val assignedRoom = rooms.find { it.roomType == selectedType && it.roomNumber !in bookedRoomNumbers }?.roomNumber ?: ""
-                                
-                                onConfirm(Booking(
+                                delay(800)
+                                // Final validation and number generation if new
+                                val finalBooking = currentBookingData.copy(
                                     id = initialBooking?.id ?: UUID.randomUUID().toString(),
-                                    bookingNumber = if (initialBooking == null || initialBooking.bookingNumber.isEmpty()) (1000000000L..9999999999L).random().toString() else initialBooking.bookingNumber,
-                                    hotelId = hotelId ?: "",
-                                    roomNumber = assignedRoom,
-                                    guestName = guestName,
-                                    guestPhone = guestPhone,
-                                    checkInDate = checkInDate,
-                                    checkOutDate = checkOutDate,
-                                    roomRent = pricePerNight,
-                                    totalAmount = totalAmount,
-                                    advancePaid = advanceVal,
-                                    paymentMode = paymentMode,
-                                    discount = discountVal,
-                                    isFullPay = isFullPay,
-                                    upiTransactionId = upiTransactionId,
-                                    numberOfGuests = adults + children,
-                                    guestIdentities = listOf(GuestIdentity(idType = idType, idNumber = idNumber)),
-                                    status = initialBooking?.status ?: BookingStatus.BOOKED,
-                                    bookingAgent = selectedAgent
-                                ))
+                                    bookingNumber = if (initialBooking == null) (1000000000L..9999999999L).random().toString() else initialBooking.bookingNumber
+                                )
+                                onConfirm(finalBooking)
                                 isSaving = false
                                 showSaveDialog = true
                             }
@@ -248,175 +79,29 @@ fun AddBookingDialog(
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                        enabled = !isSaving && guestName.isNotBlank() && guestPhone.isNotBlank() && selectedType.isNotBlank() && (availabilityMap[selectedType] ?: 0) > 0
+                        enabled = !isSaving && currentBookingData.guestName.isNotBlank() && currentBookingData.guestPhone.isNotBlank() && currentBookingData.roomNumber.isNotBlank()
                     ) {
-                        if (isSaving) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                        } else {
-                            Text("Save Reservation", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        }
+                        if (isSaving) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        else Text("Save Reservation", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
             }
         ) { padding ->
-            LazyColumn(modifier = Modifier.padding(padding).fillMaxSize().background(Color(0xFFF8F9FA)), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                // STAY DETAILS
+            LazyColumn(modifier = Modifier.padding(padding).fillMaxSize().background(Color(0xFFF8F9FA)), contentPadding = PaddingValues(16.dp)) {
                 item {
-                    BookingAccordionSection("Stay Details", Icons.Default.CalendarMonth, expandedSection == "stay", { expandedSection = if(expandedSection == "stay") "" else "stay" }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                DateDisplayBox(
-                                    label = "Check-in Date *",
-                                    value = df.format(Date(checkInDate)),
-                                    onClick = { showRangePicker = true },
-                                    modifier = Modifier.weight(1f)
-                                )
-                                DateDisplayBox(
-                                    label = "Check-out Date *",
-                                    value = df.format(Date(checkOutDate)),
-                                    onClick = { showRangePicker = true },
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                            Box(modifier = Modifier.background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) { Text("$nights Nights", fontWeight = FontWeight.Bold, fontSize = 14.sp) }
-                            
-                            val roomTypeOptions = remember(rooms) { rooms.map { it.roomType }.distinct() }
-                            
-                            // Advanced Dropdown with Availability Logic
-                            var dropExpanded by remember { mutableStateOf(false) }
-                            ExposedDropdownMenuBox(
-                                expanded = dropExpanded, 
-                                onExpandedChange = { dropExpanded = !dropExpanded }, 
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                OutlinedTextField(
-                                    value = if(selectedType.isEmpty()) "Select Room Type" else "$selectedType (${availabilityMap[selectedType] ?: 0} left)",
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    label = { Text("Room Type *") },
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dropExpanded) },
-                                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                                    shape = RoundedCornerShape(8.dp),
-                                    colors = OutlinedTextFieldDefaults.colors(
-                                        focusedBorderColor = if((availabilityMap[selectedType] ?: 0) > 0) Color(0xFF1976D2) else Color.Red
-                                    )
-                                )
-                                ExposedDropdownMenu(expanded = dropExpanded, onDismissRequest = { dropExpanded = false }) {
-                                    roomTypeOptions.forEach { type ->
-                                        val count = availabilityMap[type] ?: 0
-                                        val isEnabled = count > 0
-                                        
-                                        DropdownMenuItem(
-                                            text = { 
-                                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                                    Text(type, fontWeight = if(isEnabled) FontWeight.Bold else FontWeight.Normal)
-                                                    Text(
-                                                        if(isEnabled) "$count rooms available" else "Sold Out",
-                                                        color = if(isEnabled) Color(0xFF2E7D32) else Color.Red,
-                                                        fontSize = 12.sp
-                                                    )
-                                                }
-                                            },
-                                            onClick = { 
-                                                if(isEnabled) {
-                                                    selectedType = type
-                                                    dropExpanded = false 
-                                                }
-                                            },
-                                            enabled = isEnabled,
-                                            modifier = Modifier.alpha(if(isEnabled) 1f else 0.5f)
-                                        )
-                                    }
-                                }
-                            }
-                            
-                            if ((availabilityMap[selectedType] ?: 0) == 0 && selectedType.isNotEmpty()) {
-                                Text("This room type is not available for selected dates.", color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp))
-                            }
+                    ReservationFormContent(
+                        rooms = rooms,
+                        allBookings = allBookings,
+                        initialBooking = initialBooking,
+                        onDataChanged = { updatedData ->
+                            currentBookingData = updatedData
                         }
-                    }
-                }
-
-                // GUEST DETAILS
-                item {
-                    BookingAccordionSection("Guest Details", Icons.Default.Person, expandedSection == "guest", { expandedSection = if(expandedSection == "guest") "" else "guest" }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedTextField(value = guestName, onValueChange = { guestName = it }, label = { Text("Guest Name *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp))
-                            OutlinedTextField(value = guestPhone, onValueChange = { guestPhone = it }, label = { Text("Mobile Number *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), leadingIcon = { Icon(Icons.Default.Phone, null, tint = Color.Gray) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                val allowedAdults = (maxTotalLimit - children).coerceAtMost(maxAdultsLimit)
-                                val allowedChildren = (maxTotalLimit - adults).coerceAtMost(maxChildrenLimit)
-                                
-                                Column(modifier = Modifier.weight(1f)) { Text("Adults (Max $maxAdultsLimit)", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(adults, maxValue = allowedAdults) { adults = it } }
-                                Column(modifier = Modifier.weight(1f)) { Text("Children (Max $maxChildrenLimit)", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(children, maxValue = allowedChildren) { children = it } }
-                            }
-                        }
-                    }
-                }
-
-                // PAYMENT DETAILS
-                item {
-                    BookingAccordionSection("Payment Details", Icons.Default.Wallet, expandedSection == "payment", { expandedSection = if(expandedSection == "payment") "" else "payment" }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedTextField(value = roomRent, onValueChange = { roomRent = it }, label = { Text("Room Rent / Night *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                            OutlinedTextField(value = (pricePerNight * nights).toInt().toString(), onValueChange = {}, readOnly = true, label = { Text("Subtotal Amount") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") })
-                            
-                            OutlinedTextField(value = discount, onValueChange = { discount = it }, label = { Text("Discount") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { isFullPay = !isFullPay }) {
-                                Checkbox(checked = isFullPay, onCheckedChange = { isFullPay = it })
-                                Text("Full Pay", fontWeight = FontWeight.Medium)
-                            }
-
-                            if (!isFullPay) {
-                                OutlinedTextField(value = advancePaid, onValueChange = { advancePaid = it }, label = { Text("Advance Paid") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                            }
-
-                            Box(modifier = Modifier.fillMaxWidth().background(Color(0xFFFFF9C4), RoundedCornerShape(8.dp)).padding(16.dp)) { 
-                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Total Amount", fontWeight = FontWeight.Medium); Text("₹ ${totalAmount.toInt()}", fontWeight = FontWeight.Bold) }
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Remaining Amount", fontWeight = FontWeight.Medium); Text("₹ ${remaining.toInt()}", fontWeight = FontWeight.Bold) }
-                                }
-                            }
-                            
-                            SimpleDropdown("Payment Mode *", listOf("UPI", "Cash", "Card", "Net Banking"), paymentMode) { paymentMode = it }
-                            
-                            if (paymentMode == "UPI") {
-                                OutlinedTextField(value = upiTransactionId, onValueChange = { upiTransactionId = it }, label = { Text("UPI Transaction Number") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), leadingIcon = { Icon(Icons.Default.QrCode, null, tint = Color.Gray) })
-                            }
-                        }
-                    }
-                }
-
-                // ID PROOF
-                item {
-                    BookingAccordionSection("ID Proof", Icons.Default.Badge, expandedSection == "id", { expandedSection = if(expandedSection == "id") "" else "id" }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            SimpleDropdown("ID Type *", listOf("Aadhar Card", "PAN Card", "Passport", "Voter ID"), idType) { idType = it }
-                            OutlinedTextField(value = idNumber, onValueChange = { idNumber = it }, label = { Text("ID Number *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                            
-                            Box(modifier = Modifier.fillMaxWidth().height(150.dp).border(1.dp, Color.LightGray, RoundedCornerShape(8.dp)).background(Color.White).clickable { showPhotoOptions = true }, contentAlignment = Alignment.Center) {
-                                if (selectedIdUri != null) { AsyncImage(model = selectedIdUri, contentDescription = null, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop) }
-                                else { Column(horizontalAlignment = Alignment.CenterHorizontally) { Icon(Icons.Default.CloudUpload, null, tint = Color(0xFF1976D2), modifier = Modifier.size(32.dp)); Text("Tap to upload ID Photo", color = Color(0xFF1976D2), fontSize = 14.sp) } }
-                            }
-                        }
-                    }
-                }
-
-                // SPECIAL REQUESTS
-                item {
-                    BookingAccordionSection("Special Requests / Notes", Icons.Default.EditNote, expandedSection == "notes", { expandedSection = if(expandedSection == "notes") "" else "notes" }) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Special Requests / Remarks", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                            OutlinedTextField(value = specialRequests, onValueChange = { specialRequests = it }, placeholder = { Text("Enter any special request or note", color = Color.LightGray) }, modifier = Modifier.fillMaxWidth().height(120.dp), shape = RoundedCornerShape(8.dp))
-                        }
-                    }
+                    )
                 }
                 item { Spacer(Modifier.height(40.dp)) }
             }
         }
 
-        // FEEDBACK DIALOG
         if (showSaveDialog) {
             AlertDialog(
                 onDismissRequest = { showSaveDialog = false; onDismiss() },
@@ -424,30 +109,6 @@ fun AddBookingDialog(
                 text = { Text("Reservation has been saved successfully.") },
                 confirmButton = { Button(onClick = { showSaveDialog = false; onDismiss() }) { Text("OK") } }
             )
-        }
-
-        // PICKERS
-        if (showRangePicker) {
-            val dateRangePickerState = rememberDateRangePickerState(
-                initialSelectedStartDateMillis = checkInDate,
-                initialSelectedEndDateMillis = checkOutDate,
-                selectableDates = object : SelectableDates {
-                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                        return DateRangeUtils.isSelectableFromToday(utcTimeMillis)
-                    }
-                }
-            )
-            CommonDateRangePicker(
-                state = dateRangePickerState,
-                onDismiss = { showRangePicker = false },
-                onConfirm = { start, end ->
-                    start?.let { checkInDate = it }
-                    end?.let { checkOutDate = it }
-                }
-            )
-        }
-        if (showPhotoOptions) {
-            AlertDialog(onDismissRequest = { showPhotoOptions = false }, title = { Text("Select ID Photo") }, text = { Text("Choose a source for the photo") }, confirmButton = { TextButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraImageUri?.let { cameraLauncher.launch(it) } else permissionLauncher.launch(Manifest.permission.CAMERA); showPhotoOptions = false }) { Text("CAMERA") } }, dismissButton = { TextButton(onClick = { galleryLauncher.launch("image/*"); showPhotoOptions = false }) { Text("GALLERY") } })
         }
     }
 }
