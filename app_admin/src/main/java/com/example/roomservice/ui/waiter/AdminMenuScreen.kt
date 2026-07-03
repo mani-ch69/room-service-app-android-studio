@@ -141,10 +141,10 @@ fun AdminMenuScreen(
                     )
                     
                     NavigationBarItem(
-                        selected = selectedBottomTab == "bookings", 
-                        onClick = { selectedBottomTab = "bookings" }, 
-                        icon = { Icon(Icons.Default.BookOnline, null) }, 
-                        label = { Text("Reservations", fontSize = 10.sp) }
+                        selected = selectedBottomTab == "orders", 
+                        onClick = { selectedBottomTab = "orders" }, 
+                        icon = { Icon(Icons.Default.ReceiptLong, null) }, 
+                        label = { Text("Orders", fontSize = 10.sp) }
                     )
                     
                     Spacer(Modifier.weight(0.5f))
@@ -183,7 +183,7 @@ fun AdminMenuScreen(
                     onAddBooking = { viewModel.addBooking(it) },
                     onDeleteBooking = { viewModel.deleteBooking(it) }
                 )
-                "bookings" -> BookingManagementScreen(bookings, rooms) { viewModel.deleteBooking(it) }
+                "orders" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Orders Coming Soon", color = Color.Gray) }
                 "inbox" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Inbox Coming Soon", color = Color.Gray) }
                 "settings" -> {
                     when (moreTabSubScreen) {
