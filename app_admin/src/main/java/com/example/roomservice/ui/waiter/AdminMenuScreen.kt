@@ -177,6 +177,7 @@ fun AdminMenuScreen(
                         "hotel_property_detail" -> PropertyDetailMenu({ moreTabSubScreen = "hotel_prop_general_info" }, { moreTabSubScreen = "hotel_prop_vat_tax" }, { moreTabSubScreen = "hotel_prop_photos" }, { moreTabSubScreen = "hotel_prop_policies" }, { moreTabSubScreen = "hotel_prop_res_policies" }, { moreTabSubScreen = "hotel_prop_facilities" }, { moreTabSubScreen = "hotel_rooms_list" }, { moreTabSubScreen = "hotel_prop_amenities" }, { moreTabSubScreen = "hotel_prop_profile" }, { moreTabSubScreen = "hotel_prop_descriptions" }, { moreTabSubScreen = "hotel_prop_messaging" }, { moreTabSubScreen = "hotel_prop_sustainability" })
                         "hotel_prop_general_info" -> GeneralInfoStatusScreen()
                         "hotel_prop_photos" -> PropertyPhotosScreen()
+                        "hotel_prop_policies" -> PropertyPoliciesScreen()
                         "hotel_prop_amenities" -> RoomAmenitiesScreen()
                         "hotel_prop_amenities" -> RoomAmenitiesScreen()
                         "hotel_prop_profile" -> YourProfileScreen()
