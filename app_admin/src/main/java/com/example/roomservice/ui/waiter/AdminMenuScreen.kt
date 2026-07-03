@@ -89,6 +89,7 @@ fun AdminMenuScreen(
                         "hotel_bookings" -> "Reservations"
                         "hotel_rates_menu" -> "Rates & Availability"
                         "hotel_prop_general_info" -> "General Info"
+                        "hotel_prop_vat_tax" -> "VAT/Tax/Charges"
                         "hotel_prop_photos" -> "Photos"
                         "hotel_prop_policies" -> "Property Policies"
                         "hotel_prop_res_policies" -> "Reservation Policies"
@@ -196,6 +197,7 @@ fun AdminMenuScreen(
                         "hotel_value_adds" -> ValueAddsScreen()
                         "hotel_property_detail" -> PropertyDetailMenu({ moreTabSubScreen = "hotel_prop_general_info" }, { moreTabSubScreen = "hotel_prop_vat_tax" }, { moreTabSubScreen = "hotel_prop_photos" }, { moreTabSubScreen = "hotel_prop_policies" }, { moreTabSubScreen = "hotel_prop_res_policies" }, { moreTabSubScreen = "hotel_prop_facilities" }, { moreTabSubScreen = "hotel_rooms_list" }, { moreTabSubScreen = "hotel_prop_amenities" }, { moreTabSubScreen = "hotel_prop_profile" }, { moreTabSubScreen = "hotel_prop_descriptions" }, { moreTabSubScreen = "hotel_prop_messaging" }, { moreTabSubScreen = "hotel_prop_sustainability" })
                         "hotel_prop_general_info" -> GeneralInfoStatusScreen()
+                        "hotel_prop_vat_tax" -> VatTaxChargesScreen()
                         "hotel_prop_photos" -> PropertyPhotosScreen()
                         "hotel_prop_policies" -> PropertyPoliciesScreen()
                         "hotel_prop_res_policies" -> ReservationPoliciesScreen()
