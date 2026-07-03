@@ -89,6 +89,7 @@ fun AdminMenuScreen(
                         "hotel_bookings" -> "Bookings"
                         "hotel_rates_menu" -> "Rates & Availability"
                         "hotel_property_detail" -> "Property Detail"
+                        "hotel_prop_general_info" -> "General Info"
                         "hotel_availability" -> "Availability Planner"
                         "pricing_guest" -> "Pricing per guest"
                         "settings_details" -> "Settings"
@@ -114,6 +115,19 @@ fun AdminMenuScreen(
                     }
                 },
                 actions = {
+                    if (selectedBottomTab == "home") {
+                        Button(
+                            onClick = { showAddBookingDialog = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("New Booking", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                     if (moreTabSubScreen == "hotel_rooms_list") IconButton(onClick = { showAddRoomDialog = true }) { Icon(Icons.Default.Add, null) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -132,7 +146,7 @@ fun AdminMenuScreen(
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .offset(y = (-20).dp)
+                        .offset(y = (-10).dp)
                         .zIndex(1f)
                 ) {
                     AuroraManualBookingButton(onClick = { showAddBookingDialog = true })
@@ -174,6 +188,7 @@ fun AdminMenuScreen(
                         "pricing_guest" -> PricingPerGuestScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" })
                         "hotel_availability" -> AvailabilityCalendarScreen(rooms, bookings, { moreTabSubScreen = "hotel_rates_menu" }, { viewModel.addBooking(it) })
                         "hotel_property_detail" -> PropertyDetailMenu({ moreTabSubScreen = "hotel_prop_general_info" }, { moreTabSubScreen = "hotel_prop_vat_tax" }, { moreTabSubScreen = "hotel_prop_photos" }, { moreTabSubScreen = "hotel_prop_policies" }, { moreTabSubScreen = "hotel_prop_res_policies" }, { moreTabSubScreen = "hotel_prop_facilities" }, { moreTabSubScreen = "hotel_rooms_list" }, { moreTabSubScreen = "hotel_prop_amenities" }, { moreTabSubScreen = "hotel_prop_profile" }, { moreTabSubScreen = "hotel_prop_descriptions" }, { moreTabSubScreen = "hotel_prop_messaging" }, { moreTabSubScreen = "hotel_prop_sustainability" })
+                        "hotel_prop_general_info" -> GeneralInfoStatusScreen()
                         "hotel_rooms_list" -> {
                             RoomManagementScreen { moreTabSubScreen = "hotel_property_detail" }
                             if (showAddRoomDialog) AddEditRoomDialog(rooms, null, { showAddRoomDialog = false }, { com.example.roomservice.data.RoomRepository.addRoom(it); showAddRoomDialog = false })
@@ -206,8 +221,7 @@ fun AuroraManualBookingButton(onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .size(60.dp)
-            .offset(y = (-4).dp),
+            .size(56.dp),
         shape = CircleShape,
         color = Color(0xFF1976D2), // Primary Blue
         shadowElevation = 6.dp,

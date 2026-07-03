@@ -84,8 +84,9 @@ object ReceiptHelper {
                 val printAdapter = webView.createPrintDocumentAdapter("Booking_${booking.bookingNumber}")
                 val jobName = "RoomService_Receipt_${booking.roomNumber}"
                 
+                val chou4 = PrintAttributes.MediaSize("JPN_CHOU4", "Chou 4", 3543, 8071)
                 val printAttributes = PrintAttributes.Builder()
-                    .setMediaSize(PrintAttributes.MediaSize.NA_INDEX_3X5)
+                    .setMediaSize(chou4)
                     .setColorMode(PrintAttributes.COLOR_MODE_MONOCHROME)
                     .build()
                 

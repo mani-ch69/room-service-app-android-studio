@@ -23,5 +23,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "room service"
-include(":app")
+include(":app_admin")
  
