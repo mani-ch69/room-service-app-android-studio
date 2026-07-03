@@ -83,30 +83,37 @@ fun AdminMenuScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    val title = if (selectedBottomTab == "home") "DASHBOARD" else when(moreTabSubScreen) {
-                        "hotel_stays" -> "Hotel & Stay's"
-                        "hotel_rooms_list" -> "Room Detail"
-                        "hotel_bookings" -> "Reservations"
-                        "hotel_rates_menu" -> "Rates & Availability"
-                        "hotel_prop_general_info" -> "General Info"
-                        "hotel_prop_vat_tax" -> "VAT/Tax/Charges"
-                        "hotel_prop_photos" -> "Photos"
-                        "hotel_prop_policies" -> "Property Policies"
-                        "hotel_prop_res_policies" -> "Reservation Policies"
-                        "hotel_prop_amenities" -> "Room Amenities"
-                        "hotel_prop_profile" -> "Your Profile"
-                        "hotel_prop_messaging" -> "Messaging Preferences"
-                        "hotel_restriction_rules" -> "Dynamic Restriction Rules"
-                        "hotel_sync_calendars" -> "Sync Calendars"
-                        "hotel_rate_plans" -> "Rate Plans"
-                        "hotel_value_adds" -> "Value Adds"
-                        "hotel_availability" -> "Availability Planner"
-                        "pricing_guest" -> "Pricing per guest"
-                        "settings_details" -> "Settings"
-                        "general_settings" -> "General Setting"
-                        "security_settings" -> "App Security"
-                        "app_lock" -> "App Lock"
-                        else -> "Property Detail"
+                    val title = when (selectedBottomTab) {
+                        "home" -> "DASHBOARD"
+                        "orders" -> "ORDERS"
+                        "inbox" -> "INBOX"
+                        else -> {
+                            when(moreTabSubScreen) {
+                                "hotel_stays" -> "Hotel & Stay's"
+                                "hotel_rooms_list" -> "Room Detail"
+                                "hotel_bookings" -> "Reservations"
+                                "hotel_rates_menu" -> "Rates & Availability"
+                                "hotel_prop_general_info" -> "General Info"
+                                "hotel_prop_vat_tax" -> "VAT/Tax/Charges"
+                                "hotel_prop_photos" -> "Photos"
+                                "hotel_prop_policies" -> "Property Policies"
+                                "hotel_prop_res_policies" -> "Reservation Policies"
+                                "hotel_prop_amenities" -> "Room Amenities"
+                                "hotel_prop_profile" -> "Your Profile"
+                                "hotel_prop_messaging" -> "Messaging Preferences"
+                                "hotel_restriction_rules" -> "Dynamic Restriction Rules"
+                                "hotel_sync_calendars" -> "Sync Calendars"
+                                "hotel_rate_plans" -> "Rate Plans"
+                                "hotel_value_adds" -> "Value Adds"
+                                "hotel_availability" -> "Availability Planner"
+                                "pricing_guest" -> "Pricing per guest"
+                                "settings_details" -> "Settings"
+                                "general_settings" -> "General Setting"
+                                "security_settings" -> "App Security"
+                                "app_lock" -> "App Lock"
+                                else -> "MORE"
+                            }
+                        }
                     }
                     Text(text = title, fontWeight = FontWeight.Black)
                 },
