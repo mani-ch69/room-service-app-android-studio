@@ -96,6 +96,7 @@ fun AdminMenuScreen(
                         "hotel_prop_profile" -> "Your Profile"
                         "hotel_prop_messaging" -> "Messaging Preferences"
                         "hotel_restriction_rules" -> "Dynamic Restriction Rules"
+                        "hotel_sync_calendars" -> "Sync Calendars"
                         "hotel_availability" -> "Availability Planner"
                         "pricing_guest" -> "Pricing per guest"
                         "settings_details" -> "Settings"
@@ -172,6 +173,7 @@ fun AdminMenuScreen(
                                 "open_close" -> "hotel_open_close"
                                 "pricing_guest" -> "pricing_guest"
                                 "restriction_rules" -> "hotel_restriction_rules"
+                                "sync_calendars" -> "hotel_sync_calendars"
                                 else -> moreTabSubScreen
                             }
                         })
@@ -182,6 +184,7 @@ fun AdminMenuScreen(
                         "pricing_guest" -> PricingPerGuestScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" })
                         "hotel_availability" -> AvailabilityCalendarScreen(rooms, bookings, { moreTabSubScreen = "hotel_rates_menu" }, { viewModel.addBooking(it) })
                         "hotel_restriction_rules" -> DynamicRestrictionsScreen()
+                        "hotel_sync_calendars" -> SyncCalendarsScreen()
                         "hotel_property_detail" -> PropertyDetailMenu({ moreTabSubScreen = "hotel_prop_general_info" }, { moreTabSubScreen = "hotel_prop_vat_tax" }, { moreTabSubScreen = "hotel_prop_photos" }, { moreTabSubScreen = "hotel_prop_policies" }, { moreTabSubScreen = "hotel_prop_res_policies" }, { moreTabSubScreen = "hotel_prop_facilities" }, { moreTabSubScreen = "hotel_rooms_list" }, { moreTabSubScreen = "hotel_prop_amenities" }, { moreTabSubScreen = "hotel_prop_profile" }, { moreTabSubScreen = "hotel_prop_descriptions" }, { moreTabSubScreen = "hotel_prop_messaging" }, { moreTabSubScreen = "hotel_prop_sustainability" })
                         "hotel_prop_general_info" -> GeneralInfoStatusScreen()
                         "hotel_prop_photos" -> PropertyPhotosScreen()
