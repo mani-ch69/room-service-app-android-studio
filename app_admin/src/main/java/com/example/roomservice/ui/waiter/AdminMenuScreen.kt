@@ -178,6 +178,7 @@ fun AdminMenuScreen(
                         "hotel_prop_general_info" -> GeneralInfoStatusScreen()
                         "hotel_prop_photos" -> PropertyPhotosScreen()
                         "hotel_prop_policies" -> PropertyPoliciesScreen()
+                        "hotel_prop_res_policies" -> ReservationPoliciesScreen()
                         "hotel_prop_amenities" -> RoomAmenitiesScreen()
                         "hotel_prop_amenities" -> RoomAmenitiesScreen()
                         "hotel_prop_profile" -> YourProfileScreen()
