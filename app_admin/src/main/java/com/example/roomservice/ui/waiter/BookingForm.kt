@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -59,11 +60,51 @@ fun AddBookingDialog(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
+    // FETCH ALL BOOKINGS FOR VALIDATION
+    val viewModel: AdminMenuViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    val allBookings by viewModel.bookings.collectAsState()
+
     // FORM STATE
     var guestName by remember { mutableStateOf(initialBooking?.guestName ?: "") }
     var guestPhone by remember { mutableStateOf(initialBooking?.guestPhone ?: "") }
     
-    var selectedType by remember { mutableStateOf(initialBooking?.roomNumber?.let { rn -> rooms.find { it.roomNumber == rn }?.roomType } ?: if(rooms.isNotEmpty()) rooms[0].roomType else "") }
+    var checkInDate by remember { mutableLongStateOf(initialBooking?.checkInDate ?: System.currentTimeMillis()) }
+    var checkOutDate by remember { mutableLongStateOf(initialBooking?.checkOutDate ?: (System.currentTimeMillis() + 86400000L)) }
+
+    // ROOM AVAILABILITY LOGIC
+    val availabilityMap = remember(checkInDate, checkOutDate, allBookings, rooms, initialBooking) {
+        val map = mutableMapOf<String, Int>()
+        val distinctTypes = rooms.map { it.roomType }.distinct()
+        
+        distinctTypes.forEach { type ->
+            val totalRoomsOfType = rooms.count { it.roomType == type }
+            
+            // Count active bookings for this type that overlap with selected dates
+            val overlappingBookings = allBookings.filter { b ->
+                if (b.status == BookingStatus.CANCELLED) return@filter false
+                if (b.id == initialBooking?.id) return@filter false // Don't count current booking if editing
+                
+                val bRoom = rooms.find { it.roomNumber == b.roomNumber }
+                if (bRoom?.roomType != type) return@filter false
+                
+                // Overlap check: (StartA <= EndB) and (EndA >= StartB)
+                // We use checkOutDate - 1ms to treat checkout day as "half-day"
+                val overlap = b.checkInDate < checkOutDate && b.checkOutDate > checkInDate
+                overlap
+            }
+            
+            map[type] = (totalRoomsOfType - overlappingBookings.size).coerceAtLeast(0)
+        }
+        map
+    }
+
+    var selectedType by remember { 
+        mutableStateOf(
+            initialBooking?.roomNumber?.let { rn -> rooms.find { it.roomNumber == rn }?.roomType } 
+            ?: availabilityMap.entries.find { it.value > 0 }?.key 
+            ?: if(rooms.isNotEmpty()) rooms[0].roomType else ""
+        ) 
+    }
     
     val selectedRoom = remember(selectedType, rooms) { rooms.find { it.roomType == selectedType } }
     val maxAdultsLimit = selectedRoom?.maxAdults ?: 5
@@ -80,9 +121,6 @@ fun AddBookingDialog(
             children = (maxTotalLimit - adults).coerceAtLeast(0)
         }
     }
-    
-    var checkInDate by remember { mutableLongStateOf(initialBooking?.checkInDate ?: System.currentTimeMillis()) }
-    var checkOutDate by remember { mutableLongStateOf(initialBooking?.checkOutDate ?: (System.currentTimeMillis() + 86400000L)) }
     
     val initialNights = remember(initialBooking) {
         if (initialBooking == null) 1 else {
@@ -172,7 +210,16 @@ fun AddBookingDialog(
                             scope.launch {
                                 isSaving = true
                                 delay(1000) // Feedback delay
-                                val assignedRoom = rooms.find { it.roomType == selectedType }?.roomNumber ?: ""
+                                
+                                // Logic to find a room of selected type that is NOT booked for these dates
+                                val bookedRoomNumbers = allBookings.filter { b ->
+                                    if (b.status == BookingStatus.CANCELLED) return@filter false
+                                    if (b.id == initialBooking?.id) return@filter false
+                                    b.checkInDate < checkOutDate && b.checkOutDate > checkInDate
+                                }.map { it.roomNumber }
+                                
+                                val assignedRoom = rooms.find { it.roomType == selectedType && it.roomNumber !in bookedRoomNumbers }?.roomNumber ?: ""
+                                
                                 onConfirm(Booking(
                                     id = initialBooking?.id ?: UUID.randomUUID().toString(),
                                     bookingNumber = if (initialBooking == null || initialBooking.bookingNumber.isEmpty()) (1000000000L..9999999999L).random().toString() else initialBooking.bookingNumber,
@@ -201,7 +248,7 @@ fun AddBookingDialog(
                         modifier = Modifier.fillMaxWidth().height(54.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2)),
-                        enabled = !isSaving && guestName.isNotBlank() && guestPhone.isNotBlank() && selectedType.isNotBlank()
+                        enabled = !isSaving && guestName.isNotBlank() && guestPhone.isNotBlank() && selectedType.isNotBlank() && (availabilityMap[selectedType] ?: 0) > 0
                     ) {
                         if (isSaving) {
                             CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
@@ -232,8 +279,60 @@ fun AddBookingDialog(
                                 )
                             }
                             Box(modifier = Modifier.background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) { Text("$nights Nights", fontWeight = FontWeight.Bold, fontSize = 14.sp) }
+                            
                             val roomTypeOptions = remember(rooms) { rooms.map { it.roomType }.distinct() }
-                            SimpleDropdown("Room Type *", roomTypeOptions, selectedType) { selectedType = it }
+                            
+                            // Advanced Dropdown with Availability Logic
+                            var dropExpanded by remember { mutableStateOf(false) }
+                            ExposedDropdownMenuBox(
+                                expanded = dropExpanded, 
+                                onExpandedChange = { dropExpanded = !dropExpanded }, 
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = if(selectedType.isEmpty()) "Select Room Type" else "$selectedType (${availabilityMap[selectedType] ?: 0} left)",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Room Type *") },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dropExpanded) },
+                                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = if((availabilityMap[selectedType] ?: 0) > 0) Color(0xFF1976D2) else Color.Red
+                                    )
+                                )
+                                ExposedDropdownMenu(expanded = dropExpanded, onDismissRequest = { dropExpanded = false }) {
+                                    roomTypeOptions.forEach { type ->
+                                        val count = availabilityMap[type] ?: 0
+                                        val isEnabled = count > 0
+                                        
+                                        DropdownMenuItem(
+                                            text = { 
+                                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                                    Text(type, fontWeight = if(isEnabled) FontWeight.Bold else FontWeight.Normal)
+                                                    Text(
+                                                        if(isEnabled) "$count rooms available" else "Sold Out",
+                                                        color = if(isEnabled) Color(0xFF2E7D32) else Color.Red,
+                                                        fontSize = 12.sp
+                                                    )
+                                                }
+                                            },
+                                            onClick = { 
+                                                if(isEnabled) {
+                                                    selectedType = type
+                                                    dropExpanded = false 
+                                                }
+                                            },
+                                            enabled = isEnabled,
+                                            modifier = Modifier.alpha(if(isEnabled) 1f else 0.5f)
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            if ((availabilityMap[selectedType] ?: 0) == 0 && selectedType.isNotEmpty()) {
+                                Text("This room type is not available for selected dates.", color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp))
+                            }
                         }
                     }
                 }
