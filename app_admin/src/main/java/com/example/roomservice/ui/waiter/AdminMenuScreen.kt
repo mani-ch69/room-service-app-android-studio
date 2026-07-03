@@ -167,7 +167,7 @@ fun AdminMenuScreen(
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .offset(y = (-10).dp)
+                        .offset(y = (-5).dp)
                         .zIndex(1f)
                 ) {
                     AuroraManualBookingButton(onClick = { showAddBookingDialog = true })
@@ -261,10 +261,10 @@ fun AuroraManualBookingButton(onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = Modifier
-            .size(56.dp),
+            .size(48.dp),
         shape = CircleShape,
         color = Color(0xFF1976D2), // Primary Blue
-        shadowElevation = 6.dp,
+        shadowElevation = 4.dp,
         border = BorderStroke(2.dp, Color.White)
     ) {
         Box(contentAlignment = Alignment.Center) {
@@ -272,7 +272,7 @@ fun AuroraManualBookingButton(onClick: () -> Unit) {
                 Icons.Default.Add, 
                 contentDescription = null, 
                 tint = Color.White, 
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
     }
