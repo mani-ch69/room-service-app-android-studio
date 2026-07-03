@@ -187,7 +187,7 @@ fun AdminMenuScreen(
                             moreTabSubScreen = "hotel_rates_menu"
                         })
                         "pricing_guest" -> PricingPerGuestScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" })
-                        "hotel_availability" -> AvailabilityCalendarScreen(rooms, bookings, { moreTabSubScreen = "hotel_rates_menu" }, { viewModel.addBooking(it) })
+                        "hotel_availability" -> CalendarManagementScreen(rooms, bookings)
                         "hotel_planner" -> AvailabilityPlannerScreen()
                         "hotel_restriction_rules" -> DynamicRestrictionsScreen()
                         "hotel_sync_calendars" -> SyncCalendarsScreen()
