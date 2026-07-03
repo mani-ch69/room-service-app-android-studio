@@ -286,13 +286,19 @@ fun FullCalendarViewDialog(
     val sdfMonth = remember { SimpleDateFormat("MMMM", Locale.getDefault()) }
     val roomsOfType = rooms.filter { it.roomType == roomType }
 
+    var showBulkEditForType by remember { mutableStateOf<String?>(null) }
+
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
             Column {
                 TopAppBar(
                     title = { Text(roomType, fontWeight = FontWeight.Bold) },
                     navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
-                    actions = { IconButton(onClick = { }) { Icon(Icons.Default.CalendarMonth, null, tint = Color(0xFF1976D2)) } },
+                    actions = { 
+                        IconButton(onClick = { showBulkEditForType = roomType }) { 
+                            Icon(Icons.Default.Edit, contentDescription = "Bulk Edit", tint = Color(0xFF1976D2)) 
+                        } 
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
                 )
                 
@@ -374,6 +380,14 @@ fun FullCalendarViewDialog(
                 }
             }
         }
+    }
+
+    if (showBulkEditForType != null) {
+        BulkEditDialog(
+            roomType = showBulkEditForType!!,
+            rooms = rooms.filter { it.roomType == showBulkEditForType },
+            onDismiss = { showBulkEditForType = null }
+        )
     }
 }
 
