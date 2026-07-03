@@ -133,11 +133,35 @@ fun AdminMenuScreen(
         bottomBar = {
             Box {
                 NavigationBar(containerColor = Color.White) {
-                    NavigationBarItem(selected = selectedBottomTab == "home", onClick = { selectedBottomTab = "home" }, icon = { Icon(Icons.Default.Dashboard, null) }, label = { Text("Home", fontSize = 10.sp) })
+                    NavigationBarItem(
+                        selected = selectedBottomTab == "home", 
+                        onClick = { selectedBottomTab = "home" }, 
+                        icon = { Icon(Icons.Default.Dashboard, null) }, 
+                        label = { Text("Home", fontSize = 10.sp) }
+                    )
                     
-                    Spacer(Modifier.weight(1f))
+                    NavigationBarItem(
+                        selected = selectedBottomTab == "bookings", 
+                        onClick = { selectedBottomTab = "bookings" }, 
+                        icon = { Icon(Icons.Default.BookOnline, null) }, 
+                        label = { Text("Reservations", fontSize = 10.sp) }
+                    )
+                    
+                    Spacer(Modifier.weight(0.5f))
 
-                    NavigationBarItem(selected = selectedBottomTab == "settings", onClick = { selectedBottomTab = "settings"; moreTabSubScreen = "main" }, icon = { Icon(Icons.Default.Menu, null) }, label = { Text("More", fontSize = 10.sp) })
+                    NavigationBarItem(
+                        selected = selectedBottomTab == "inbox", 
+                        onClick = { selectedBottomTab = "inbox" }, 
+                        icon = { Icon(Icons.Default.Email, null) }, 
+                        label = { Text("Inbox", fontSize = 10.sp) }
+                    )
+
+                    NavigationBarItem(
+                        selected = selectedBottomTab == "settings", 
+                        onClick = { selectedBottomTab = "settings"; moreTabSubScreen = "main" }, 
+                        icon = { Icon(Icons.Default.Menu, null) }, 
+                        label = { Text("More", fontSize = 10.sp) }
+                    )
                 }
                 
                 Box(
