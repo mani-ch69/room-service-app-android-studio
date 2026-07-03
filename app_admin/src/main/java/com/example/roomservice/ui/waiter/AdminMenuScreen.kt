@@ -305,7 +305,6 @@ fun RatesAvailabilityMenu(onCalendarClick: () -> Unit, onItemClick: (String) -> 
 @Composable
 fun PropertyDetailMenu(onGeneralInfoClick: () -> Unit, onVatTaxClick: () -> Unit, onPhotosClick: () -> Unit, onPoliciesClick: () -> Unit, onResPoliciesClick: () -> Unit, onFacilitiesClick: () -> Unit, onRoomDetailsClick: () -> Unit, onAmenitiesClick: () -> Unit, onProfileClick: () -> Unit, onDescriptionsClick: () -> Unit, onMessagingClick: () -> Unit, onSustainabilityClick: () -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item { MoreMenuItem("Property Page Score", Icons.Default.Assessment, { /* Score logic */ }) }
         item { MoreMenuItem("General info & property status", Icons.Default.Info, onGeneralInfoClick) }
         item { MoreMenuItem("VAT/Tax/Charges", Icons.Default.Payments, onVatTaxClick) }
         item { MoreMenuItem("Photos", Icons.Default.PhotoLibrary, onPhotosClick) }
