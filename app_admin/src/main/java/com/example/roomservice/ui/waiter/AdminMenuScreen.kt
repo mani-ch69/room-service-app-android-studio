@@ -183,6 +183,8 @@ fun AdminMenuScreen(
                     onAddBooking = { viewModel.addBooking(it) },
                     onDeleteBooking = { viewModel.deleteBooking(it) }
                 )
+                "bookings" -> BookingManagementScreen(bookings, rooms) { viewModel.deleteBooking(it) }
+                "inbox" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Inbox Coming Soon", color = Color.Gray) }
                 "settings" -> {
                     when (moreTabSubScreen) {
                         "main" -> AdminMoreContent(
