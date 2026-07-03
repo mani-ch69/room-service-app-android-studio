@@ -86,7 +86,7 @@ fun AdminMenuScreen(
                     val title = if (selectedBottomTab == "home") "DASHBOARD" else when(moreTabSubScreen) {
                         "hotel_stays" -> "Hotel & Stay's"
                         "hotel_rooms_list" -> "Room Detail"
-                        "hotel_bookings" -> "Bookings"
+                        "hotel_bookings" -> "Reservations"
                         "hotel_rates_menu" -> "Rates & Availability"
                         "hotel_prop_general_info" -> "General Info"
                         "hotel_prop_photos" -> "Photos"
@@ -302,7 +302,7 @@ fun MoreMenuItem(label: String, icon: ImageVector, onClick: () -> Unit, tint: Co
 @Composable
 fun HotelStaysMenu(onBookingsClick: () -> Unit, onRatesClick: () -> Unit, onPropertyClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
-        MoreMenuItem("Bookings", Icons.Default.BookOnline, onBookingsClick)
+        MoreMenuItem("Reservations", Icons.Default.BookOnline, onBookingsClick)
         MoreMenuItem("Rates & Availability", Icons.Default.EventAvailable, onRatesClick)
         MoreMenuItem("Property Detail", Icons.Default.Business, onPropertyClick)
     }
