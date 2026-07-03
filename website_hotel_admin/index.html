@@ -9,205 +9,121 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div id="admin-app">
-        <!-- TOP NAVIGATION -->
-        <nav class="top-nav">
-            <div class="logo-wrap">
-                <img src="https://i.ibb.co/Xf7yZ8N/gh-stay-logo.jpg" alt="Logo" class="logo-img">
-                <div class="hotel-info">
-                    <h3 id="nav-hotel-name">GANGA HOMES</h3>
-                    <p id="nav-hotel-loc">VARANASI</p>
-                </div>
-            </div>
-
-            <div class="nav-links">
-                <div class="nav-item active" data-tab="pms-grid" onclick="switchTab('pms-grid')"><i>📅</i><span>PMS Grid</span></div>
-                <div class="nav-item" data-tab="dashboard" onclick="switchTab('dashboard')"><i>🏠</i><span>Dashboard</span></div>
-                <div class="nav-item" data-tab="bookings" onclick="switchTab('bookings')"><i>📖</i><span>Bookings</span></div>
-                <div class="nav-item" data-tab="guests" onclick="switchTab('guests')"><i>👥</i><span>Guests</span></div>
-                <div class="nav-item" data-tab="rooms" onclick="switchTab('rooms')"><i>🛌</i><span>Inventory</span></div>
-                <div class="nav-item" data-tab="reports" onclick="switchTab('reports')"><i>📊</i><span>Analytics</span></div>
-                <div class="nav-item" data-tab="settings" onclick="switchTab('settings')"><i>⚙️</i><span>Settings</span></div>
-            </div>
-
-            <div class="nav-right">
-                <div class="icon-btn">🔔<span class="badge-dot"></span></div>
-                <div class="user-profile" id="user-pill-trigger">
-                    <div style="text-align:right;">
-                        <h4 id="display-user-name" style="font-weight:800; font-size:0.85rem;">Admin</h4>
-                        <p style="font-size:0.65rem; color:var(--text-muted); font-weight:700;">Property Manager</p>
-                    </div>
-                    <img src="https://i.pravatar.cc/100?img=12" class="avatar" alt="Avatar">
-                </div>
-            </div>
-        </nav>
-
-        <main class="container">
-            <!-- TAB: PMS GRID (Timeline) -->
-            <section id="tab-pms-grid" class="tab-pane">
-                <div class="dashboard-header">
-                    <div class="greeting">
-                        <h1>Reservation Timeline</h1>
-                        <p>Real-time room availability and booking management.</p>
-                    </div>
-                    <div class="header-actions">
-                        <input type="date" id="pms-date-picker" class="date-box">
-                        <button class="btn btn-primary" onclick="openBookingModal()">+ Walk-in Booking</button>
-                    </div>
-                </div>
-
-                <div class="panel pms-container" style="padding:0; overflow:hidden;">
-                    <div id="pms-timeline-grid" class="pms-grid-canvas">
-                        <div style="padding:100px; text-align:center; color:var(--text-muted);">
-                            <p>Initializing Property Management Grid...</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB: DASHBOARD -->
-            <section id="tab-dashboard" class="tab-pane hidden">
-                <div class="dashboard-header">
-                    <div class="greeting">
-                        <h1 id="welcome-text">Good Morning, Admin 👋</h1>
-                        <p>Property overview and key performance metrics.</p>
-                    </div>
-                    <div class="date-box">📅 <span id="dash-date">...</span></div>
-                </div>
-
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-info"><p>Today's Check-ins</p><h2 id="stat-checkins">00</h2></div>
-                        <div class="metric-icon" style="background:rgba(59,130,246,0.1); color:#3b82f6;">👤</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-info"><p>Today's Check-outs</p><h2 id="stat-checkouts">00</h2></div>
-                        <div class="metric-icon" style="background:rgba(168,85,247,0.1); color:#a855f7;">🚪</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-info"><p>Occupied Rooms</p><h2 id="stat-occupied">00</h2></div>
-                        <div class="metric-icon" style="background:rgba(16,185,129,0.1); color:#10b981;">🛏️</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-info"><p>Vacant Rooms</p><h2 id="stat-vacant">00</h2></div>
-                        <div class="metric-icon" style="background:rgba(245,158,11,0.1); color:#f59e0b;">🏠</div>
-                    </div>
-                </div>
-
-                <div class="dashboard-main">
-                    <div class="panel">
-                        <div class="panel-head"><h3>Recent Bookings</h3><a href="#" class="btn-link" onclick="switchTab('bookings')">View All</a></div>
-                        <table class="table-ui">
-                            <thead><tr><th>ID</th><th>Guest</th><th>Room</th><th>Status</th></tr></thead>
-                            <tbody id="dash-bookings-body"></tbody>
-                        </table>
-                    </div>
-
-                    <div class="panel">
-                        <div class="panel-head"><h3>Today's Tasks</h3></div>
-                        <div id="dashboard-tasks-list">
-                            <div class="list-item"><b>No pending tasks</b></div>
-                        </div>
-                    </div>
-
-                    <div class="panel">
-                        <div class="panel-head"><h3>Revenue Summary</h3></div>
-                        <div class="rev-total">
-                            <p style="font-weight:700; color:var(--text-muted); font-size:0.8rem;">Total Revenue</p>
-                            <h2 id="dash-rev-total">₹ 0</h2>
-                        </div>
-                        <div class="chart-container"><canvas id="revenueChart"></canvas></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB: BOOKINGS -->
-            <section id="tab-bookings" class="tab-pane hidden">
-                <div class="page-header"><h1>Bookings Management</h1><button class="btn btn-primary" onclick="openBookingModal()">+ New Reservation</button></div>
-                <div class="panel">
-                    <table class="table-ui">
-                        <thead><tr><th>REF ID</th><th>Guest Name</th><th>Phone</th><th>Room</th><th>Dates</th><th>Billing</th><th>Status</th></tr></thead>
-                        <tbody id="bookings-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- TAB: GUESTS -->
-            <section id="tab-guests" class="tab-pane hidden">
-                <div class="page-header"><h1>Guest Directory</h1></div>
-                <div class="panel">
-                    <table class="table-ui">
-                        <thead><tr><th>Guest Name</th><th>Phone</th><th>Email</th><th>Total Stays</th><th>Last Visit</th></tr></thead>
-                        <tbody id="guests-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- TAB: ROOMS -->
-            <section id="tab-rooms" class="tab-pane hidden">
-                <div class="page-header"><h1>Room Category Management</h1><button class="btn btn-primary">+ Add Category</button></div>
-                <div id="rooms-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:24px;"></div>
-            </section>
-
-            <!-- TAB: REPORTS -->
-            <section id="tab-reports" class="tab-pane hidden">
-                <div class="page-header"><h1>Performance Analytics</h1></div>
-                <div class="metrics-grid">
-                    <div class="metric-card"><div class="metric-info"><p>Total Bookings</p><h2 id="rep-total-bk">0</h2></div></div>
-                    <div class="metric-card"><div class="metric-info"><p>Total Revenue</p><h2 id="rep-total-rev">₹ 0</h2></div></div>
-                </div>
-                <div class="panel">
-                    <h3>Revenue Trends</h3>
-                    <div style="height:300px;"><canvas id="revenueReportChart"></canvas></div>
-                </div>
-            </section>
-
-            <!-- TAB: SETTINGS -->
-            <section id="tab-settings" class="tab-pane hidden">
-                <div class="page-header"><h1>System Configuration</h1><button class="btn btn-primary" onclick="saveAllSettings()">💾 Save Changes</button></div>
-                <div class="settings-wrap">
-                    <div class="settings-nav">
-                        <div class="settings-nav-btn active">👤 General Info</div>
-                        <div class="settings-nav-btn">🏢 Hotel Profile</div>
-                        <div class="settings-nav-btn">📑 Rates & Policies</div>
-                    </div>
-                    <div class="panel" style="flex:1;">
-                        <div class="settings-content">
-                            <h3>Property Identity</h3>
-                            <div class="form-grid">
-                                <div class="field-box"><label>Hotel Name</label><input type="text" id="set-hotel-name" value="Ganga Homes"></div>
-                                <div class="field-box"><label>Hotel Phone</label><input type="text" id="set-hotel-phone" value="+91 9198065441"></div>
-                                <div class="field-box"><label>Hotel Email</label><input type="email" id="set-hotel-email" value="info@gangahomes.com"></div>
-                            </div>
-                            <div class="field-box"><label>Full Address</label><textarea id="set-hotel-address" rows="3">Assi Ghat Road, Varanasi, UP</textarea></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <footer class="footer-ui">
-            <div>© 2026 GANGA HOMES | Property Management System</div>
-            <div>Build Version: 3.0.0 Final (Synced)</div>
-        </footer>
-    </div>
-
-    <!-- MODAL: NEW BOOKING -->
-    <div id="booking-modal" class="auth-bg hidden" style="background:rgba(0,0,0,0.5);">
-        <div class="panel" style="width:500px; margin: auto;">
-            <div class="panel-head"><h3>Walk-in Reservation</h3><button class="btn-sm btn-outline" onclick="closeBookingModal()">✕</button></div>
-            <div class="form-section">
-                <div class="input-group"><label>Guest Name</label><input type="text" id="nb-name"></div>
-                <div class="input-group"><label>Phone Number</label><input type="text" id="nb-phone"></div>
-                <div class="form-row"><div class="input-group"><label>Check-in</label><input type="date" id="nb-in"></div><div class="input-group"><label>Check-out</label><input type="date" id="nb-out"></div></div>
-                <div class="input-group"><label>Room Type</label><select id="nb-room-select"></select></div>
-                <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:12px;" onclick="confirmNewBooking()">Confirm Walk-in</button>
+    <!-- TOP NAVIGATION -->
+    <nav class="top-nav">
+        <div class="logo-wrap">
+            <img src="https://i.ibb.co/Xf7yZ8N/gh-stay-logo.jpg" alt="Logo" class="logo-img">
+            <div class="hotel-info">
+                <h3 id="nav-hotel-name">GANGA HOMES</h3>
+                <p>VARANASI</p>
             </div>
         </div>
-    </div>
+        <div class="nav-links">
+            <div class="nav-item active" onclick="switchTab('dashboard')"><i>🏠</i><span>Dashboard</span></div>
+            <div class="nav-item" onclick="switchTab('pms-grid')"><i>📅</i><span>Calendar</span></div>
+            <div class="nav-item" onclick="switchTab('reservations')"><i>📖</i><span>Reservations</span></div>
+            <div class="nav-item" onclick="switchTab('property-detail')"><i>🏢</i><span>Property Detail</span></div>
+            <div class="nav-item" onclick="switchTab('analytics')"><i>📊</i><span>Analytics</span></div>
+        </div>
+        <div class="nav-right">
+            <button class="btn btn-outline btn-sm">+ New Reservation</button>
+            <div class="user-profile">
+                <img src="https://i.pravatar.cc/100?img=12" class="avatar" alt="Admin">
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- SECTION: DASHBOARD -->
+        <section id="tab-dashboard" class="tab-pane">
+            <div class="page-header">
+                <h1>Property Dashboard</h1>
+                <p>Real-time overview of your property's performance.</p>
+            </div>
+            <!-- Metrics will be injected by JS -->
+            <div id="dashboard-metrics" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;"></div>
+        </section>
+
+        <!-- SECTION: PROPERTY DETAIL (SYNCED WITH ANDROID) -->
+        <section id="tab-property-detail" class="tab-pane hidden">
+            <div class="page-header">
+                <h1>Property Detail</h1>
+                <p>Manage your property's profile, amenities, photos, and policies.</p>
+            </div>
+
+            <div class="sub-tabs">
+                <div class="sub-tab active" onclick="switchSubTab('general-info')">General Info</div>
+                <div class="sub-tab" onclick="switchSubTab('photos')">Photos</div>
+                <div class="sub-tab" onclick="switchSubTab('amenities')">Amenities</div>
+                <div class="sub-tab" onclick="switchSubTab('policies')">Policies</div>
+                <div class="sub-tab" onclick="switchSubTab('your-profile')">Your Profile</div>
+            </div>
+
+            <!-- SUB: GENERAL INFO -->
+            <div id="sub-general-info" class="sub-pane">
+                <div class="card-ui">
+                    <div class="card-head">Property Information</div>
+                    <div class="card-body">
+                        <div class="info-row"><label>Property name:</label><p id="disp-hotel-name">Ganga Homes</p></div>
+                        <div class="info-row"><label>Property address:</label><p id="disp-hotel-addr">Assi Ghat, Varanasi</p></div>
+                        <div class="info-row"><label>Property location:</label><p>25.325088, 83.005356 (Google Maps)</p></div>
+                    </div>
+                </div>
+                <div class="card-ui">
+                    <div class="card-head">Property Status</div>
+                    <div class="card-body">
+                        <span class="status-pill open">Open/Bookable</span>
+                        <p style="margin-top:12px; color:var(--text-muted);">Guests can see and book your property. If you want to pause, you can close your property temporarily.</p>
+                        <button class="btn btn-outline" style="margin-top:16px;">Close temporarily</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB: PHOTOS -->
+            <div id="sub-photos" class="sub-pane hidden">
+                <div class="card-ui">
+                    <div class="card-head">Main Gallery <button class="btn btn-primary btn-sm">+ Add Photos</button></div>
+                    <div class="card-body">
+                        <div class="gallery-grid" id="main-gallery-grid"></div>
+                    </div>
+                </div>
+                <div id="room-photos-container"></div>
+            </div>
+
+            <!-- SUB: AMENITIES -->
+            <div id="sub-amenities" class="sub-pane hidden">
+                <div class="card-ui">
+                    <div class="card-head">Top Amenities</div>
+                    <div class="card-body" id="amenities-list">
+                        <!-- Amenities will be injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB: POLICIES -->
+            <div id="sub-policies" class="sub-pane hidden">
+                <div class="card-ui policy-card">
+                    <div class="policy-main">
+                        <h3>Flexible - 7 days (General)</h3>
+                        <ul style="margin-top:12px; color:var(--text-muted); font-size:0.9rem;">
+                            <li>The guest can cancel free of charge until 7 days before arrival.</li>
+                            <li>No prepayment is needed.</li>
+                        </ul>
+                        <div style="margin-top:20px; display:flex; gap:12px;">
+                            <button class="btn btn-primary btn-sm">Edit</button>
+                            <button class="btn btn-outline btn-sm">Apply to others</button>
+                        </div>
+                    </div>
+                    <div class="policy-side">
+                        <h5>Report from</h5><p>Apr 4 - Jul 3</p>
+                        <h5>Total Revenue</h5><p>INR 7,127.78</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <script src="portal_admin.js"></script>
 </body>
