@@ -178,6 +178,7 @@ fun AdminMenuScreen(
                                 "sync_calendars" -> "hotel_sync_calendars"
                                 "rate_plans" -> "hotel_rate_plans"
                                 "value_adds" -> "hotel_value_adds"
+                                "planner" -> "hotel_planner"
                                 else -> moreTabSubScreen
                             }
                         })
@@ -187,6 +188,7 @@ fun AdminMenuScreen(
                         })
                         "pricing_guest" -> PricingPerGuestScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" })
                         "hotel_availability" -> AvailabilityCalendarScreen(rooms, bookings, { moreTabSubScreen = "hotel_rates_menu" }, { viewModel.addBooking(it) })
+                        "hotel_planner" -> AvailabilityPlannerScreen()
                         "hotel_restriction_rules" -> DynamicRestrictionsScreen()
                         "hotel_sync_calendars" -> SyncCalendarsScreen()
                         "hotel_sync_calendars" -> SyncCalendarsScreen()
