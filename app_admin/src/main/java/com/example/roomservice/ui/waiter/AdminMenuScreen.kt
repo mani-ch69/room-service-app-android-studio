@@ -313,15 +313,10 @@ fun RatesAvailabilityMenu(onCalendarClick: () -> Unit, onItemClick: (String) -> 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item { MoreMenuItem("Calendar", Icons.Default.CalendarMonth, onCalendarClick) }
         item { MoreMenuItem("Open/close rooms", Icons.Default.DoorFront, { onItemClick("open_close") }) }
-        item { MoreMenuItem("Copy rates to future dates", Icons.Default.ContentCopy, { onItemClick("copy_rates") }) }
-        item { MoreMenuItem("Dynamic Restriction Rules", Icons.Default.Gavel, { onItemClick("restriction_rules") }, isNew = true) }
         item { MoreMenuItem("Sync calendars", Icons.Default.Sync, { onItemClick("sync_calendars") }) }
-        item { MoreMenuItem("Rate plans", Icons.Default.Assignment, { onItemClick("rate_plans") }) }
         item { MoreMenuItem("Value adds", Icons.Default.AddCircle, { onItemClick("value_adds") }, isNew = true) }
         item { MoreMenuItem("Availability planner", Icons.Default.EventNote, { onItemClick("planner") }) }
         item { MoreMenuItem("Pricing per guest", Icons.Default.Groups, { onItemClick("pricing_guest") }) }
-        item { MoreMenuItem("Country rates", Icons.Default.Public, { onItemClick("country_rates") }, isNew = true) }
-        item { MoreMenuItem("Mobile rates", Icons.Default.Smartphone, { onItemClick("mobile_rates") }) }
     }
 }
 
