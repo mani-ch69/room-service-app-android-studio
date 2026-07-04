@@ -17,6 +17,23 @@ let allRooms = [];
 let allBookings = [];
 
 // --- 2. CORE NAVIGATION ---
+window.toggleDropdown = (e, tabId) => {
+    e.stopPropagation();
+    const item = e.currentTarget;
+    const isShowing = item.classList.contains('show-dropdown');
+
+    // Close all other dropdowns
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('show-dropdown'));
+
+    // Toggle current
+    if (!isShowing) item.classList.add('show-dropdown');
+};
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('show-dropdown'));
+});
+
 window.switchTab = (tabId) => {
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
     const target = document.getElementById(`tab-${tabId}`);

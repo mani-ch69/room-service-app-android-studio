@@ -17,7 +17,7 @@
             <div class="nav-item active" onclick="switchTab('dashboard')">
                 <i>🏠</i><span>Home</span>
             </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('rates')">
+            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'rates')">
                 <i>📅</i><span>Rates & availability</span>
                 <div class="dropdown-content">
                     <div class="dropdown-item" onclick="switchTab('pms-grid')">Calendar</div>
@@ -33,14 +33,29 @@
                     <div class="dropdown-item">Mobile rates</div>
                 </div>
             </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('promotions')">
+            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'promotions')">
                 <i>🏷️</i><span>Promotions</span>
             </div>
             <div class="nav-item" onclick="switchTab('reservations')">
                 <i>📋</i><span>Reservations</span>
             </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('property-detail')">
+            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'property')">
                 <i>🖊️</i><span>Property</span>
+                <div class="dropdown-content">
+                    <div class="dropdown-item">Property Page Score</div>
+                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('general-info')">General info & property status</div>
+                    <div class="dropdown-item">VAT/Tax/Charges</div>
+                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('photos')">Photos</div>
+                    <div class="dropdown-item">Property policies</div>
+                    <div class="dropdown-item">Reservation policies</div>
+                    <div class="dropdown-item">Facilities & services</div>
+                    <div class="dropdown-item">Room details</div>
+                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('amenities')">Room Amenities</div>
+                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('your-profile')">Your Profile</div>
+                    <div class="dropdown-item">View Your Descriptions</div>
+                    <div class="dropdown-item">Messaging Preferences</div>
+                    <div class="dropdown-item">Sustainability</div>
+                </div>
             </div>
             <div class="nav-item has-dropdown" onclick="switchTab('performance')">
                 <i>🚀</i><span>Boost performance<div class="badge-nav">1</div></span>
