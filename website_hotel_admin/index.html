@@ -11,26 +11,38 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 </head>
 <body>
-    <!-- TOP NAVIGATION -->
+    <!-- TOP NAVIGATION (PMS STYLE) -->
     <nav class="top-nav">
-        <div class="logo-wrap">
-            <img src="https://i.ibb.co/Xf7yZ8N/gh-stay-logo.jpg" alt="Logo" class="logo-img">
-            <div class="hotel-info">
-                <h3 id="nav-hotel-name">GANGA HOMES</h3>
-                <p>VARANASI</p>
-            </div>
-        </div>
         <div class="nav-links">
-            <div class="nav-item active" onclick="switchTab('dashboard')"><i>🏠</i><span>Dashboard</span></div>
-            <div class="nav-item" onclick="switchTab('pms-grid')"><i>📅</i><span>Calendar</span></div>
-            <div class="nav-item" onclick="switchTab('reservations')"><i>📖</i><span>Reservations</span></div>
-            <div class="nav-item" onclick="switchTab('property-detail')"><i>🏢</i><span>Property Detail</span></div>
-            <div class="nav-item" onclick="switchTab('analytics')"><i>📊</i><span>Analytics</span></div>
-        </div>
-        <div class="nav-right">
-            <button class="btn btn-outline btn-sm">+ New Reservation</button>
-            <div class="user-profile">
-                <img src="https://i.pravatar.cc/100?img=12" class="avatar" alt="Admin">
+            <div class="nav-item active" onclick="switchTab('dashboard')">
+                <i>🏠</i><span>Home</span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('rates')">
+                <i>📅</i><span>Rates & availability</span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('promotions')">
+                <i>🏷️</i><span>Promotions</span>
+            </div>
+            <div class="nav-item" onclick="switchTab('reservations')">
+                <i>📋</i><span>Reservations</span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('property-detail')">
+                <i>🖊️</i><span>Property</span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('performance')">
+                <i>🚀</i><span>Boost performance<div class="badge-nav">1</div></span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('inbox')">
+                <i>✉️</i><span>Inbox<div class="badge-nav">7</div></span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('reviews')">
+                <i>❤️</i><span>Guest Reviews</span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('finance')">
+                <i>📄</i><span>Finance<div class="badge-nav">1</div></span>
+            </div>
+            <div class="nav-item has-dropdown" onclick="switchTab('analytics')">
+                <i>📊</i><span>Analytics<div class="tag-new">New</div></span>
             </div>
         </div>
     </nav>
@@ -40,10 +52,13 @@
         <section id="tab-dashboard" class="tab-pane">
             <div class="page-header">
                 <h1>Property Dashboard</h1>
-                <p>Real-time overview of your property's performance.</p>
+                <p>Welcome back! Here's what's happening at your property today.</p>
             </div>
-            <!-- Metrics will be injected by JS -->
-            <div id="dashboard-metrics" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;"></div>
+            <!-- Metrics and Charts will go here -->
+             <div style="padding:40px; text-align:center; color:var(--text-muted); background:white; border-radius:8px; border:1px solid var(--border);">
+                <h3>Welcome to Ganga Homes PMS</h3>
+                <p>Select a menu item from the navigation bar above to manage your property.</p>
+             </div>
         </section>
 
         <!-- SECTION: PROPERTY DETAIL (SYNCED WITH ANDROID) -->

@@ -30,27 +30,41 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
 .btn-danger { background: #C62828; color: white; }
 .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
 
-/* --- TOP NAVIGATION --- */
+/* --- TOP NAVIGATION (DARK THEME - PMS STYLE) --- */
 .top-nav {
-    background: white; padding: 0 32px; height: 72px;
-    display: flex; justify-content: space-between; align-items: center;
-    position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border);
+    background: #003580; padding: 0 40px; height: 90px;
+    display: flex; align-items: stretch;
+    position: sticky; top: 0; z-index: 2000;
 }
 
-.logo-wrap { display: flex; align-items: center; gap: 12px; }
-.logo-img { height: 36px; border-radius: 4px; }
-.hotel-info h3 { font-weight: 900; font-size: 1.1rem; letter-spacing: -0.01em; color: var(--text-main); }
-.hotel-info p { font-size: 0.65rem; color: var(--text-muted); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-top: -2px; }
-
-.nav-links { display: flex; gap: 4px; height: 100%; align-items: center; }
+.nav-links { display: flex; height: 100%; align-items: center; width: 100%; justify-content: center; }
 .nav-item {
-    padding: 8px 14px; border-radius: 6px; cursor: pointer; color: var(--text-muted);
-    font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px;
-    transition: 0.2s; font-size: 0.75rem; text-align: center;
+    height: 100%; padding: 0 16px; cursor: pointer; color: white;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; transition: 0.2s; font-size: 0.8rem; font-weight: 500;
+    position: relative; border-bottom: 4px solid transparent;
+    min-width: 100px;
 }
-.nav-item i { font-size: 1.1rem; font-style: normal; margin-bottom: 2px; }
-.nav-item.active { color: var(--primary); position: relative; }
-.nav-item.active::after { content: ''; position: absolute; bottom: -20px; left: 0; right: 0; height: 3px; background: var(--primary); border-radius: 10px; }
+.nav-item:hover { background: rgba(255,255,255,0.1); }
+.nav-item.active { background: rgba(255,255,255,0.15); border-bottom-color: #006ce4; }
+
+/* ICONS (Represented as emojis/text for simplicity or font-icons) */
+.nav-item i { font-size: 1.4rem; opacity: 0.9; font-style: normal; }
+.nav-item span { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.nav-item.has-dropdown span::after { content: '⌄'; font-size: 1.1rem; opacity: 0.7; margin-top: 2px; }
+
+/* BADGES */
+.badge-nav {
+    position: absolute; top: 18px; right: 24px;
+    background: #d4111e; color: white; font-size: 0.65rem; font-weight: 800;
+    min-width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid #003580; padding: 0 4px;
+}
+.tag-new {
+    background: #008009; color: white; padding: 2px 6px; border-radius: 4px;
+    font-size: 0.65rem; font-weight: 800; margin-left: 4px;
+}
 
 /* --- CONTAINERS & PANELS --- */
 .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
