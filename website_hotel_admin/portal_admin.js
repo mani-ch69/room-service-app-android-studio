@@ -20,7 +20,7 @@ const UI = {
     table: (headers, rows) => `
         <table class="table-reservations">
             <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-            <tbody>${rows.length ? rows.join('') : '<tr><td colspan="${headers.length}" style="text-align:center;">No data available</td></tr>'}</tbody>
+            <tbody>${rows.length ? rows.join('') : '<tr><td colspan="' + headers.length + '" style="text-align:center;">No data available</td></tr>'}</tbody>
         </table>
     `
 };
@@ -45,8 +45,10 @@ let allBookings = [];
 
 // --- 3. CORE NAVIGATION ---
 window.toggleDropdown = (e, tabId) => {
-    e.stopPropagation();
-    const item = e.currentTarget;
+    if (e) e.stopPropagation();
+    const item = e ? e.currentTarget : null;
+    if (!item) return;
+
     const isShowing = item.classList.contains('show-dropdown');
 
     // Close all other dropdowns
@@ -67,8 +69,14 @@ window.switchTab = (tabId) => {
     if(target) target.classList.remove('hidden');
 
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    // Handle both direct onclick and event-based calls
-    if(window.event && event.currentTarget) event.currentTarget.classList.add('active');
+
+    // Highlight the active menu item
+    // If called via click, the event will help us find the target
+    if(window.event && window.event.currentTarget && window.event.currentTarget.classList.contains('nav-item')) {
+        window.event.currentTarget.classList.add('active');
+    } else {
+        // Fallback: Find by text or data-tab if we implement it
+    }
 
     if(tabId === 'reservations') renderReservations();
 };
@@ -79,7 +87,7 @@ window.switchSubTab = (subId) => {
     if(target) target.classList.remove('hidden');
 
     document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
-    if(window.event && event.currentTarget) event.currentTarget.classList.add('active');
+    if(window.event && window.event.currentTarget) window.event.currentTarget.classList.add('active');
 };
 
 // --- 4. DATA SYNC ---
@@ -189,7 +197,7 @@ function renderRoomDetails() {
 
     // Add "Create New Room" card
     html += `
-        <div class="create-room-card">
+        <div class="create-room-card" onclick="openAddRoomModal()">
             <h3>Create a new room</h3>
             <div class="plus-circle">+</div>
         </div>
@@ -197,6 +205,8 @@ function renderRoomDetails() {
 
     container.innerHTML = html;
 }
+
+function renderRoomPhotoSections() {
     const container = document.getElementById('room-photos-container');
     if(!container) return;
 
