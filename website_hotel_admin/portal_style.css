@@ -11,12 +11,13 @@
     --danger: #EF4444;
     --radius-lg: 12px;
     --radius-md: 8px;
-    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-body { background: var(--bg-body); color: var(--text-main); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+body { background: var(--bg-body); color: var(--text-main); font-size: 14px; line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
 .hidden { display: none !important; }
 
 /* --- BUTTONS --- */
@@ -24,9 +25,10 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
     padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none; font-size: 0.85rem;
     display: flex; align-items: center; gap: 8px; justify-content: center;
 }
-.btn-primary { background: var(--primary); color: white; }
-.btn-primary:hover { background: #1565C0; }
+.btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(25, 118, 210, 0.2); }
+.btn-primary:hover { background: #1565C0; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(25, 118, 210, 0.3); }
 .btn-outline { background: white; border: 1.5px solid var(--primary); color: var(--primary); }
+.btn-outline:hover { background: var(--primary-light); }
 .btn-danger { background: #C62828; color: white; }
 .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
 
@@ -34,7 +36,7 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
 .header-main {
     background: #003580; color: white;
     position: sticky; top: 0; z-index: 2000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-lg);
 }
 
 /* TOP ROW */
@@ -141,12 +143,23 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
 
 /* --- CONTAINERS & PANELS --- */
 .container { max-width: 1400px; margin: 0 auto; padding: 32px; }
-.page-header { margin-bottom: 24px; }
-.page-header h1 { font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
-.page-header p { color: var(--text-muted); font-size: 0.95rem; }
+.page-header { margin-bottom: 32px; }
+.page-header h1 { font-size: 2.2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; }
+.page-header p { color: var(--text-muted); font-size: 1rem; margin-top: 4px; }
 
-.card-ui { background: white; border-radius: 8px; border: 1px solid var(--border); box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden; }
-.card-head { background: #F8FAFC; padding: 16px 24px; border-bottom: 1px solid var(--border); font-weight: 800; font-size: 1rem; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+/* BORDERLESS CARDS WITH DEPTH */
+.card-ui {
+    background: white; border-radius: 12px; border: none;
+    box-shadow: var(--shadow); margin-bottom: 24px; overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+.card-ui:hover { box-shadow: var(--shadow-lg); }
+
+.card-head {
+    background: #FFFFFF; padding: 20px 24px; border-bottom: 1px solid #F1F5F9;
+    font-weight: 800; font-size: 1.1rem; color: var(--text-main);
+    display: flex; justify-content: space-between; align-items: center;
+}
 .card-body { padding: 24px; }
 
 /* --- GENERAL INFO & STATUS --- */
