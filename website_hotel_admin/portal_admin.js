@@ -102,6 +102,7 @@ function startRealtimeSync() {
         allRooms = [];
         snap.forEach(c => allRooms.push(c.val()));
         renderRoomPhotoSections();
+        renderRoomDetails();
     });
 }
 
@@ -159,7 +160,43 @@ window.toggleSeg = (el) => {
     el.classList.add('active');
 };
 
-function renderRoomPhotoSections() {
+function renderRoomDetails() {
+    const container = document.getElementById('room-details-container');
+    if(!container) return;
+
+    let html = allRooms.map(room => `
+        <div class="room-card">
+            <div class="room-card-img-wrap">
+                <img src="${room.photos && room.photos[0] ? room.photos[0] : 'https://i.ibb.co/6P0f9pL/ganga-homes-logo.jpg'}" alt="Room">
+                <div class="room-card-info-bar">
+                    <h4>${room.roomType}</h4>
+                    <p>(${room.id || 'ID Pending'})</p>
+                </div>
+            </div>
+            <div class="room-card-body">
+                <div class="room-stat-line">Maximum guests: <b>${room.maxGuests} guests</b></div>
+                <div class="room-stat-line">Maximum adults: <b>${room.maxAdults} adults</b></div>
+                <div class="room-stat-line">Maximum children: <b>${room.maxChildren} children</b></div>
+                <div class="room-stat-line">Number of this type: <b>1</b></div>
+            </div>
+            <div class="room-card-actions">
+                <button class="btn btn-outline btn-sm">Edit</button>
+                <button class="btn btn-outline btn-sm">Delete</button>
+                <button class="btn btn-primary btn-sm">Upload photos</button>
+            </div>
+        </div>
+    `).join('');
+
+    // Add "Create New Room" card
+    html += `
+        <div class="create-room-card">
+            <h3>Create a new room</h3>
+            <div class="plus-circle">+</div>
+        </div>
+    `;
+
+    container.innerHTML = html;
+}
     const container = document.getElementById('room-photos-container');
     if(!container) return;
 

@@ -255,6 +255,7 @@
                 <div class="sub-tab" onclick="switchSubTab('photos')">Photos</div>
                 <div class="sub-tab" onclick="switchSubTab('amenities')">Amenities</div>
                 <div class="sub-tab" onclick="switchSubTab('policies')">Policies</div>
+                <div class="sub-tab" onclick="switchSubTab('room-details')">Room Details</div>
                 <div class="sub-tab" onclick="switchSubTab('your-profile')">Your Profile</div>
             </div>
 
@@ -299,24 +300,10 @@
                 </div>
             </div>
 
-            <!-- SUB: POLICIES -->
-            <div id="sub-policies" class="sub-pane hidden">
-                <div class="card-ui policy-card">
-                    <div class="policy-main">
-                        <h3>Flexible - 7 days (General)</h3>
-                        <ul style="margin-top:12px; color:var(--text-muted); font-size:0.9rem;">
-                            <li>The guest can cancel free of charge until 7 days before arrival.</li>
-                            <li>No prepayment is needed.</li>
-                        </ul>
-                        <div style="margin-top:20px; display:flex; gap:12px;">
-                            <button class="btn btn-primary btn-sm">Edit</button>
-                            <button class="btn btn-outline btn-sm">Apply to others</button>
-                        </div>
-                    </div>
-                    <div class="policy-side">
-                        <h5>Report from</h5><p>Apr 4 - Jul 3</p>
-                        <h5>Total Revenue</h5><p>INR 7,127.78</p>
-                    </div>
+            <!-- SUB: ROOM DETAILS (HIGH FIDELITY) -->
+            <div id="sub-room-details" class="sub-pane hidden">
+                <div class="room-details-grid" id="room-details-container">
+                    <!-- Dynamic room cards will be injected here -->
                 </div>
             </div>
         </section>
