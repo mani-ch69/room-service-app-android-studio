@@ -88,7 +88,12 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
 }
 .nav-item:hover { background: rgba(255,255,255,0.1); }
 .nav-item.active { background: rgba(255,255,255,0.15); border-bottom-color: #006ce4; }
-.nav-item i { font-size: 1.2rem; opacity: 0.9; font-style: normal; }
+/* ICONS (SVG) */
+.nav-item .icon-svg {
+    width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.5;
+    stroke-linecap: round; stroke-linejoin: round; opacity: 0.9;
+}
+.nav-item:hover .icon-svg { opacity: 1; }
 .nav-item span { display: flex; align-items: center; gap: 4px; }
 .nav-item.has-dropdown span::after { content: '⌄'; font-size: 1rem; opacity: 0.7; margin-top: 2px; }
 
