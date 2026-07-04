@@ -205,7 +205,7 @@ fun YourProfileScreen() {
 
             item {
                 Text(
-                    "By saving this content, I agree to let Booking.com use my full profile on its website, mobile website, apps and in all other means of communication.",
+                    "By saving this content, I agree to let admin69 use my full profile on its website, mobile website, apps and in all other means of communication.",
                     fontSize = 10.sp, color = Color.Gray
                 )
                 Spacer(Modifier.height(16.dp))

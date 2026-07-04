@@ -195,7 +195,7 @@ fun ExportPreferencesCard() {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Decide what to export", fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Text(
-                "Stay on top of reservations and limit double bookings by exporting both your Booking.com reservations and closed dates to other sites.",
+                "Stay on top of reservations and limit double bookings by exporting both your admin69 reservations and closed dates to other sites.",
                 fontSize = 11.sp, color = Color.Gray, modifier = Modifier.padding(top = 8.dp)
             )
             
