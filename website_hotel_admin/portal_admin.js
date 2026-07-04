@@ -19,9 +19,14 @@ let allBookings = [];
 // --- 2. CORE NAVIGATION ---
 window.switchTab = (tabId) => {
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-    document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+    const target = document.getElementById(`tab-${tabId}`);
+    if(target) target.classList.remove('hidden');
+
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    // Handle both direct onclick and event-based calls
+    if(event) event.currentTarget.classList.add('active');
+
+    if(tabId === 'reservations') renderReservations();
 };
 
 window.switchSubTab = (subId) => {
@@ -55,6 +60,35 @@ function startRealtimeSync() {
 }
 
 // --- 4. RENDER COMPONENTS ---
+function renderReservations() {
+    const container = document.getElementById('reservations-table-body');
+    if(!container) return;
+
+    db.ref(`hotels/${hotelId}/bookings`).on('value', snap => {
+        let html = '';
+        snap.forEach(child => {
+            const b = child.val();
+            const cin = new Date(b.checkInDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+            const cout = new Date(b.checkOutDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+            const bookedOn = b.timestamp ? new Date(b.timestamp).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) : '-';
+
+            html += `
+                <tr>
+                    <td><span class="guest-name-link">${b.guestName}</span></td>
+                    <td>${cin}</td>
+                    <td>${cout}</td>
+                    <td>1 × ${b.roomNumber || 'Deluxe'}</td>
+                    <td>${bookedOn}</td>
+                    <td><span class="status-tag ${(b.status || 'OK').toLowerCase()}">${b.status || 'OK'}</span></td>
+                    <td>₹ ${(b.totalAmount || 0).toLocaleString()}</td>
+                    <td>₹ 0</td>
+                    <td><span class="booking-id-link">${b.bookingNumber || b.id.slice(-8)}</span></td>
+                </tr>
+            `;
+        });
+        container.innerHTML = html || '<tr><td colspan="9" style="text-align:center;">No reservations found</td></tr>';
+    });
+}
 function renderAmenities() {
     const amenities = ["Air conditioning", "Balcony", "View", "Flat-screen TV", "Terrace", "Electric kettle", "Toilet paper", "Towels", "Linens"];
     const container = document.getElementById('amenities-list');

@@ -48,17 +48,76 @@
     </nav>
 
     <main class="container">
-        <!-- SECTION: DASHBOARD -->
-        <section id="tab-dashboard" class="tab-pane">
-            <div class="page-header">
-                <h1>Property Dashboard</h1>
-                <p>Welcome back! Here's what's happening at your property today.</p>
+        <!-- SECTION: RESERVATIONS (HIGH FIDELITY) -->
+        <section id="tab-reservations" class="tab-pane hidden">
+            <div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <h1>Reservations</h1>
+                <div class="action-links-top">
+                    <span class="action-link">📥 Download</span>
+                    <span class="action-link">🖨️ Print reservation list</span>
+                </div>
             </div>
-            <!-- Metrics and Charts will go here -->
-             <div style="padding:40px; text-align:center; color:var(--text-muted); background:white; border-radius:8px; border:1px solid var(--border);">
-                <h3>Welcome to Ganga Homes PMS</h3>
-                <p>Select a menu item from the navigation bar above to manage your property.</p>
-             </div>
+
+            <!-- FILTER BAR -->
+            <div class="res-filter-bar">
+                <div class="filter-group-top">
+                    <label>Date of</label>
+                    <select class="filter-input"><option>Check-in</option><option>Check-out</option></select>
+                </div>
+                <div class="filter-group-top">
+                    <label>From</label>
+                    <input type="date" class="filter-input" id="res-from-date">
+                </div>
+                <div class="filter-group-top">
+                    <label>Until</label>
+                    <input type="date" class="filter-input" id="res-to-date">
+                </div>
+                <button class="btn btn-outline" style="height:36px; padding:0 16px;">More filters ⌄</button>
+                <button class="btn btn-primary" style="height:36px; padding:0 24px;">Show</button>
+            </div>
+
+            <!-- EXPANDED FILTERS PANEL -->
+            <div class="filters-expanded-panel">
+                <div class="filter-col">
+                    <h5>Reservation Status</h5>
+                    <label class="checkbox-item"><input type="checkbox" checked> Ok</label>
+                    <label class="checkbox-item"><input type="checkbox"> Canceled</label>
+                    <label class="checkbox-item"><input type="checkbox"> No-show</label>
+                    <label class="checkbox-item"><input type="checkbox"> Smart Flex reservations</label>
+                    <label class="checkbox-item"><input type="checkbox"> Corporate card</label>
+                </div>
+                <div class="filter-col">
+                    <h5>Guest Communication</h5>
+                    <label class="checkbox-item"><input type="checkbox"> Pending guest request</label>
+                    <label class="checkbox-item"><input type="checkbox"> Invoice required</label>
+                </div>
+                <div class="filter-col">
+                    <h5>Guest name or booking number</h5>
+                    <input type="text" class="search-field-large" placeholder="Enter name or ID">
+                </div>
+            </div>
+
+            <!-- RESERVATIONS TABLE -->
+            <div class="card-ui" style="border-radius:0;">
+                <table class="table-reservations">
+                    <thead>
+                        <tr>
+                            <th>Guest Name</th>
+                            <th>Check-in ⇅</th>
+                            <th>Check-out</th>
+                            <th>Rooms</th>
+                            <th>Booked on</th>
+                            <th>Status</th>
+                            <th>Price</th>
+                            <th>Commission and charges</th>
+                            <th>Booking number</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservations-table-body">
+                        <!-- Dynamic rows will be injected -->
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <!-- SECTION: PROPERTY DETAIL (SYNCED WITH ANDROID) -->
