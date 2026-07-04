@@ -69,6 +69,26 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
 }
 .dropdown-item:hover { background: #f1f5f9; color: var(--primary); }
 
+.dropdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge-inline {
+    background: #d4111e;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+}
+
 /* BADGES */
 .badge-nav {
     position: absolute; top: 18px; right: 24px;
