@@ -33,9 +33,6 @@
                     <div class="dropdown-item">Mobile rates</div>
                 </div>
             </div>
-            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'promotions')">
-                <i>🏷️</i><span>Promotions</span>
-            </div>
             <div class="nav-item" onclick="switchTab('reservations')">
                 <i>📋</i><span>Reservations</span>
             </div>
@@ -57,25 +54,34 @@
                     <div class="dropdown-item">Sustainability</div>
                 </div>
             </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('performance')">
-                <i>🚀</i><span>Boost performance<div class="badge-nav">1</div></span>
-            </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('inbox')">
+            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'inbox')">
                 <i>✉️</i><span>Inbox<div class="badge-nav">7</div></span>
             </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('reviews')">
+            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'reviews')">
                 <i>❤️</i><span>Guest Reviews</span>
             </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('finance')">
+            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'finance')">
                 <i>📄</i><span>Finance<div class="badge-nav">1</div></span>
             </div>
-            <div class="nav-item has-dropdown" onclick="switchTab('analytics')">
+            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'analytics')">
                 <i>📊</i><span>Analytics<div class="tag-new">New</div></span>
             </div>
         </div>
     </nav>
 
     <main class="container">
+        <!-- SECTION: DASHBOARD (MOCK) -->
+        <section id="tab-dashboard" class="tab-pane">
+            <div class="page-header">
+                <h1>Property Dashboard</h1>
+                <p>Welcome back! Here's what's happening at your property today.</p>
+            </div>
+            <div style="padding:40px; text-align:center; color:var(--text-muted); background:white; border-radius:8px; border:1px solid var(--border);">
+                <h3>Welcome to Ganga Homes PMS</h3>
+                <p>Select a menu item from the navigation bar above to manage your property.</p>
+             </div>
+        </section>
+
         <!-- SECTION: RESERVATIONS (HIGH FIDELITY) -->
         <section id="tab-reservations" class="tab-pane hidden">
             <div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
