@@ -11,113 +11,144 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 </head>
 <body>
-    <!-- TOP NAVIGATION (PMS STYLE) -->
-    <nav class="top-nav">
-        <div class="nav-links">
-            <div class="nav-item active" onclick="switchTab('dashboard')">
-                <i>🏠</i><span>Home</span>
-            </div>
-            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'rates')">
-                <i>📅</i><span>Rates & availability</span>
-                <div class="dropdown-content">
-                    <div class="dropdown-item" onclick="switchTab('pms-grid')">Calendar</div>
-                    <div class="dropdown-item">Open/close rooms</div>
-                    <div class="dropdown-item">Copy rates to future dates</div>
-                    <div class="dropdown-item">Dynamic Restriction Rules</div>
-                    <div class="dropdown-item">Sync calendars</div>
-                    <div class="dropdown-item">Rate plans</div>
-                    <div class="dropdown-item">Value adds</div>
-                    <div class="dropdown-item">Availability planner</div>
-                    <div class="dropdown-item">Pricing per guest</div>
-                    <div class="dropdown-item">Country rates</div>
-                    <div class="dropdown-item">Mobile rates</div>
+    <!-- HEADER & NAVIGATION (DARK THEME) -->
+    <header class="header-main">
+        <!-- TOP ROW: Brand, Search, Utilities -->
+        <div class="header-top-row">
+            <div class="brand-section">
+                <div class="brand-logo" id="header-brand-name">admin69</div>
+                <div class="property-pill">
+                    <span id="header-hotel-name">Ganga homes</span>
+                    <span class="property-id">13583198</span>
+                    <i>👁️</i>
                 </div>
             </div>
-            <div class="nav-item" onclick="switchTab('reservations')">
-                <i>📋</i><span>Reservations</span>
-            </div>
-            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'property')">
-                <i>🖊️</i><span>Property</span>
-                <div class="dropdown-content">
-                    <div class="dropdown-item">Property Page Score</div>
-                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('general-info')">General info & property status</div>
-                    <div class="dropdown-item">VAT/Tax/Charges</div>
-                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('photos')">Photos</div>
-                    <div class="dropdown-item">Property policies</div>
-                    <div class="dropdown-item">Reservation policies</div>
-                    <div class="dropdown-item">Facilities & services</div>
-                    <div class="dropdown-item">Room details</div>
-                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('amenities')">Room Amenities</div>
-                    <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('your-profile')">Your Profile</div>
-                    <div class="dropdown-item">View Your Descriptions</div>
-                    <div class="dropdown-item">Messaging Preferences</div>
-                    <div class="dropdown-item">Sustainability</div>
+
+            <div class="search-section">
+                <div class="search-bar-wrap">
+                    <input type="text" placeholder="Search">
+                    <span class="search-icon">🔍</span>
                 </div>
             </div>
-            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'inbox')">
-                <i>✉️</i><span>Inbox<div class="badge-nav">7</div></span>
-                <div class="dropdown-content">
-                    <div class="dropdown-item">
-                        <span>Reservation messages</span>
-                        <div class="badge-inline">2</div>
-                    </div>
-                    <div class="dropdown-item">
-                        <span>admin69 Messages</span>
-                        <div class="badge-inline">5</div>
-                    </div>
-                    <div class="dropdown-item">
-                        <span>Guest Q&A</span>
-                    </div>
-                </div>
-            </div>
-            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'reviews')">
-                <i>❤️</i><span>Guest Reviews</span>
-                <div class="dropdown-content">
-                    <div class="dropdown-item">Guest Reviews</div>
-                    <div class="dropdown-item">Guest experience</div>
-                </div>
-            </div>
-            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'finance')">
-                <i>📄</i><span>Finance<div class="badge-nav">1</div></span>
-                <div class="dropdown-content">
-                    <div class="dropdown-item">Payout info</div>
-                    <div class="dropdown-item">
-                        <span>Invoices and documents</span>
-                        <div class="badge-inline">1</div>
-                    </div>
-                    <div class="dropdown-item">Reservations statement</div>
-                    <div class="dropdown-item">Financial Overview</div>
-                    <div class="dropdown-item">
-                        <span>Finance Help</span>
-                        <div class="tag-new">New</div>
-                    </div>
-                    <div class="dropdown-item">Finance settings</div>
-                </div>
-            </div>
-            <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'analytics')">
-                <i>📊</i><span>Analytics<div class="tag-new">New</div></span>
-                <div class="dropdown-content">
-                    <div class="dropdown-item">Analytics dashboard</div>
-                    <div class="dropdown-item">
-                        <span>Demand for Varanasi</span>
-                        <div class="tag-new">New</div>
-                    </div>
-                    <div class="dropdown-item">Your pace of bookings</div>
-                    <div class="dropdown-item">Sales Statistics</div>
-                    <div class="dropdown-item">Booker insights</div>
-                    <div class="dropdown-item">Book Window Info</div>
-                    <div class="dropdown-item">Cancellation Characteristics</div>
-                    <div class="dropdown-item">Comparable properties</div>
-                    <div class="dropdown-item">Genius Report</div>
-                    <div class="dropdown-item">
-                        <span>Ranking Dashboard</span>
-                        <div class="tag-new">New</div>
-                    </div>
-                    <div class="dropdown-item">Performance dashboard</div>
+
+            <div class="utility-section">
+                <img src="https://flagcdn.com/w40/us.png" alt="English" class="flag-icon">
+                <div class="util-icon">❓</div>
+                <div class="profile-wrap">
+                    <div class="util-icon">👤</div>
+                    <div class="profile-badge"></div>
                 </div>
             </div>
         </div>
-    </nav>
+
+        <!-- NAV ROW: Links -->
+        <div class="nav-row">
+            <div class="nav-links">
+                <div class="nav-item active" onclick="switchTab('dashboard')">
+                    <i>🏠</i><span>Home</span>
+                </div>
+                <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'rates')">
+                    <i>📅</i><span>Rates & availability</span>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item" onclick="switchTab('pms-grid')">Calendar</div>
+                        <div class="dropdown-item">Open/close rooms</div>
+                        <div class="dropdown-item">Copy rates to future dates</div>
+                        <div class="dropdown-item">Dynamic Restriction Rules</div>
+                        <div class="dropdown-item">Sync calendars</div>
+                        <div class="dropdown-item">Rate plans</div>
+                        <div class="dropdown-item">Value adds</div>
+                        <div class="dropdown-item">Availability planner</div>
+                        <div class="dropdown-item">Pricing per guest</div>
+                        <div class="dropdown-item">Country rates</div>
+                        <div class="dropdown-item">Mobile rates</div>
+                    </div>
+                </div>
+                <div class="nav-item" onclick="switchTab('reservations')">
+                    <i>📋</i><span>Reservations</span>
+                </div>
+                <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'property')">
+                    <i>🖊️</i><span>Property</span>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item">Property Page Score</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('general-info')">General info & property status</div>
+                        <div class="dropdown-item">VAT/Tax/Charges</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('photos')">Photos</div>
+                        <div class="dropdown-item">Property policies</div>
+                        <div class="dropdown-item">Reservation policies</div>
+                        <div class="dropdown-item">Facilities & services</div>
+                        <div class="dropdown-item">Room details</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('amenities')">Room Amenities</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('your-profile')">Your Profile</div>
+                        <div class="dropdown-item">View Your Descriptions</div>
+                        <div class="dropdown-item">Messaging Preferences</div>
+                        <div class="dropdown-item">Sustainability</div>
+                    </div>
+                </div>
+                <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'inbox')">
+                    <i>✉️</i><span>Inbox<div class="badge-nav">7</div></span>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item">
+                            <span>Reservation messages</span>
+                            <div class="badge-inline">2</div>
+                        </div>
+                        <div class="dropdown-item">
+                            <span>admin69 Messages</span>
+                            <div class="badge-inline">5</div>
+                        </div>
+                        <div class="dropdown-item">
+                            <span>Guest Q&A</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'reviews')">
+                    <i>❤️</i><span>Guest Reviews</span>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item">Guest Reviews</div>
+                        <div class="dropdown-item">Guest experience</div>
+                    </div>
+                </div>
+                <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'finance')">
+                    <i>📄</i><span>Finance<div class="badge-nav">1</div></span>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item">Payout info</div>
+                        <div class="dropdown-item">
+                            <span>Invoices and documents</span>
+                            <div class="badge-inline">1</div>
+                        </div>
+                        <div class="dropdown-item">Reservations statement</div>
+                        <div class="dropdown-item">Financial Overview</div>
+                        <div class="dropdown-item">
+                            <span>Finance Help</span>
+                            <div class="tag-new">New</div>
+                        </div>
+                        <div class="dropdown-item">Finance settings</div>
+                    </div>
+                </div>
+                <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'analytics')">
+                    <i>📊</i><span>Analytics<div class="tag-new">New</div></span>
+                    <div class="dropdown-content">
+                        <div class="dropdown-item">Analytics dashboard</div>
+                        <div class="dropdown-item">
+                            <span>Demand for Varanasi</span>
+                            <div class="tag-new">New</div>
+                        </div>
+                        <div class="dropdown-item">Your pace of bookings</div>
+                        <div class="dropdown-item">Sales Statistics</div>
+                        <div class="dropdown-item">Booker insights</div>
+                        <div class="dropdown-item">Book Window Info</div>
+                        <div class="dropdown-item">Cancellation Characteristics</div>
+                        <div class="dropdown-item">Comparable properties</div>
+                        <div class="dropdown-item">Genius Report</div>
+                        <div class="dropdown-item">
+                            <span>Ranking Dashboard</span>
+                            <div class="tag-new">New</div>
+                        </div>
+                        <div class="dropdown-item">Performance dashboard</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
     <main class="container">
         <!-- SECTION: DASHBOARD (MOCK) -->
