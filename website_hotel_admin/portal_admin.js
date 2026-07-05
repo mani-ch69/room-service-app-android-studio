@@ -146,22 +146,56 @@ function initPickers() {
         }
     });
 
-    // New Manual Booking Picker
-    flatpickr("#mb-stay-dates", {
-        mode: "range",
+    // New Manual Booking Pickers (Synced Logic)
+    let mbFromPicker;
+    const mbUntilPicker = flatpickr("#mb-check-out", {
         dateFormat: "Y-m-d",
         altInput: true,
-        altFormat: "F j, Y",
-        defaultDate: [new Date(), new Date().getTime() + 24 * 60 * 60 * 1000],
+        altFormat: "Y-m-d",
+        defaultDate: new Date().getTime() + 24 * 60 * 60 * 1000, // Next day
         onChange: function(selectedDates) {
-            if (selectedDates.length === 2) {
-                const diff = selectedDates[1] - selectedDates[0];
-                const nights = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                document.getElementById('mb-nights').value = nights;
-                calculateBookingTotal();
+            if (selectedDates.length === 1 && mbFromPicker) {
+                const currentRange = mbFromPicker.selectedDates;
+                if (currentRange.length > 0) {
+                    mbFromPicker.setDate([currentRange[0], selectedDates[0]], false);
+                    updateMbNights(currentRange[0], selectedDates[0]);
+                }
             }
         }
     });
+
+    mbFromPicker = flatpickr("#mb-check-in", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "Y-m-d",
+        defaultDate: [new Date(), new Date().getTime() + 24 * 60 * 60 * 1000],
+        onReady: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                instance.altInput.value = instance.formatDate(selectedDates[0], "Y-m-d");
+            }
+        },
+        onValueUpdate: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                instance.altInput.value = instance.formatDate(selectedDates[0], "Y-m-d");
+            }
+        },
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                mbUntilPicker.setDate(selectedDates[1], false);
+                updateMbNights(selectedDates[0], selectedDates[1]);
+            }
+        }
+    });
+}
+
+function updateMbNights(start, end) {
+    if (start && end) {
+        const diff = end - start;
+        const nights = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('mb-nights').value = Math.max(0, nights);
+        calculateBookingTotal();
+    }
 }
 
 // --- 6. DASHBOARD & MANUAL BOOKING LOGIC ---
@@ -253,7 +287,13 @@ window.submitManualBooking = () => {
         return;
     }
 
-    const dates = document.getElementById('mb-stay-dates')._flatpickr.selectedDates;
+    const checkInEl = document.getElementById('mb-check-in');
+    const dates = checkInEl && checkInEl._flatpickr ? checkInEl._flatpickr.selectedDates : [];
+
+    if (dates.length < 2) {
+        alert("Bhai, Stay Dates toh sahi se select kar lo!");
+        return;
+    }
 
     const newBooking = {
         id: "MB-" + Date.now(),
