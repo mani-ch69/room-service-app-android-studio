@@ -68,12 +68,21 @@ window.switchTab = (tabId) => {
     }
     if(tabId === 'reservations') renderReservations();
     if(tabId === 'pms-grid') renderTimelineCalendar();
-    if(tabId === 'property-detail') renderRoomDetails();
 };
 
 window.toggleMoreFilters = () => {
     const panel = document.getElementById('filters-expanded-panel');
     if(panel) panel.classList.toggle('hidden');
+};
+
+window.switchSubTab = (subId) => {
+    document.querySelectorAll('.sub-pane').forEach(p => p.classList.add('hidden'));
+    const target = document.getElementById(`sub-${subId}`);
+    if(target) target.classList.remove('hidden');
+
+    // Auto-render specific sub-tab data
+    if(subId === 'room-details') renderRoomDetails();
+    if(subId === 'amenities') renderAmenities();
 };
 
 // --- 4. DATE PICKER COMPONENT (REUSABLE) ---

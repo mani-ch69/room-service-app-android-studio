@@ -72,7 +72,11 @@
                     <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                     <span>Property</span>
                     <div class="dropdown-content">
-                        <div class="dropdown-item" onclick="switchTab('property-detail')">Room Details</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('general-info')">General info & property status</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('photos')">Photos</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('amenities')">Room Amenities</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('room-details')">Room Details</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('your-profile')">Your Profile</div>
                     </div>
                 </div>
                 <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'inbox')">
@@ -437,14 +441,66 @@
         <!-- SECTION: PROPERTY DETAIL (SYNCED WITH ANDROID) -->
         <section id="tab-property-detail" class="tab-pane hidden">
             <div class="page-header">
-                <h1>Room Detail</h1>
-                <p>View and manage all room types and individual room settings.</p>
+                <h1>Property Detail</h1>
+                <p>Manage your property's profile, amenities, photos, and details.</p>
             </div>
 
-            <!-- MAIN ROOM DETAILS GRID -->
-            <div id="sub-room-details" class="sub-pane">
+            <!-- SUB: GENERAL INFO -->
+            <div id="sub-general-info" class="sub-pane">
+                <div class="card-ui">
+                    <div class="card-head">Property Information</div>
+                    <div class="card-body">
+                        <div class="info-row"><label>Property name:</label><p id="disp-hotel-name">Ganga Homes</p></div>
+                        <div class="info-row"><label>Property address:</label><p id="disp-hotel-addr">Assi Ghat, Varanasi</p></div>
+                        <div class="info-row"><label>Property location:</label><p>25.325088, 83.005356 (Google Maps)</p></div>
+                    </div>
+                </div>
+                <div class="card-ui">
+                    <div class="card-head">Property Status</div>
+                    <div class="card-body">
+                        <span class="status-pill open">Open/Bookable</span>
+                        <p style="margin-top:12px; color:var(--text-muted);">Guests can see and book your property. If you want to pause, you can close your property temporarily.</p>
+                        <button class="btn btn-outline" style="margin-top:16px;">Close temporarily</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB: PHOTOS -->
+            <div id="sub-photos" class="sub-pane hidden">
+                <div class="card-ui">
+                    <div class="card-head">Main Gallery <button class="btn btn-primary btn-sm">+ Add Photos</button></div>
+                    <div class="card-body">
+                        <div class="gallery-grid" id="main-gallery-grid"></div>
+                    </div>
+                </div>
+                <div id="room-photos-container"></div>
+            </div>
+
+            <!-- SUB: AMENITIES -->
+            <div id="sub-amenities" class="sub-pane hidden">
+                <div class="card-ui">
+                    <div class="card-head">Top Amenities</div>
+                    <div class="card-body" id="amenities-list">
+                        <!-- Amenities will be injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB: ROOM DETAILS (HIGH FIDELITY) -->
+            <div id="sub-room-details" class="sub-pane hidden">
                 <div class="room-details-grid" id="room-details-container">
                     <!-- Dynamic room cards will be injected here -->
+                </div>
+            </div>
+
+            <!-- SUB: YOUR PROFILE -->
+            <div id="sub-your-profile" class="sub-pane hidden">
+                <div class="card-ui">
+                    <div class="card-head">Your Profile</div>
+                    <div class="card-body">
+                        <p style="color:var(--text-muted);">View and manage your account settings and profile details.</p>
+                        <button class="btn btn-primary" style="margin-top:20px;">Edit Profile</button>
+                    </div>
                 </div>
             </div>
         </section>
