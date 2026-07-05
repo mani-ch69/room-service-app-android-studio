@@ -498,4 +498,76 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
 .dot.orange { background: #f97316; }
 .dot.green { background: #22c55e; }
 
-.select-lite { border: none; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); outline: none; cursor: pointer; }
+/* --- PMS GRID / CALENDAR STYLES --- */
+.calendar-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 24px; border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+}
+
+.form-select-lite {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px;
+    font-size: 0.85rem; font-weight: 600; outline: none;
+}
+
+.pms-container {
+    background: white; border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+
+.pms-header-row { display: flex; background: white; border-bottom: 1px solid var(--border); }
+.pms-label-col { width: 280px; flex-shrink: 0; padding: 12px 20px; border-right: 1px solid var(--border); background: white; position: sticky; left: 0; z-index: 10; }
+.pms-data-cols { display: flex; overflow-x: auto; flex-grow: 1; scroll-behavior: smooth; }
+
+/* Hide scrollbar for header, we sync it with body */
+.pms-data-cols::-webkit-scrollbar { display: none; }
+
+.pms-date-cell {
+    width: 60px; flex-shrink: 0; text-align: center;
+    border-right: 1px solid #F1F5F9; padding: 8px 0;
+}
+.pms-date-cell label { display: block; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+.pms-date-cell span { font-size: 0.9rem; font-weight: 800; color: var(--text-main); }
+.pms-date-cell.weekend { background: #F8FAFC; }
+
+.pms-room-block { margin-bottom: 32px; border-bottom: 2px solid #F1F5F9; }
+.pms-room-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; background: white;
+}
+.pms-room-header h4 { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
+
+.pms-row { display: flex; border-bottom: 1px solid #F8FAFC; }
+.pms-row-label {
+    width: 280px; flex-shrink: 0; padding: 10px 20px;
+    font-size: 0.75rem; color: #006ce4; font-weight: 600;
+    border-right: 1px solid var(--border); background: white;
+    position: sticky; left: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+}
+
+.pms-cells-wrap { display: flex; overflow-x: auto; flex-grow: 1; }
+
+.pms-cell {
+    width: 60px; flex-shrink: 0; height: 44px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid #F1F5F9; font-size: 0.8rem; font-weight: 700;
+}
+
+/* Status Row Special Styling */
+.row-status .pms-cell { height: 32px; font-size: 0.65rem; text-transform: uppercase; }
+.pms-cell.status-open { background: #DCFCE7; color: #166534; }
+.pms-cell.status-closed { background: #FEE2E2; color: #991b1b; }
+
+/* Rate Row Special Styling */
+.row-rate .pms-cell { background: white; color: var(--text-main); cursor: pointer; }
+.row-rate .pms-cell:hover { background: #F0F7FF; }
+.row-rate .pms-cell.closed-overlay { background: #FEE2E2; opacity: 0.7; }
+
+.price-val { font-size: 0.8rem; }
+.price-symbol { font-size: 0.6rem; color: var(--text-muted); margin-bottom: 2px; }
+
+.btn-bulk { padding: 4px 12px; font-size: 0.7rem; background: var(--primary); color: white; border-radius: 4px; border: none; cursor: pointer; }
+
+.pms-body { overflow-y: auto; max-height: 700px; }

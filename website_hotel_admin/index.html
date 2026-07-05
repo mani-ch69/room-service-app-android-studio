@@ -312,6 +312,39 @@
             </div>
         </section>
 
+        <!-- SECTION: PMS GRID (CALENDAR) -->
+        <section id="tab-pms-grid" class="tab-pane hidden">
+            <div class="calendar-toolbar">
+                <div class="toolbar-left">
+                    <select class="form-select-lite" style="width: 200px;"><option>All Rooms</option></select>
+                </div>
+                <div class="toolbar-right">
+                    <select class="form-select-lite"><option>List view</option></select>
+                    <button class="btn btn-outline btn-sm">Availability settings</button>
+                    <span class="info-icon">ⓘ</span>
+                </div>
+            </div>
+
+            <div class="pms-container">
+                <!-- PMS Header (Dates) -->
+                <div class="pms-header-row">
+                    <div class="pms-label-col">
+                        <div class="pms-date-nav">
+                            <input type="text" id="pms-date-range" class="form-input-clean" value="Jul 5, 2026 - Aug 4, 2026">
+                        </div>
+                    </div>
+                    <div class="pms-data-cols" id="pms-date-header">
+                        <!-- Dates injected by JS -->
+                    </div>
+                </div>
+
+                <!-- PMS Body (Rooms) -->
+                <div class="pms-body" id="pms-grid-content">
+                    <!-- Room rows injected by JS -->
+                </div>
+            </div>
+        </section>
+
         <!-- SECTION: RESERVATIONS (HIGH FIDELITY) -->
         <section id="tab-reservations" class="tab-pane hidden">
             <div class="page-header" style="display:flex; justify-content:space-between; align-items:center;">

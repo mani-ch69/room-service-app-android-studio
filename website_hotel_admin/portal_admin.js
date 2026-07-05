@@ -66,6 +66,7 @@ window.switchTab = (tabId) => {
         window.event.currentTarget.classList.add('active');
     }
     if(tabId === 'reservations') renderReservations();
+    if(tabId === 'pms-grid') renderPMSGrid();
 };
 
 window.toggleMoreFilters = () => {
@@ -145,6 +146,14 @@ window.onload = () => {
             nightEl.value = nights;
             calculateBookingTotal();
         }
+    });
+
+    // Calendar Range Picker
+    flatpickr("#pms-date-range", {
+        mode: "range",
+        dateFormat: "M j, Y",
+        defaultDate: [new Date(), new Date().getTime() + 30 * 24 * 60 * 60 * 1000],
+        onChange: () => renderPMSGrid()
     });
 };
 
@@ -399,4 +408,111 @@ function renderRoomPhotoSections() {
     if(!container) return;
     const distinctTypes = [...new Set(allRooms.map(r => r.roomType))];
     container.innerHTML = distinctTypes.map(type => UI.card(`${type} Gallery`, '<div class="gallery-grid"><div class="photo-add-btn">+</div></div>', '<button class="btn btn-outline btn-sm">+ Add Photos</button>')).join('');
+}
+
+// --- 8. PMS GRID (CALENDAR) LOGIC ---
+
+function renderPMSGrid() {
+    const headerContainer = document.getElementById('pms-date-header');
+    const bodyContainer = document.getElementById('pms-grid-content');
+    if(!headerContainer || !bodyContainer) return;
+
+    // 1. Generate 30 days of dates
+    const dates = [];
+    const now = new Date();
+    for(let i=0; i<30; i++) {
+        const d = new Date(now);
+        d.setDate(now.getDate() + i);
+        dates.push(d);
+    }
+
+    // 2. Render Header
+    headerContainer.innerHTML = dates.map(d => `
+        <div class="pms-date-cell ${[0,6].includes(d.getDay()) ? 'weekend' : ''}">
+            <label>${d.toLocaleDateString('en-GB', { weekday: 'short' })}</label>
+            <span>${d.getDate()}</span>
+        </div>
+    `).join('');
+
+    // 3. Render Body (Room Rows)
+    bodyContainer.innerHTML = allRooms.map(room => {
+        const roomName = room.roomType;
+        const roomId = room.id.slice(-5);
+
+        return `
+            <div class="pms-room-block">
+                <div class="pms-room-header">
+                    <h4>${roomName} <small style="color:var(--text-muted); font-weight:400;">(Room ID: ${roomId})</small></h4>
+                    <button class="btn-bulk" onclick="alert('Bulk edit for ${roomName}')">Bulk edit</button>
+                </div>
+
+                <!-- Status Row -->
+                <div class="pms-row row-status">
+                    <div class="pms-row-label">Room status</div>
+                    <div class="pms-cells-wrap">
+                        ${dates.map((d, i) => `
+                            <div class="pms-cell ${i < 5 ? 'status-closed' : 'status-open'}">
+                                ${i < 5 ? 'Closed' : 'Bookable'}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Inventory Row -->
+                <div class="pms-row">
+                    <div class="pms-row-label">Rooms to Sell <span style="font-size:0.6rem; opacity:0.7;">Bulk edit</span></div>
+                    <div class="pms-cells-wrap">
+                        ${dates.map(() => `<div class="pms-cell">1</div>`).join('')}
+                    </div>
+                </div>
+
+                <!-- Net Booked Row -->
+                <div class="pms-row">
+                    <div class="pms-row-label">Net Booked</div>
+                    <div class="pms-cells-wrap">
+                        ${dates.map((d, i) => `<div class="pms-cell" style="background:#F1F5F9; color:var(--text-muted);">${i === 12 ? '1' : '0'}</div>`).join('')}
+                    </div>
+                </div>
+
+                <!-- Rate Plans -->
+                <div class="pms-row row-rate">
+                    <div class="pms-row-label">Standard rate <small>x 2 Edit</small></div>
+                    <div class="pms-cells-wrap">
+                        ${dates.map((d, i) => `
+                            <div class="pms-cell ${i < 5 ? 'closed-overlay' : ''}">
+                                <span class="price-symbol">₹</span>
+                                <span class="price-val">1,200</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="pms-row row-rate">
+                    <div class="pms-row-label">Non-refundable <small>x 2 Edit</small></div>
+                    <div class="pms-cells-wrap">
+                        ${dates.map((d, i) => `
+                            <div class="pms-cell ${i < 5 ? 'closed-overlay' : ''}">
+                                <span class="price-symbol">₹</span>
+                                <span class="price-val">1,080</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // 4. Sync Horizontal Scrolling
+    const dataRowWraps = document.querySelectorAll('.pms-cells-wrap');
+    const headerWrap = document.querySelector('#pms-date-header');
+
+    const handleScroll = (e) => {
+        const scrollLeft = e.target.scrollLeft;
+        headerWrap.scrollLeft = scrollLeft;
+        dataRowWraps.forEach(wrap => {
+            if (wrap !== e.target) wrap.scrollLeft = scrollLeft;
+        });
+    };
+
+    dataRowWraps.forEach(wrap => wrap.addEventListener('scroll', handleScroll));
 }
