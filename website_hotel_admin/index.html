@@ -73,10 +73,12 @@
                     <span>Property</span>
                     <div class="dropdown-content">
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('general-info')">General info & property status</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('vat-tax')">VAT/Tax/Charges</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('photos')">Photos</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('amenities')">Room Amenities</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('room-details')">Room Details</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('your-profile')">Your Profile</div>
+                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('messaging')">Messaging Preferences</div>
                     </div>
                 </div>
                 <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'inbox')">
@@ -465,6 +467,17 @@
                 </div>
             </div>
 
+            <!-- SUB: VAT/TAX -->
+            <div id="sub-vat-tax" class="sub-pane hidden">
+                <div class="card-ui">
+                    <div class="card-head">VAT/Tax/Charges</div>
+                    <div class="card-body">
+                        <p style="color:var(--text-muted);">Manage your tax settings and additional charges for bookings.</p>
+                        <button class="btn btn-outline" style="margin-top:20px;">Edit Tax Settings</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- SUB: PHOTOS -->
             <div id="sub-photos" class="sub-pane hidden">
                 <div class="card-ui">
@@ -500,6 +513,17 @@
                     <div class="card-body">
                         <p style="color:var(--text-muted);">View and manage your account settings and profile details.</p>
                         <button class="btn btn-primary" style="margin-top:20px;">Edit Profile</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB: MESSAGING -->
+            <div id="sub-messaging" class="sub-pane hidden">
+                <div class="card-ui">
+                    <div class="card-head">Messaging Preferences</div>
+                    <div class="card-body">
+                        <p style="color:var(--text-muted);">Configure how you want to communicate with your guests.</p>
+                        <button class="btn btn-outline" style="margin-top:20px;">Edit Preferences</button>
                     </div>
                 </div>
             </div>
