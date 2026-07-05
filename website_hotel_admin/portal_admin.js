@@ -6,7 +6,7 @@ const UI = {
                 <span>${title}</span>
                 ${action ? `<div class="card-action">${action}</div>` : ''}
             </div>
-            <div class="card-body">${content}</div>
+            <div class="card-ui-body">${content}</div>
         </div>
     `,
     badge: (text, type = 'ok') => `<span class="status-tag ${type.toLowerCase()}">${text}</span>`,
@@ -87,17 +87,7 @@ window.switchSubTab = (subId) => {
     if(target) target.classList.remove('hidden');
 
     document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
-
-    // Highlight the correct sub-tab if not called from click
-    const activeSubTab = Array.from(document.querySelectorAll('.sub-tab')).find(t => t.onclick && t.onclick.toString().includes(`'${subId}'`));
-    if(activeSubTab) activeSubTab.classList.add('active');
-    else if(window.event && window.event.currentTarget) window.event.currentTarget.classList.add('active');
-
-    if(subId === 'score') renderPropertyScore();
-    if(subId === 'property-policies') renderPropertyPolicies();
-    if(subId === 'reservation-policies') renderReservationPolicies();
-    if(subId === 'descriptions') renderDescriptions();
-    if(subId === 'sustainability') renderSustainability();
+    if(window.event && window.event.currentTarget) window.event.currentTarget.classList.add('active');
 };
 
 // --- 4. DATA SYNC ---
@@ -178,6 +168,167 @@ window.toggleSeg = (el) => {
     el.classList.add('active');
 };
 
+window.openAddRoomModal = () => {
+    document.getElementById('add-room-modal').classList.remove('hidden');
+    renderAddRoomForm();
+};
+
+window.closeAddRoomModal = () => {
+    document.getElementById('add-room-modal').classList.add('hidden');
+};
+
+function renderAddRoomForm() {
+    const container = document.getElementById('add-room-form-container');
+    if(!container) return;
+
+    container.innerHTML = `
+        <!-- Section 1: Please select -->
+        <div class="form-section-card">
+            <h3>Please select</h3>
+            <div class="form-group">
+                <label>Room type</label>
+                <select class="form-select" id="field-room-type">
+                    <option>Please select</option>
+                    <option>Deluxe Double Room</option>
+                    <option>Single Room</option>
+                    <option>Twin Room</option>
+                    <option>Suite</option>
+                </select>
+            </div>
+            <div class="form-row-flex">
+                <div class="form-group">
+                    <label>Number of rooms (of this type)</label>
+                    <input type="number" class="form-input-text" value="1" id="field-room-count">
+                </div>
+                <div class="form-group">
+                    <label>Smoking policy</label>
+                    <select class="form-select" id="field-smoking">
+                        <option>Non-smoking</option>
+                        <option>Smoking</option>
+                        <option>Both available</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Room location -->
+        <div class="form-section-card">
+            <h3>Room location</h3>
+            <div class="form-group">
+                <label>Floor Level</label>
+                <select class="form-select">
+                    <option>No selection</option>
+                    <option>Ground floor</option>
+                    <option>1st floor</option>
+                    <option>2nd floor</option>
+                </select>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">
+                    This helps your guests understand where the room is located.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 3: Bed options -->
+        <div class="form-section-card">
+            <h3>Bed options</h3>
+            <div class="form-group">
+                <label>What kind of beds are available in this room?</label>
+                <div class="form-row-flex">
+                    <select class="form-select" style="flex:2;">
+                        <option>Double bed (131-150 cm wide)</option>
+                        <option>Single bed (90-130 cm wide)</option>
+                        <option>Extra-large double bed (181-210 cm wide)</option>
+                    </select>
+                    <div style="flex:1;">
+                        <select class="form-select">
+                            <option>1</option>
+                            <option>2</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-outline btn-sm" style="border-style:dashed;">+ Add another bed</button>
+        </div>
+
+        <!-- Section 4: Occupancy -->
+        <div class="form-section-card">
+            <h3>Occupancy</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">
+                How many guests (adults and children) can stay here?
+            </p>
+
+            <div class="occupancy-row">
+                <span>Maximum guests</span>
+                <div class="number-picker">
+                    <div class="picker-btn" onclick="updatePicker('max-guests', -1)">-</div>
+                    <div class="picker-value" id="val-max-guests">2</div>
+                    <div class="picker-btn" onclick="updatePicker('max-guests', 1)">+</div>
+                </div>
+            </div>
+
+            <div class="occupancy-row">
+                <span>Maximum adults</span>
+                <div class="number-picker">
+                    <div class="picker-btn" onclick="updatePicker('max-adults', -1)">-</div>
+                    <div class="picker-value" id="val-max-adults">2</div>
+                    <div class="picker-btn" onclick="updatePicker('max-adults', 1)">+</div>
+                </div>
+            </div>
+
+            <div class="occupancy-row">
+                <span>Maximum children</span>
+                <div class="number-picker">
+                    <div class="picker-btn" onclick="updatePicker('max-children', -1)">-</div>
+                    <div class="picker-value" id="val-max-children">0</div>
+                    <div class="picker-btn" onclick="updatePicker('max-children', 1)">+</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Bathroom options -->
+        <div class="form-section-card">
+            <h3>Bathroom options</h3>
+            <div class="form-group">
+                <label>Is the bathroom private? (not shared with host or other guests)</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="private-bath" checked> Yes</label>
+                    <label class="radio-item"><input type="radio" name="private-bath"> No</label>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+window.updatePicker = (id, delta) => {
+    const el = document.getElementById(`val-${id}`);
+    if(!el) return;
+    let val = parseInt(el.innerText);
+    val = Math.max(0, val + delta);
+    el.innerText = val;
+};
+
+window.saveNewRoom = () => {
+    const roomType = document.getElementById('field-room-type').value;
+    if(roomType === 'Please select') {
+        alert('Bhai, Room type toh select kar lo!');
+        return;
+    }
+
+    const newRoom = {
+        roomType: roomType,
+        maxGuests: document.getElementById('val-max-guests').innerText,
+        maxAdults: document.getElementById('val-max-adults').innerText,
+        maxChildren: document.getElementById('val-max-children').innerText,
+        id: "room_" + Math.random().toString(36).substr(2, 9),
+        photos: []
+    };
+
+    // Save to Firebase (Realtime Sync will update the UI)
+    db.ref(`hotels/${hotelId}/rooms`).push(newRoom).then(() => {
+        closeAddRoomModal();
+    });
+};
+
 function renderRoomDetails() {
     const container = document.getElementById('room-details-container');
     if(!container) return;
@@ -236,187 +387,4 @@ function renderRoomPhotoSections() {
     if(mainGrid) {
         mainGrid.innerHTML = [1,2,3,4,5,6].map(() => `<div class="photo-box"><img src="https://i.ibb.co/6P0f9pL/ganga-homes-logo.jpg"></div>`).join('') + `<div class="photo-box photo-add-btn">+</div>`;
     }
-}
-
-// --- 6. NEW FEATURE RENDERING ---
-
-function renderPropertyScore() {
-    const container = document.getElementById('score-container');
-    if(!container) return;
-
-    container.innerHTML = `
-        <div class="score-flex">
-            <div class="score-circle-wrap">
-                <svg width="120" height="120" viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="54" fill="none" stroke="#F1F5F9" stroke-width="12" />
-                    <circle cx="60" cy="60" r="54" fill="none" stroke="var(--primary)" stroke-width="12"
-                            stroke-dasharray="339.292" stroke-dashoffset="84.823" stroke-linecap="round" />
-                </svg>
-                <div class="score-number" style="position:absolute;">75%</div>
-            </div>
-            <div class="score-details">
-                <h3>Your property page score is good!</h3>
-                <p style="color:var(--text-muted); margin-bottom:16px;">Properties with a 100% score get up to 18% more bookings.</p>
-                <div class="score-tip-item">
-                    <div class="score-tip-text">Add 3 more high-quality photos</div>
-                    <button class="btn btn-primary btn-sm">+4%</button>
-                </div>
-                <div class="score-tip-item">
-                    <div class="score-tip-text">Update your breakfast options</div>
-                    <button class="btn btn-primary btn-sm">+2%</button>
-                </div>
-                <div class="score-tip-item">
-                    <div class="score-tip-text">Respond to all pending reviews</div>
-                    <button class="btn btn-primary btn-sm">+5%</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
-function renderPropertyPolicies() {
-    const container = document.getElementById('property-policies-container');
-    if(!container) return;
-
-    container.innerHTML = `
-        <div class="page-header">
-            <h3>Property policies</h3>
-            <p>All your property-related policy info is here.</p>
-        </div>
-
-        ${UI.infoBanner('You can create even more tailored child rates with the new flexible child rates.')}
-
-        <div class="policy-card-modern">
-            <div class="policy-card-head">Children policies</div>
-            <div class="policy-card-body">
-                <div class="policy-subsection">
-                    <h6>Child policies</h6>
-                    <ul class="policy-bullet-list">
-                        <li>Children 17 and older are allowed.</li>
-                    </ul>
-                </div>
-                <div class="policy-subsection">
-                    <h6>Children rates</h6>
-                    <ul class="policy-bullet-list">
-                        <li>Children 17 years old can stay for 10.00% of the adult price per child, per night.</li>
-                    </ul>
-                </div>
-                <button class="btn btn-primary btn-sm">Edit</button>
-            </div>
-        </div>
-
-        <div class="policy-card-modern">
-            <div class="policy-card-head">Extra bed & crib options</div>
-            <div class="policy-card-body">
-                <div class="policy-subsection">
-                    <h6>Cribs</h6>
-                    <ul class="policy-bullet-list">
-                        <li>You haven't added any cribs.</li>
-                    </ul>
-                </div>
-                <div class="policy-subsection">
-                    <h6>Extra beds</h6>
-                    <ul class="policy-bullet-list">
-                        <li>You haven't added any extra beds.</li>
-                    </ul>
-                </div>
-                <button class="btn btn-primary btn-sm">Edit</button>
-            </div>
-        </div>
-    `;
-}
-
-function renderReservationPolicies() {
-    const container = document.getElementById('reservation-policies-container');
-    if(!container) return;
-
-    container.innerHTML = `
-        <div class="page-header">
-            <h3>Reservation policies</h3>
-            <p>Manage your cancellation and prepayment policies.</p>
-        </div>
-
-        <div class="policy-card-modern" style="display:flex;">
-            <div class="policy-card-body" style="flex:1;">
-                <h6>Flexible - 7 days (General)</h6>
-                <ul class="policy-bullet-list" style="margin-top:12px;">
-                    <li>The guest can cancel free of charge until 7 days before arrival. The guest will be charged the cost of the first night if they cancel within 7 days of arrival.</li>
-                    <li>No prepayment is needed.</li>
-                </ul>
-                <div style="display:flex; gap:8px; margin-top:20px;">
-                    <button class="btn btn-primary btn-sm">Edit</button>
-                    <button class="btn btn-outline btn-sm">Apply to other properties</button>
-                </div>
-            </div>
-            <div class="policy-report-panel">
-                <div class="report-item">
-                    <div class="report-label">Report from</div>
-                    <div class="report-value">Apr 4, 2024 to Jul 3, 2024</div>
-                </div>
-                <div class="report-item">
-                    <div class="report-label">Total Room Nights</div>
-                    <div class="report-value">12</div>
-                </div>
-                <div class="report-item">
-                    <div class="report-label">Total Revenue</div>
-                    <div class="report-value">INR 7,127.78</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="policy-card-modern">
-            <div class="policy-card-body">
-                <h6>Non-refundable (Non Refundable)</h6>
-                <ul class="policy-bullet-list" style="margin-top:12px;">
-                    <li>The guest will be charged the total price of the reservation if they cancel anytime.</li>
-                    <li>The guest will be charged a prepayment of the total price of the reservation at any time.</li>
-                </ul>
-                <button class="btn btn-danger btn-sm" style="margin-top:20px;">Delete</button>
-            </div>
-        </div>
-    `;
-}
-
-function renderDescriptions() {
-    const container = document.getElementById('descriptions-container');
-    if(!container) return;
-
-    container.innerHTML = `
-        <div class="desc-box">
-            <h6>Property Description</h6>
-            <div class="desc-text">Located in the heart of Varanasi, Ganga Homes offers peaceful accommodation with stunning views of the Ganges. Just steps away from Assi Ghat, our property provides a unique spiritual experience combined with modern comfort.</div>
-        </div>
-        <div class="desc-box">
-            <h6>Deluxe Double Room Description</h6>
-            <div class="desc-text">This air-conditioned room features a flat-screen TV, electric kettle and private bathroom with shower. The balcony offers views of the city or river.</div>
-        </div>
-        <button class="btn btn-primary">Request Description Edit</button>
-    `;
-}
-
-function renderSustainability() {
-    const container = document.getElementById('sustainability-container');
-    if(!container) return;
-
-    const items = [
-        "No single-use plastic water bottles",
-        "No single-use plastic straws",
-        "Water-efficient toilets",
-        "Water-efficient showers",
-        "Option to opt-out of daily room cleaning",
-        "Energy-efficient LED light bulbs",
-        "Most food provided is locally sourced",
-        "100% renewable electricity used throughout"
-    ];
-
-    container.innerHTML = `
-        <p style="margin-bottom:20px; color:var(--text-muted);">Show guests what you're doing to be more sustainable.</p>
-        ${items.map(item => `
-            <div class="sustainability-item">
-                <input type="checkbox" checked>
-                <span style="font-size:0.9rem;">${item}</span>
-            </div>
-        `).join('')}
-        <button class="btn btn-primary" style="margin-top:24px;">Save Changes</button>
-    `;
 }

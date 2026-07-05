@@ -75,19 +75,14 @@
                     <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                     <span>Property</span>
                     <div class="dropdown-content">
-                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('score')">Property Page Score</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('general-info')">General info & property status</div>
                         <div class="dropdown-item">VAT/Tax/Charges</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('photos')">Photos</div>
-                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('property-policies')">Property policies</div>
-                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('reservation-policies')">Reservation policies</div>
                         <div class="dropdown-item">Facilities & services</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('room-details')">Room details</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('amenities')">Room Amenities</div>
                         <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('your-profile')">Your Profile</div>
-                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('descriptions')">View Your Descriptions</div>
                         <div class="dropdown-item">Messaging Preferences</div>
-                        <div class="dropdown-item" onclick="switchTab('property-detail'); switchSubTab('sustainability')">Sustainability</div>
                     </div>
                 </div>
                 <div class="nav-item has-dropdown" onclick="toggleDropdown(event, 'inbox')">
@@ -256,13 +251,8 @@
                 <div class="sub-tab active" onclick="switchSubTab('general-info')">General Info</div>
                 <div class="sub-tab" onclick="switchSubTab('photos')">Photos</div>
                 <div class="sub-tab" onclick="switchSubTab('amenities')">Amenities</div>
-                <div class="sub-tab" onclick="switchSubTab('property-policies')">Policies</div>
                 <div class="sub-tab" onclick="switchSubTab('room-details')">Room Details</div>
                 <div class="sub-tab" onclick="switchSubTab('your-profile')">Your Profile</div>
-                <div class="sub-tab" onclick="switchSubTab('score')">Score</div>
-                <div class="sub-tab" onclick="switchSubTab('reservation-policies')">Res. Policies</div>
-                <div class="sub-tab" onclick="switchSubTab('descriptions')">Descriptions</div>
-                <div class="sub-tab" onclick="switchSubTab('sustainability')">Sustainability</div>
             </div>
 
             <!-- SUB: GENERAL INFO -->
@@ -318,52 +308,25 @@
                     <!-- Dynamic room cards will be injected here -->
                 </div>
             </div>
-
-            <!-- SUB: PROPERTY PAGE SCORE -->
-            <div id="sub-score" class="sub-pane hidden">
-                <div class="card-ui">
-                    <div class="card-head">Property Page Score</div>
-                    <div class="card-body" id="score-container">
-                        <!-- Score UI will be injected -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB: PROPERTY POLICIES -->
-            <div id="sub-property-policies" class="sub-pane hidden">
-                <div id="property-policies-container">
-                    <!-- Policies will be injected -->
-                </div>
-            </div>
-
-            <!-- SUB: RESERVATION POLICIES -->
-            <div id="sub-reservation-policies" class="sub-pane hidden">
-                <div id="reservation-policies-container">
-                    <!-- Reservation policies will be injected -->
-                </div>
-            </div>
-
-            <!-- SUB: DESCRIPTIONS -->
-            <div id="sub-descriptions" class="sub-pane hidden">
-                <div class="card-ui">
-                    <div class="card-head">Your Descriptions</div>
-                    <div class="card-body" id="descriptions-container">
-                        <!-- Descriptions will be injected -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB: SUSTAINABILITY -->
-            <div id="sub-sustainability" class="sub-pane hidden">
-                <div class="card-ui">
-                    <div class="card-head">Sustainability</div>
-                    <div class="card-body" id="sustainability-container">
-                        <!-- Sustainability will be injected -->
-                    </div>
-                </div>
-            </div>
         </section>
     </main>
+
+    <!-- MODAL: ADD ROOM FORM -->
+    <div id="add-room-modal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Room Details</h2>
+                <button class="modal-close" onclick="closeAddRoomModal()">×</button>
+            </div>
+            <div class="modal-content" id="add-room-form-container">
+                <!-- Form content injected by JS -->
+            </div>
+            <div class="modal-footer">
+                <div class="info-alert">When you click Continue, don't forget to add availability & prices, photos, and amenities right after!</div>
+                <button class="btn btn-primary btn-block" onclick="saveNewRoom()" style="width: 100%;">Continue</button>
+            </div>
+        </div>
+    </div>
 
     <script src="portal_admin.js"></script>
 </body>
