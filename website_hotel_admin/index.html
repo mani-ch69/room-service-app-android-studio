@@ -153,15 +153,162 @@
     </header>
 
     <main class="container">
-        <!-- SECTION: DASHBOARD (MOCK) -->
+        <!-- SECTION: DASHBOARD (HIGH FIDELITY) -->
         <section id="tab-dashboard" class="tab-pane">
-            <div class="page-header">
-                <h1>Property Dashboard</h1>
-                <p>Welcome back! Here's what's happening at your property today.</p>
+            <div class="dashboard-header">
+                <div class="welcome-section">
+                    <h1 id="welcome-text">Good Morning, Manish 👋</h1>
+                    <p>Welcome back! Here's what's happening at your property today.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openManualBooking()">+ New Manual Booking</button>
+                    <div class="date-picker-wrap">
+                        <input type="text" id="dash-current-date" class="filter-input-lite" value="29 June 2026, Monday">
+                    </div>
+                </div>
             </div>
-            <div style="padding:40px; text-align:center; color:var(--text-muted); background:white; border-radius:8px; border:1px solid var(--border);">
-                <h3>Welcome to Ganga Homes PMS</h3>
-                <p>Select a menu item from the navigation bar above to manage your property.</p>
+
+            <!-- STATS CARDS GRID -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-blue">👤</div>
+                    <div class="stat-content">
+                        <label>Today's Check-ins</label>
+                        <h3>08</h3>
+                        <span class="trend-up">↑ 14% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-purple">🚪</div>
+                    <div class="stat-content">
+                        <label>Today's Check-outs</label>
+                        <h3>05</h3>
+                        <span class="trend-up">↑ 8% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-green">🛏️</div>
+                    <div class="stat-content">
+                        <label>Occupied Rooms</label>
+                        <h3>12</h3>
+                        <span class="trend-up">↑ 3% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-yellow">🏠</div>
+                    <div class="stat-content">
+                        <label>Vacant Rooms</label>
+                        <h3>08</h3>
+                        <span class="trend-down">↓ 5% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-red">💳</div>
+                    <div class="stat-content">
+                        <label>Pending Payments</label>
+                        <h3>₹ 18,750</h3>
+                        <span class="trend-down">↓ 12% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-orange">🍴</div>
+                    <div class="stat-content">
+                        <label>Restaurant Orders</label>
+                        <h3>15</h3>
+                        <span class="trend-up">↑ 20% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-cyan">🧹</div>
+                    <div class="stat-content">
+                        <label>Housekeeping Tasks</label>
+                        <h3>07</h3>
+                        <span class="trend-down">↓ 3% from yesterday</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-indigo">👥</div>
+                    <div class="stat-content">
+                        <label>Staff on Duty</label>
+                        <h3>09</h3>
+                        <span class="trend-neutral">No change</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD BOTTOM GRID -->
+            <div class="dashboard-bottom-grid">
+                <!-- RECENT BOOKINGS -->
+                <div class="card-ui grid-span-2">
+                    <div class="card-head">
+                        <span>Recent Bookings</span>
+                        <button class="btn btn-outline btn-sm">View All</button>
+                    </div>
+                    <div class="card-body no-padding">
+                        <table class="table-simple">
+                            <thead>
+                                <tr>
+                                    <th>Booking ID</th>
+                                    <th>Guest Name</th>
+                                    <th>Room</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-recent-bookings">
+                                <!-- Bookings injected by JS -->
+                            </tbody>
+                        </table>
+                        <div class="view-all-link" onclick="switchTab('reservations')">View All Bookings →</div>
+                    </div>
+                </div>
+
+                <!-- GUEST REQUESTS & TASKS -->
+                <div class="column-stack">
+                    <div class="card-ui">
+                        <div class="card-head">
+                            <span>Recent Guest Requests</span>
+                            <button class="btn btn-outline btn-sm">View All</button>
+                        </div>
+                        <div class="card-body" id="dash-guest-requests">
+                            <!-- Requests injected -->
+                        </div>
+                    </div>
+                    <div class="card-ui">
+                        <div class="card-head">Today's Tasks</div>
+                        <div class="card-body" id="dash-today-tasks">
+                            <!-- Tasks injected -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REVENUE SUMMARY -->
+                <div class="card-ui">
+                    <div class="card-head">
+                        <span>Revenue Summary</span>
+                        <select class="select-lite"><option>Today</option></select>
+                    </div>
+                    <div class="card-body">
+                        <div class="revenue-total">
+                            <label>Total Revenue</label>
+                            <h2>₹ 45,680</h2>
+                            <span class="trend-up">↑ 15% from yesterday</span>
+                        </div>
+                        <div class="chart-mock">
+                            <!-- SVG Chart Mock -->
+                            <svg viewBox="0 0 400 150" class="mini-chart">
+                                <path d="M0,120 L50,100 L100,110 L150,80 L200,90 L250,60 L300,70 L350,40 L400,30" fill="none" stroke="var(--primary)" stroke-width="3"></path>
+                            </svg>
+                        </div>
+                        <div class="revenue-breakdown">
+                            <div class="rev-item"><span class="dot blue"></span> Room Revenue <b>₹ 32,000</b></div>
+                            <div class="rev-item"><span class="dot orange"></span> Restaurant Revenue <b>₹ 8,750</b></div>
+                            <div class="rev-item"><span class="dot green"></span> Other Revenue <b>₹ 4,930</b></div>
+                        </div>
+                        <div class="view-all-link">View Full Report →</div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -321,6 +468,106 @@
             <div class="modal-footer">
                 <div class="info-alert">When you click Continue, don't forget to add availability & prices, photos, and amenities right after!</div>
                 <button class="btn btn-primary btn-block" onclick="saveNewRoom()" style="width: 100%;">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MANUAL BOOKING -->
+    <div id="manual-booking-modal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>New Manual Booking</h2>
+                <button class="modal-close" onclick="closeManualBooking()">×</button>
+            </div>
+            <div class="modal-content">
+                <!-- FORM SECTIONS -->
+                <div class="form-section-card">
+                    <h3>Stay Details</h3>
+                    <div class="form-row-flex">
+                        <div class="form-group">
+                            <label>Stay Dates (Range)</label>
+                            <input type="text" id="mb-stay-dates" class="form-input-text" placeholder="Select dates">
+                        </div>
+                        <div class="form-group">
+                            <label>Night Count</label>
+                            <input type="text" id="mb-nights" class="form-input-text" readonly value="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-card">
+                    <h3>Room & Guests</h3>
+                    <div class="form-group">
+                        <label>Room Type</label>
+                        <select id="mb-room-type" class="form-select" onchange="filterVacantRooms()">
+                            <option value="">Select type</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Vacant Room</label>
+                        <select id="mb-room-id" class="form-select">
+                            <option value="">Select room</option>
+                        </select>
+                    </div>
+                    <div class="form-row-flex">
+                        <div class="form-group">
+                            <label>Adults</label>
+                            <input type="number" id="mb-adults" class="form-input-text" value="2">
+                        </div>
+                        <div class="form-group">
+                            <label>Children</label>
+                            <input type="number" id="mb-children" class="form-input-text" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section-card">
+                    <h3>Guest Details</h3>
+                    <div class="form-group">
+                        <label>Primary Guest Name</label>
+                        <input type="text" id="mb-guest-name" class="form-input-text" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone / Email</label>
+                        <input type="text" id="mb-guest-contact" class="form-input-text" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div class="form-section-card">
+                    <h3>Payment Details</h3>
+                    <div class="form-row-flex">
+                        <div class="form-group">
+                            <label>Room Rent / Night</label>
+                            <input type="number" id="mb-rent" class="form-input-text" value="1500" oninput="calculateBookingTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Discount (%)</label>
+                            <input type="number" id="mb-discount" class="form-input-text" value="0" oninput="calculateBookingTotal()">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="mb-full-pay" onchange="toggleFullPay()"> Full Pay (Pay now)
+                        </label>
+                    </div>
+                    <div class="form-row-flex">
+                        <div class="form-group">
+                            <label>Total Amount</label>
+                            <input type="text" id="mb-total" class="form-input-text" readonly value="1500">
+                        </div>
+                        <div class="form-group">
+                            <label>Advance Paid</label>
+                            <input type="number" id="mb-advance" class="form-input-text" value="0" oninput="calculateBookingTotal()">
+                        </div>
+                        <div class="form-group">
+                            <label>Remaining Balance</label>
+                            <input type="text" id="mb-remaining" class="form-input-text" readonly value="1500" style="color: var(--danger); font-weight: 700;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" style="width: 100%;" onclick="submitManualBooking()">Confirm & Save Booking</button>
             </div>
         </div>
     </div>

@@ -101,6 +101,175 @@ window.onload = () => {
     startRealtimeSync();
     renderAmenities();
     initPickers();
+    initDashboard();
+};
+
+function initPickers() {
+    let fromPicker;
+    const untilPicker = flatpickr("#res-to-date", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "Y-m-d",
+        defaultDate: new Date().getTime() + 24 * 60 * 60 * 1000, // Next day
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 1 && fromPicker) {
+                const currentRange = fromPicker.selectedDates;
+                if (currentRange.length > 0) {
+                    fromPicker.setDate([currentRange[0], selectedDates[0]], false);
+                }
+            }
+        }
+    });
+
+    fromPicker = flatpickr("#res-from-date", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "Y-m-d",
+        defaultDate: [new Date(), new Date().getTime() + 24 * 60 * 60 * 1000],
+        onReady: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                instance.altInput.value = instance.formatDate(selectedDates[0], "Y-m-d");
+            }
+        },
+        onValueUpdate: function(selectedDates, dateStr, instance) {
+            // Override display to only show start date in the 'From' input
+            if (selectedDates.length > 0) {
+                const start = instance.formatDate(selectedDates[0], "Y-m-d");
+                instance.altInput.value = start;
+            }
+        },
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                untilPicker.setDate(selectedDates[1], false);
+            }
+        }
+    });
+
+    // New Manual Booking Picker
+    flatpickr("#mb-stay-dates", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        defaultDate: [new Date(), new Date().getTime() + 24 * 60 * 60 * 1000],
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                const diff = selectedDates[1] - selectedDates[0];
+                const nights = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                document.getElementById('mb-nights').value = nights;
+                calculateBookingTotal();
+            }
+        }
+    });
+}
+
+// --- 6. DASHBOARD & MANUAL BOOKING LOGIC ---
+
+function initDashboard() {
+    renderDashBookings();
+    // In a real app, we'd load stats from Firebase here
+}
+
+function renderDashBookings() {
+    const container = document.getElementById('dash-recent-bookings');
+    if(!container) return;
+
+    db.ref(`hotels/${hotelId}/bookings`).limitToLast(5).on('value', snap => {
+        const rows = [];
+        snap.forEach(child => {
+            const b = child.val();
+            rows.push(`
+                <tr>
+                    <td>${b.id.slice(-8)}</td>
+                    <td><b>${b.guestName}</b></td>
+                    <td>Room ${b.roomNumber || '-'}</td>
+                    <td>${new Date(b.checkInDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short' })}</td>
+                    <td>${new Date(b.checkOutDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short' })}</td>
+                    <td>${UI.badge(b.status || 'Confirmed', b.status || 'ok')}</td>
+                </tr>
+            `);
+        });
+        container.innerHTML = rows.reverse().join('');
+    });
+}
+
+window.openManualBooking = () => {
+    document.getElementById('manual-booking-modal').classList.remove('hidden');
+
+    // Populate room types
+    const typeSelect = document.getElementById('mb-room-type');
+    const types = [...new Set(allRooms.map(r => r.roomType))];
+    typeSelect.innerHTML = '<option value="">Select type</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+};
+
+window.closeManualBooking = () => {
+    document.getElementById('manual-booking-modal').classList.add('hidden');
+};
+
+window.filterVacantRooms = () => {
+    const type = document.getElementById('mb-room-type').value;
+    const roomSelect = document.getElementById('mb-room-id');
+
+    // Filter rooms that match type and are not occupied (using a mock check or property status)
+    const vacant = allRooms.filter(r => r.roomType === type);
+    roomSelect.innerHTML = vacant.map(r => `<option value="${r.roomNumber || r.id}">${r.roomNumber || 'Room ' + r.id.slice(-3)}</option>`).join('');
+};
+
+window.calculateBookingTotal = () => {
+    const nights = parseInt(document.getElementById('mb-nights').value) || 1;
+    const rent = parseFloat(document.getElementById('mb-rent').value) || 0;
+    const discountPercent = parseFloat(document.getElementById('mb-discount').value) || 0;
+    const advance = parseFloat(document.getElementById('mb-advance').value) || 0;
+    const fullPay = document.getElementById('mb-full-pay').checked;
+
+    const subtotal = nights * rent;
+    const discountAmount = (subtotal * discountPercent) / 100;
+    const total = subtotal - discountAmount;
+
+    document.getElementById('mb-total').value = total.toLocaleString();
+
+    if(fullPay) {
+        document.getElementById('mb-advance').value = total;
+        document.getElementById('mb-remaining').value = "0";
+        document.getElementById('mb-advance').disabled = true;
+    } else {
+        document.getElementById('mb-advance').disabled = false;
+        const remaining = total - advance;
+        document.getElementById('mb-remaining').value = remaining.toLocaleString();
+    }
+};
+
+window.toggleFullPay = () => {
+    calculateBookingTotal();
+};
+
+window.submitManualBooking = () => {
+    const guestName = document.getElementById('mb-guest-name').value;
+    const roomId = document.getElementById('mb-room-id').value;
+
+    if(!guestName || !roomId) {
+        alert("Bhai, Guest Name aur Room toh bhar do!");
+        return;
+    }
+
+    const dates = document.getElementById('mb-stay-dates')._flatpickr.selectedDates;
+
+    const newBooking = {
+        id: "MB-" + Date.now(),
+        guestName: guestName,
+        roomNumber: roomId,
+        checkInDate: dates[0].toISOString(),
+        checkOutDate: dates[1].toISOString(),
+        totalAmount: parseFloat(document.getElementById('mb-total').value.replace(/,/g, '')),
+        status: "Confirmed",
+        timestamp: Date.now()
+    };
+
+    db.ref(`hotels/${hotelId}/bookings`).push(newBooking).then(() => {
+        closeManualBooking();
+        alert("Manual Booking Successful!");
+    });
 };
 
 function initPickers() {
