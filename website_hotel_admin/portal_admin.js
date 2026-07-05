@@ -246,8 +246,8 @@ window.toggleFullPay = () => calculateBookingTotal();
 
 window.submitManualBooking = () => {
     const guestName = document.getElementById('mb-guest-name').value;
-    const roomId = document.getElementById('mb-room-id').value;
-    if(!guestName || !roomId) { alert("Bhai, Guest Name aur Room toh bhar do!"); return; }
+    const roomType = document.getElementById('mb-room-type').value;
+    if(!guestName || !roomType) { alert("Bhai, Guest Name aur Room Type toh bhar do!"); return; }
 
     const checkInEl = document.getElementById('mb-check-in');
     const dates = checkInEl && checkInEl._flatpickr ? checkInEl._flatpickr.selectedDates : [];
@@ -259,7 +259,7 @@ window.submitManualBooking = () => {
         id: "MB-" + Date.now(),
         bookingNumber: bookingNumber,
         guestName: guestName,
-        roomNumber: roomId,
+        roomNumber: roomType, // Using room type as the identifier
         checkInDate: dates[0].toISOString(),
         checkOutDate: dates[1].toISOString(),
         totalAmount: parseFloat(document.getElementById('mb-total').value.replace(/,/g, '')),
