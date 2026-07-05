@@ -417,10 +417,10 @@ function renderPMSGrid() {
     const bodyContainer = document.getElementById('pms-grid-content');
     if(!headerContainer || !bodyContainer) return;
 
-    // 1. Generate 30 days of dates
+    // 1. Generate 31 days (to match image density)
     const dates = [];
     const now = new Date();
-    for(let i=0; i<30; i++) {
+    for(let i=0; i<31; i++) {
         const d = new Date(now);
         d.setDate(now.getDate() + i);
         dates.push(d);
@@ -430,7 +430,7 @@ function renderPMSGrid() {
     headerContainer.innerHTML = dates.map(d => `
         <div class="pms-date-cell ${[0,6].includes(d.getDay()) ? 'weekend' : ''}">
             <label>${d.toLocaleDateString('en-GB', { weekday: 'short' })}</label>
-            <span>${d.getDate()}</span>
+            <span>${d.getDate().toString().padStart(2, '0')}</span>
         </div>
     `).join('');
 
@@ -442,8 +442,11 @@ function renderPMSGrid() {
         return `
             <div class="pms-room-block">
                 <div class="pms-room-header">
-                    <h4>${roomName} <small style="color:var(--text-muted); font-weight:400;">(Room ID: ${roomId})</small></h4>
-                    <button class="btn-bulk" onclick="alert('Bulk edit for ${roomName}')">Bulk edit</button>
+                    <h4>${roomName} <small style="color:var(--text-muted); font-weight:400; font-size:0.75rem;">(Room ID: ${roomId})</small></h4>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <a href="#">Sync calendar</a>
+                        <button class="btn-bulk-blue" onclick="alert('Bulk edit')">Bulk edit</button>
+                    </div>
                 </div>
 
                 <!-- Status Row -->
@@ -451,8 +454,8 @@ function renderPMSGrid() {
                     <div class="pms-row-label">Room status</div>
                     <div class="pms-cells-wrap">
                         ${dates.map((d, i) => `
-                            <div class="pms-cell ${i < 5 ? 'status-closed' : 'status-open'}">
-                                ${i < 5 ? 'Closed' : 'Bookable'}
+                            <div class="pms-cell ${i < 8 ? 'status-closed' : 'status-open'}">
+                                ${i < 8 ? 'Closed' : 'Bookable'}
                             </div>
                         `).join('')}
                     </div>
@@ -460,7 +463,10 @@ function renderPMSGrid() {
 
                 <!-- Inventory Row -->
                 <div class="pms-row">
-                    <div class="pms-row-label">Rooms to Sell <span style="font-size:0.6rem; opacity:0.7;">Bulk edit</span></div>
+                    <div class="pms-row-label">
+                        <span>Rooms to Sell</span>
+                        <a href="#" style="font-size:0.65rem;">Bulk edit</a>
+                    </div>
                     <div class="pms-cells-wrap">
                         ${dates.map(() => `<div class="pms-cell">1</div>`).join('')}
                     </div>
@@ -470,30 +476,44 @@ function renderPMSGrid() {
                 <div class="pms-row">
                     <div class="pms-row-label">Net Booked</div>
                     <div class="pms-cells-wrap">
-                        ${dates.map((d, i) => `<div class="pms-cell" style="background:#F1F5F9; color:var(--text-muted);">${i === 12 ? '1' : '0'}</div>`).join('')}
+                        ${dates.map((d, i) => `
+                            <div class="pms-cell" style="background:#F1F5F9;">
+                                ${i === 12 ? '<span class="booked-pill">1</span>' : '0'}
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
 
                 <!-- Rate Plans -->
                 <div class="pms-row row-rate">
-                    <div class="pms-row-label">Standard rate <small>x 2 Edit</small></div>
+                    <div class="pms-row-label">
+                        <span class="chevron">⌄</span>
+                        <input type="checkbox" checked>
+                        <span>Standard rate</span>
+                        <a href="#">x 2 Edit</a>
+                    </div>
                     <div class="pms-cells-wrap">
                         ${dates.map((d, i) => `
-                            <div class="pms-cell ${i < 5 ? 'closed-overlay' : ''}">
+                            <div class="pms-cell ${i < 8 ? 'closed-overlay' : ''}">
                                 <span class="price-symbol">₹</span>
-                                <span class="price-val">1,200</span>
+                                <span class="price-val">1200</span>
                             </div>
                         `).join('')}
                     </div>
                 </div>
 
                 <div class="pms-row row-rate">
-                    <div class="pms-row-label">Non-refundable <small>x 2 Edit</small></div>
+                    <div class="pms-row-label">
+                        <span class="chevron">⌄</span>
+                        <input type="checkbox">
+                        <span>Non-refundable</span>
+                        <a href="#">x 2 Edit</a>
+                    </div>
                     <div class="pms-cells-wrap">
                         ${dates.map((d, i) => `
-                            <div class="pms-cell ${i < 5 ? 'closed-overlay' : ''}">
+                            <div class="pms-cell ${i < 8 ? 'closed-overlay' : ''}">
                                 <span class="price-symbol">₹</span>
-                                <span class="price-val">1,080</span>
+                                <span class="price-val">1080</span>
                             </div>
                         `).join('')}
                     </div>
