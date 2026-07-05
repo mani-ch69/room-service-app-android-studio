@@ -104,19 +104,28 @@ window.onload = () => {
 };
 
 function initPickers() {
+    let fromPicker;
     const untilPicker = flatpickr("#res-to-date", {
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "F j, Y",
-        defaultDate: new Date().getTime() + 2 * 24 * 60 * 60 * 1000 // Default 2 days later
+        defaultDate: new Date().getTime() + 24 * 60 * 60 * 1000, // Next day
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 1 && fromPicker) {
+                const currentRange = fromPicker.selectedDates;
+                if (currentRange.length > 0) {
+                    fromPicker.setDate([currentRange[0], selectedDates[0]]);
+                }
+            }
+        }
     });
 
-    flatpickr("#res-from-date", {
+    fromPicker = flatpickr("#res-from-date", {
         mode: "range",
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "Y-m-d",
-        defaultDate: [new Date(), new Date().getTime() + 2 * 24 * 60 * 60 * 1000],
+        defaultDate: [new Date(), new Date().getTime() + 24 * 60 * 60 * 1000],
         onChange: function(selectedDates) {
             if (selectedDates.length === 2) {
                 untilPicker.setDate(selectedDates[1]);
