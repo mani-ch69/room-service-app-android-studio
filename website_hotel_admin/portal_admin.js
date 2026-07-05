@@ -344,20 +344,14 @@ function renderAddRoomForm() {
     if(!container) return;
     container.innerHTML = `
         <div class="form-section-card">
-            <h3>Please select</h3>
+            <h3>Basic Info</h3>
             <div class="form-group">
-                <label>Room type</label>
-                <select class="form-select" id="field-room-type">
-                    <option>Please select</option>
-                    <option>Deluxe Double Room</option>
-                    <option>Single Room</option>
-                    <option>Twin Room</option>
-                    <option>Suite</option>
-                </select>
+                <label>Room type (Category Name)</label>
+                <input type="text" class="form-input-text" id="field-room-type" placeholder="e.g. Deluxe Double Room">
             </div>
             <div class="form-row-flex">
                 <div class="form-group">
-                    <label>Number of rooms</label>
+                    <label>Number of units</label>
                     <input type="number" class="form-input-text" value="1" id="field-room-count">
                 </div>
                 <div class="form-group">
@@ -370,13 +364,30 @@ function renderAddRoomForm() {
             </div>
         </div>
         <div class="form-section-card">
-            <h3>Room location</h3>
-            <div class="form-group">
-                <label>Floor Level</label>
-                <select class="form-select">
-                    <option>Ground floor</option>
-                    <option>1st floor</option>
-                </select>
+            <h3>Room Specifications</h3>
+            <div class="form-row-flex">
+                <div class="form-group">
+                    <label>Floor Level</label>
+                    <select class="form-select" id="field-floor">
+                        <option>Ground floor</option>
+                        <option>1st floor</option>
+                        <option>2nd floor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Bed Type</label>
+                    <input type="text" class="form-input-text" id="field-bed-type" value="Double Bed">
+                </div>
+            </div>
+            <div class="form-row-flex">
+                <div class="form-group">
+                    <label>Max Guests</label>
+                    <input type="number" class="form-input-text" id="field-max-guests" value="2">
+                </div>
+                <div class="form-group">
+                    <label>Room Size (sqft)</label>
+                    <input type="text" class="form-input-text" id="field-room-size" value="250 sqft">
+                </div>
             </div>
         </div>
     `;
@@ -384,22 +395,66 @@ function renderAddRoomForm() {
 
 window.saveNewRoom = () => {
     const roomType = document.getElementById('field-room-type').value;
-    if(roomType === 'Please select') { alert('Bhai, Room type toh select kar lo!'); return; }
-    const newRoom = { roomType: roomType, maxGuests: 2, maxAdults: 2, maxChildren: 0, id: "room_" + Math.random().toString(36).substr(2, 9), photos: [] };
-    db.ref(`hotels/${hotelId}/rooms`).push(newRoom).then(() => closeAddRoomModal());
+    if(!roomType) { alert('Bhai, Room type toh bhar do!'); return; }
+
+    const roomCount = parseInt(document.getElementById('field-room-count').value) || 1;
+    const smoking = document.getElementById('field-smoking').value;
+    const floor = document.getElementById('field-floor').value;
+    const bed = document.getElementById('field-bed-type').value;
+    const maxG = parseInt(document.getElementById('field-max-guests').value) || 2;
+    const size = document.getElementById('field-room-size').value;
+
+    const newRoom = {
+        roomNumber: roomType,
+        totalUnits: roomCount,
+        hotelId: hotelId,
+        qrToken: "QR-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        roomType: roomType,
+        smokingPolicy: smoking,
+        floorLevel: floor,
+        bedType: bed,
+        numberOfBeds: 1,
+        maxGuests: maxG,
+        maxAdults: maxG,
+        maxChildren: 0,
+        numBathrooms: 1,
+        isBathroomPrivate: true,
+        roomSize: size,
+        hasAc: true,
+        isBathroomInside: true,
+        hasGeyser: true,
+        hasKettle: true,
+        imageUrl: "",
+        isAvailable: true
+    };
+
+    db.ref(`hotels/${hotelId}/rooms/${roomType}`).set(newRoom).then(() => {
+        closeAddRoomModal();
+    });
 };
 
 function renderRoomDetails() {
     const container = document.getElementById('room-details-container');
     if(!container) return;
+
     container.innerHTML = allRooms.map(room => `
         <div class="room-card">
             <div class="room-card-img-wrap">
-                <img src="${room.photos && room.photos[0] ? room.photos[0] : 'https://i.ibb.co/6P0f9pL/ganga-homes-logo.jpg'}">
-                <div class="room-card-info-bar"><h4>${room.roomType}</h4><p>(${room.id.slice(-5)})</p></div>
+                <img src="${room.imageUrl || 'https://i.ibb.co/6P0f9pL/ganga-homes-logo.jpg'}">
+                <div class="room-card-info-bar">
+                    <h4>${room.roomType}</h4>
+                    <p>(${room.roomNumber})</p>
+                </div>
             </div>
             <div class="room-card-body">
+                <div class="room-stat-line">Units Available: <b>${room.totalUnits || 1}</b></div>
                 <div class="room-stat-line">Max Guests: <b>${room.maxGuests}</b></div>
+                <div class="room-stat-line">Bed Type: <b>${room.bedType}</b></div>
+                <div class="room-stat-line">Status: <b>${room.isAvailable ? 'Bookable' : 'Closed'}</b></div>
+            </div>
+            <div class="room-card-actions">
+                <button class="btn btn-outline btn-sm" onclick="alert('Edit logic synced with Android')">Edit</button>
+                <button class="btn btn-outline btn-sm" onclick="db.ref('hotels/${hotelId}/rooms/${room.roomNumber}').remove()">Delete</button>
             </div>
         </div>
     `).join('') + `
