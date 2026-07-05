@@ -100,7 +100,30 @@ window.switchSubTab = (subId) => {
 window.onload = () => {
     startRealtimeSync();
     renderAmenities();
+    initPickers();
 };
+
+function initPickers() {
+    const untilPicker = flatpickr("#res-to-date", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        defaultDate: new Date().getTime() + 2 * 24 * 60 * 60 * 1000 // Default 2 days later
+    });
+
+    flatpickr("#res-from-date", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "Y-m-d",
+        defaultDate: [new Date(), new Date().getTime() + 2 * 24 * 60 * 60 * 1000],
+        onChange: function(selectedDates) {
+            if (selectedDates.length === 2) {
+                untilPicker.setDate(selectedDates[1]);
+            }
+        }
+    });
+}
 
 function startRealtimeSync() {
     db.ref(`hotels/${hotelId}/business_details`).on('value', snap => {
