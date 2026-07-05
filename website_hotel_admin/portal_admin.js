@@ -178,9 +178,10 @@ function renderDashBookings() {
         const rows = [];
         snap.forEach(child => {
             const b = child.val();
+            const displayId = b.bookingNumber || b.id.slice(-8);
             rows.push(`
                 <tr>
-                    <td>${b.id.slice(-8)}</td>
+                    <td>${displayId}</td>
                     <td><b>${b.guestName}</b></td>
                     <td>Room ${b.roomNumber || '-'}</td>
                     <td>${new Date(b.checkInDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short' })}</td>
@@ -243,8 +244,11 @@ window.submitManualBooking = () => {
     const dates = checkInEl && checkInEl._flatpickr ? checkInEl._flatpickr.selectedDates : [];
     if (dates.length < 2) { alert("Bhai, Stay Dates toh sahi se select kar lo!"); return; }
 
+    const bookingNumber = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+
     const newBooking = {
         id: "MB-" + Date.now(),
+        bookingNumber: bookingNumber,
         guestName: guestName,
         roomNumber: roomId,
         checkInDate: dates[0].toISOString(),
@@ -256,7 +260,7 @@ window.submitManualBooking = () => {
 
     db.ref(`hotels/${hotelId}/bookings`).push(newBooking).then(() => {
         closeManualBooking();
-        alert("Manual Booking Successful!");
+        alert("Manual Booking Successful! ID: " + bookingNumber);
     });
 };
 
@@ -271,6 +275,7 @@ function renderReservations() {
             const cin = new Date(b.checkInDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
             const cout = new Date(b.checkOutDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
             const bookedOn = b.timestamp ? new Date(b.timestamp).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) : '-';
+            const displayId = b.bookingNumber || b.id.slice(-8);
             rows.push(`
                 <tr>
                     <td><span class="guest-name-link">${b.guestName}</span></td>
@@ -281,7 +286,7 @@ function renderReservations() {
                     <td>${UI.badge(b.status || 'OK', b.status || 'ok')}</td>
                     <td>₹ ${(b.totalAmount || 0).toLocaleString()}</td>
                     <td>₹ 0</td>
-                    <td><span class="booking-id-link">${b.bookingNumber || b.id.slice(-8)}</span></td>
+                    <td><span class="booking-id-link">${displayId}</span></td>
                 </tr>
             `);
         });

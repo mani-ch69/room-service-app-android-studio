@@ -42,7 +42,16 @@ object BookingRepository {
 
     fun addBooking(booking: Booking) {
         if (booking.id.isEmpty()) return
-        db.child(booking.id).setValue(booking)
+        
+        // Generate a 10-digit booking number if not already present
+        val finalBooking = if (booking.bookingNumber.isEmpty()) {
+            val randomNum = (1_000_000_000L..9_999_999_999L).random()
+            booking.copy(bookingNumber = randomNum.toString())
+        } else {
+            booking
+        }
+        
+        db.child(finalBooking.id).setValue(finalBooking)
     }
 
     fun updateBookingStatus(id: String, status: BookingStatus) {
