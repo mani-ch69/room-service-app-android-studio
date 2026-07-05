@@ -303,6 +303,23 @@
         </section>
     </main>
 
+    <!-- MODAL: ADD ROOM FORM -->
+    <div id="add-room-modal" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Room Details</h2>
+                <button class="modal-close" onclick="closeAddRoomModal()">×</button>
+            </div>
+            <div class="modal-content" id="add-room-form-container">
+                <!-- Form content injected by JS -->
+            </div>
+            <div class="modal-footer">
+                <div class="info-alert">When you click Continue, don't forget to add availability & prices, photos, and amenities right after!</div>
+                <button class="btn btn-primary btn-block" onclick="saveNewRoom()" style="width: 100%;">Continue</button>
+            </div>
+        </div>
+    </div>
+
     <script src="portal_admin.js"></script>
 </body>
 </html>

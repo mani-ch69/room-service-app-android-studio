@@ -344,16 +344,75 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
     background: #344e86;
 }
 
-.plus-circle {
-    width: 60px;
-    height: 60px;
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #3B5998;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-top: 20px;
+/* --- MODAL SYSTEM --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 4000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
 }
+
+.modal-container {
+    background: white; width: 100%; max-width: 800px;
+    max-height: 90vh; border-radius: 4px; display: flex;
+    flex-direction: column; box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    padding: 16px 24px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+.modal-header h2 { font-size: 1.25rem; font-weight: 800; }
+.modal-close { font-size: 1.5rem; background: none; border: none; cursor: pointer; color: var(--text-muted); }
+
+.modal-content { padding: 24px; overflow-y: auto; background: #F8FAFC; }
+
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); background: white; }
+
+.info-alert {
+    background: #FFF7E6; border: 1px solid #FFD591; padding: 12px;
+    border-radius: 4px; font-size: 0.8rem; color: #874D00; margin-bottom: 16px;
+}
+
+/* --- FORM SECTIONS (REF IMAGE STYLE) --- */
+.form-section-card {
+    background: white; border: 1px solid var(--border);
+    border-radius: 4px; padding: 24px; margin-bottom: 24px;
+}
+
+.form-section-card h3 {
+    font-size: 1rem; font-weight: 800; margin-bottom: 20px;
+    color: var(--text-main); border-bottom: 2px solid #F1F5F9;
+    padding-bottom: 8px;
+}
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: #4b5563; }
+
+.form-select, .form-input-text {
+    width: 100%; padding: 10px; border: 1px solid #d1d5db;
+    border-radius: 4px; font-size: 0.9rem; outline: none;
+}
+
+.form-row-flex { display: flex; gap: 20px; align-items: flex-end; }
+.form-row-flex > div { flex: 1; }
+
+.occupancy-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid #F1F5F9;
+}
+
+.number-picker { display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 4px; }
+.picker-btn {
+    width: 32px; height: 32px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; background: #F8FAFC;
+    font-weight: 800; user-select: none;
+}
+.picker-btn:hover { background: #E2E8F0; }
+.picker-value { width: 40px; text-align: center; font-weight: 700; border-left: 1px solid #d1d5db; border-right: 1px solid #d1d5db; }
+
+.radio-group { display: flex; gap: 24px; margin-top: 8px; }
+.radio-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; }
+
+.bed-add-row { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
