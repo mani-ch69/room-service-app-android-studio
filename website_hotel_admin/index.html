@@ -187,12 +187,12 @@
                     <label>Until</label>
                     <input type="date" class="filter-input" id="res-to-date">
                 </div>
-                <button class="btn btn-outline" style="height:36px; padding:0 16px;">More filters ⌄</button>
+                <button class="btn btn-outline" style="height:36px; padding:0 16px;" onclick="toggleMoreFilters()">More filters ⌄</button>
                 <button class="btn btn-primary" style="height:36px; padding:0 24px;">Show</button>
             </div>
 
             <!-- EXPANDED FILTERS PANEL -->
-            <div class="filters-expanded-panel">
+            <div id="filters-expanded-panel" class="filters-expanded-panel hidden">
                 <div class="filter-col">
                     <h5>Reservation Status</h5>
                     <label class="checkbox-item"><input type="checkbox" checked> Ok</label>

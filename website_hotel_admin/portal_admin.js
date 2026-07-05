@@ -82,6 +82,11 @@ window.switchTab = (tabId) => {
     if(tabId === 'reservations') renderReservations();
 };
 
+window.toggleMoreFilters = () => {
+    const panel = document.getElementById('filters-expanded-panel');
+    if(panel) panel.classList.toggle('hidden');
+};
+
 window.switchSubTab = (subId) => {
     document.querySelectorAll('.sub-pane').forEach(p => p.classList.add('hidden'));
     const target = document.getElementById(`sub-${subId}`);
