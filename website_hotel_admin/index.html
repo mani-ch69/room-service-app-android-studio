@@ -449,21 +449,46 @@
 
             <!-- SUB: GENERAL INFO -->
             <div id="sub-general-info" class="sub-pane">
-                <div class="card-ui">
-                    <div class="card-head">Property Information</div>
-                    <div class="card-body">
-                        <div class="info-row"><label>Property name:</label><p id="disp-hotel-name">Ganga Homes</p></div>
-                        <div class="info-row"><label>Property address:</label><p id="disp-hotel-addr">Assi Ghat, Varanasi</p></div>
-                        <div class="info-row"><label>Property location:</label><p>25.325088, 83.005356 (Google Maps)</p></div>
+                <div class="card-ui-simple">
+                    <div class="info-group-v2">
+                        <label>Property name:</label>
+                        <p>Ganga homes</p>
+                        <a href="#" class="link-blue">Change property name</a>
+                    </div>
+                    <div class="info-group-v2">
+                        <label>Property address:</label>
+                        <p>J12/66, Nati Imli Road</p>
+                    </div>
+                    <div class="info-group-v2">
+                        <label>Property location:</label>
+                        <p>25.3250887844738, 83.0053562215121 (on <a href="#" class="link-blue">Google Maps</a> and <a href="#" class="link-blue">OpenStreetMap</a>)</p>
                     </div>
                 </div>
-                <div class="card-ui">
-                    <div class="card-head">Property Status</div>
-                    <div class="card-body">
-                        <span class="status-pill open">Open/Bookable</span>
-                        <p style="margin-top:12px; color:var(--text-muted);">Guests can see and book your property. If you want to pause, you can close your property temporarily.</p>
-                        <button class="btn btn-outline" style="margin-top:16px;">Close temporarily</button>
+
+                <div class="card-ui-simple">
+                    <div class="info-group-v2">
+                        <label>Property status</label>
+                        <div class="status-badge-v2 status-green">Open/Bookable</div>
+                        <p class="text-muted-sm">Guests can see and book your property. If you want to pause, you can close your property temporarily without changing anything in your calendar and schedule your reopening.</p>
+                        <button class="btn btn-primary" style="margin-top: 15px; border-radius: 4px; font-weight: 700;">Close temporarily</button>
                     </div>
+                </div>
+
+                <h3 class="section-title-v2">Partner Liability Insurance</h3>
+                <div class="card-ui-simple">
+                    <div class="insurance-enrolled">
+                        <span class="icon-check-v2">✓</span>
+                        <span class="text-green-v2">You're enrolled in the program.</span>
+                    </div>
+                    <p class="text-muted-sm" style="margin-top: 20px;">
+                        Our Partner Liability Insurance program gives protection of up to US$10,00,000 against third-party lawsuits or liability claims for bodily injury or property damage incurred during the dates of a reservation made through Booking.com. You can opt in or out of this program anytime. <a href="#" class="link-blue">Find out more about Partner Liability Insurance.</a>
+                    </p>
+                    <div style="margin-top: 20px;">
+                        <label class="checkbox-item-lite">
+                            <input type="checkbox"> I want to opt out of the Partner Liability Insurance program
+                        </label>
+                    </div>
+                    <button class="btn-gray-v2" style="margin-top: 15px;">Opt out</button>
                 </div>
             </div>
 

@@ -596,3 +596,37 @@ body { background: var(--bg-body); color: var(--text-main); font-size: 14px; lin
 .bar-content { display: flex; align-items: center; gap: 8px; }
 .icon-star { color: #f9b115; }
 .icon-user { opacity: 0.8; }
+
+/* --- GENERAL INFO V2 STYLES --- */
+.card-ui-simple {
+    background: white; border: 1px solid #ddd;
+    border-radius: 4px; padding: 24px; margin-bottom: 24px;
+}
+
+.info-group-v2 { margin-bottom: 24px; }
+.info-group-v2:last-child { margin-bottom: 0; }
+.info-group-v2 label { display: block; font-size: 0.8rem; font-weight: 800; color: #333; margin-bottom: 4px; }
+.info-group-v2 p { font-size: 0.9rem; color: #444; margin-bottom: 4px; }
+
+.link-blue { color: #006ce4; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+.link-blue:hover { text-decoration: underline; }
+
+.status-badge-v2 {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.7rem; font-weight: 800; text-transform: capitalize;
+}
+.status-green { background: #008009; color: white; }
+
+.text-muted-sm { font-size: 0.85rem; color: #666; line-height: 1.5; }
+
+.section-title-v2 { font-size: 1.2rem; font-weight: 800; color: #333; margin: 32px 0 16px 0; }
+
+.insurance-enrolled { display: flex; align-items: center; gap: 10px; }
+.icon-check-v2 { color: #008009; font-size: 1.2rem; font-weight: 900; }
+.text-green-v2 { color: #008009; font-weight: 800; font-size: 0.9rem; }
+
+.btn-gray-v2 {
+    background: #bbb; color: white; border: none; padding: 8px 24px;
+    border-radius: 4px; font-weight: 800; font-size: 0.85rem; cursor: pointer;
+}
+.btn-gray-v2:hover { background: #999; }
