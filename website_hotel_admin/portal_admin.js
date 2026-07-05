@@ -42,6 +42,7 @@ const db = firebase.database();
 
 let hotelId = "GangaHomes_001";
 let allRooms = [];
+let currentPMSDate = new Date(); // Track current start date for calendar
 
 // --- 3. CORE NAVIGATION ---
 window.toggleDropdown = (e, tabId) => {
@@ -66,7 +67,7 @@ window.switchTab = (tabId) => {
         window.event.currentTarget.classList.add('active');
     }
     if(tabId === 'reservations') renderReservations();
-    if(tabId === 'pms-grid') renderPMSGrid();
+    if(tabId === 'pms-grid') renderTimelineCalendar();
     if(tabId === 'property-detail') renderRoomDetails();
 };
 
@@ -139,14 +140,6 @@ window.onload = () => {
             nightEl.value = nights;
             calculateBookingTotal();
         }
-    });
-
-    // Calendar Range Picker
-    flatpickr("#pms-date-range", {
-        mode: "range",
-        dateFormat: "M j, Y",
-        defaultDate: [new Date(), new Date().getTime() + 30 * 24 * 60 * 60 * 1000],
-        onChange: () => renderPMSGrid()
     });
 };
 
@@ -405,127 +398,97 @@ function renderRoomPhotoSections() {
 
 // --- 8. PMS GRID (CALENDAR) LOGIC ---
 
-function renderPMSGrid() {
-    const headerContainer = document.getElementById('pms-date-header');
-    const bodyContainer = document.getElementById('pms-grid-content');
-    if(!headerContainer || !bodyContainer) return;
+// --- 8. TIMELINE CALENDAR V2 LOGIC ---
 
-    // 1. Generate 31 days (to match image density)
+window.pmsShift = (days) => {
+    currentPMSDate.setDate(currentPMSDate.getDate() + days);
+    renderTimelineCalendar();
+};
+
+window.pmsToday = () => {
+    currentPMSDate = new Date();
+    renderTimelineCalendar();
+};
+
+function renderTimelineCalendar() {
+    const monthsContainer = document.getElementById('pms-months-header');
+    const daysContainer = document.getElementById('pms-days-header');
+    const contentContainer = document.getElementById('pms-timeline-content');
+    const titleEl = document.getElementById('calendar-title');
+
+    if(!monthsContainer || !daysContainer || !contentContainer) return;
+
+    // 1. Generate 31 days
     const dates = [];
-    const now = new Date();
+    const tempDate = new Date(currentPMSDate);
     for(let i=0; i<31; i++) {
-        const d = new Date(now);
-        d.setDate(now.getDate() + i);
-        dates.push(d);
+        dates.push(new Date(tempDate));
+        tempDate.setDate(tempDate.getDate() + 1);
     }
 
-    // 2. Render Header
-    headerContainer.innerHTML = dates.map(d => `
-        <div class="pms-date-cell ${[0,6].includes(d.getDay()) ? 'weekend' : ''}">
-            <label>${d.toLocaleDateString('en-GB', { weekday: 'short' })}</label>
-            <span>${d.getDate().toString().padStart(2, '0')}</span>
+    // Update Title Range
+    const endRangeDate = new Date(dates[30]);
+    titleEl.innerText = `Calendar ${dates[0].toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'numeric'})} - ${endRangeDate.toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'numeric'})}`;
+
+    // 2. Render Months Header
+    const monthsMap = {};
+    dates.forEach(d => {
+        const m = d.toLocaleDateString('en-GB', { month: 'long' });
+        monthsMap[m] = (monthsMap[m] || 0) + 1;
+    });
+    monthsContainer.innerHTML = Object.entries(monthsMap).map(([name, count]) => `
+        <div class="month-label" style="width: ${count * 40}px;">${name}</div>
+    `).join('');
+
+    // 3. Render Days Header
+    daysContainer.innerHTML = dates.map(d => `
+        <div class="day-cell ${[0,6].includes(d.getDay()) ? 'weekend' : ''}">
+            <label>${d.toLocaleDateString('en-GB', { weekday: 'short' }).substring(0,2)}</label>
+            <span>${d.getDate()}</span>
         </div>
     `).join('');
 
-    // 3. Render Body (Room Rows)
-    bodyContainer.innerHTML = allRooms.map(room => {
-        const roomName = room.roomType;
-        const roomId = room.id.slice(-5);
+    // 4. Render Rows (Rooms/Beds)
+    const mockBookings = [
+        { guest: "James Wilson", start: 3, len: 4, color: "red" },
+        { guest: "Sam Black", start: 17, len: 8, color: "yellow", star: true },
+        { guest: "Danielle", start: 7, len: 4, color: "yellow" },
+        { guest: "Ava Brown", start: 10, len: 12, color: "yellow" },
+        { guest: "Liam Johnson", start: 11, len: 5, color: "yellow" },
+        { guest: "Sam Black", start: 0, len: 7, color: "green" },
+        { guest: "Nadia F", start: 12, len: 3, color: "yellow" },
+        { guest: "Oliver Taylor", start: 11, len: 10, color: "yellow" },
+        { guest: "Lee Piper", start: 6, len: 6, color: "yellow" },
+        { guest: "Sophia Miller", start: 9, len: 7, color: "red", star: true },
+        { guest: "Amelia Harris", start: 3, len: 5, color: "red" }
+    ];
+
+    contentContainer.innerHTML = allRooms.map((room, idx) => {
+        const bookings = mockBookings.filter((_, i) => (i % allRooms.length) === idx);
 
         return `
-            <div class="pms-room-block">
-                <div class="pms-room-header">
-                    <h4>${roomName} <small style="color:var(--text-muted); font-weight:400; font-size:0.75rem;">(Room ID: ${roomId})</small></h4>
-                    <div style="display:flex; gap:12px; align-items:center;">
-                        <a href="#">Sync calendar</a>
-                        <button class="btn-bulk-blue" onclick="alert('Bulk edit')">Bulk edit</button>
-                    </div>
+            <div class="timeline-row">
+                <div class="timeline-room-sidebar">
+                    <div class="room-name">${room.roomType} ${idx+1}</div>
+                    <div class="room-desc">${room.roomType}; ${room.roomType} with B...</div>
                 </div>
 
-                <!-- Status Row -->
-                <div class="pms-row row-status">
-                    <div class="pms-row-label">Room status</div>
-                    <div class="pms-cells-wrap">
-                        ${dates.map((d, i) => `
-                            <div class="pms-cell ${i < 8 ? 'status-closed' : 'status-open'}">
-                                ${i < 8 ? 'Closed' : 'Bookable'}
-                            </div>
-                        `).join('')}
-                    </div>
+                <!-- Grid Background -->
+                <div class="timeline-grid-bg">
+                    ${dates.map(d => `<div class="grid-line ${[0,6].includes(d.getDay()) ? 'weekend' : ''}"></div>`).join('')}
                 </div>
 
-                <!-- Inventory Row -->
-                <div class="pms-row">
-                    <div class="pms-row-label">
-                        <span>Rooms to Sell</span>
-                        <a href="#" style="font-size:0.65rem;">Bulk edit</a>
+                <!-- Booking Bars -->
+                ${bookings.map(b => `
+                    <div class="booking-bar bar-${b.color}" style="left: ${240 + (b.start * 40)}px; width: ${b.len * 40 - 4}px;">
+                        <div class="bar-content">
+                            ${b.star ? '<span class="icon-star">★</span>' : ''}
+                            <span class="icon-user">👤 1</span>
+                            <span>${b.guest}</span>
+                        </div>
                     </div>
-                    <div class="pms-cells-wrap">
-                        ${dates.map(() => `<div class="pms-cell">1</div>`).join('')}
-                    </div>
-                </div>
-
-                <!-- Net Booked Row -->
-                <div class="pms-row">
-                    <div class="pms-row-label">Net Booked</div>
-                    <div class="pms-cells-wrap">
-                        ${dates.map((d, i) => `
-                            <div class="pms-cell" style="background:#F1F5F9;">
-                                ${i === 12 ? '<span class="booked-pill">1</span>' : '0'}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Rate Plans -->
-                <div class="pms-row row-rate">
-                    <div class="pms-row-label">
-                        <span class="chevron">⌄</span>
-                        <input type="checkbox" checked>
-                        <span>Standard rate</span>
-                        <a href="#">x 2 Edit</a>
-                    </div>
-                    <div class="pms-cells-wrap">
-                        ${dates.map((d, i) => `
-                            <div class="pms-cell ${i < 8 ? 'closed-overlay' : ''}">
-                                <span class="price-symbol">₹</span>
-                                <span class="price-val">1200</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="pms-row row-rate">
-                    <div class="pms-row-label">
-                        <span class="chevron">⌄</span>
-                        <input type="checkbox">
-                        <span>Non-refundable</span>
-                        <a href="#">x 2 Edit</a>
-                    </div>
-                    <div class="pms-cells-wrap">
-                        ${dates.map((d, i) => `
-                            <div class="pms-cell ${i < 8 ? 'closed-overlay' : ''}">
-                                <span class="price-symbol">₹</span>
-                                <span class="price-val">1080</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
+                `).join('')}
             </div>
         `;
     }).join('');
-
-    // 4. Sync Horizontal Scrolling
-    const dataRowWraps = document.querySelectorAll('.pms-cells-wrap');
-    const headerWrap = document.querySelector('#pms-date-header');
-
-    const handleScroll = (e) => {
-        const scrollLeft = e.target.scrollLeft;
-        headerWrap.scrollLeft = scrollLeft;
-        dataRowWraps.forEach(wrap => {
-            if (wrap !== e.target) wrap.scrollLeft = scrollLeft;
-        });
-    };
-
-    dataRowWraps.forEach(wrap => wrap.addEventListener('scroll', handleScroll));
 }
