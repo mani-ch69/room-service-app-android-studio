@@ -108,13 +108,13 @@ function initPickers() {
     const untilPicker = flatpickr("#res-to-date", {
         dateFormat: "Y-m-d",
         altInput: true,
-        altFormat: "F j, Y",
+        altFormat: "Y-m-d",
         defaultDate: new Date().getTime() + 24 * 60 * 60 * 1000, // Next day
         onChange: function(selectedDates) {
             if (selectedDates.length === 1 && fromPicker) {
                 const currentRange = fromPicker.selectedDates;
                 if (currentRange.length > 0) {
-                    fromPicker.setDate([currentRange[0], selectedDates[0]]);
+                    fromPicker.setDate([currentRange[0], selectedDates[0]], false);
                 }
             }
         }
@@ -126,9 +126,21 @@ function initPickers() {
         altInput: true,
         altFormat: "Y-m-d",
         defaultDate: [new Date(), new Date().getTime() + 24 * 60 * 60 * 1000],
+        onReady: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                instance.altInput.value = instance.formatDate(selectedDates[0], "Y-m-d");
+            }
+        },
+        onValueUpdate: function(selectedDates, dateStr, instance) {
+            // Override display to only show start date in the 'From' input
+            if (selectedDates.length > 0) {
+                const start = instance.formatDate(selectedDates[0], "Y-m-d");
+                instance.altInput.value = start;
+            }
+        },
         onChange: function(selectedDates) {
             if (selectedDates.length === 2) {
-                untilPicker.setDate(selectedDates[1]);
+                untilPicker.setDate(selectedDates[1], false);
             }
         }
     });
