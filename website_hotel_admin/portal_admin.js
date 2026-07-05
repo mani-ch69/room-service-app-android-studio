@@ -33,7 +33,8 @@ const firebaseConfig = {
   projectId: "roomserviceapk",
   storageBucket: "roomserviceapk.firebasestorage.app",
   messagingSenderId: "987842436715",
-  appId: "1:987842436715:web:04d22839d4ca52c61e1b2e"
+  appId: "1:987842436715:web:def97213089cf3121e1b2e",
+  measurementId: "G-SW9WNGGDYF"
 };
 
 firebase.initializeApp(firebaseConfig);
