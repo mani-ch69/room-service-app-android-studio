@@ -80,6 +80,18 @@ window.switchSubTab = (subId) => {
     const target = document.getElementById(`sub-${subId}`);
     if(target) target.classList.remove('hidden');
 
+    // Update Header Title dynamically based on selection
+    const headerEl = document.getElementById('property-detail-header');
+    if(headerEl) {
+        if(subId === 'general-info') headerEl.innerText = "General info & property status";
+        if(subId === 'vat-tax') headerEl.innerText = "VAT/Tax/Charges";
+        if(subId === 'photos') headerEl.innerText = "Photos";
+        if(subId === 'amenities') headerEl.innerText = "Room Amenities";
+        if(subId === 'room-details') headerEl.innerText = "Room Detail";
+        if(subId === 'your-profile') headerEl.innerText = "Your Profile";
+        if(subId === 'messaging') headerEl.innerText = "Messaging Preferences";
+    }
+
     // Auto-render specific sub-tab data
     if(subId === 'room-details') renderRoomDetails();
     if(subId === 'amenities') renderAmenities();
