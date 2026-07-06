@@ -1,13 +1,13 @@
 // Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBw6jDr8wRKeMMR7TiX8YiB0kO1wIfEmbE",
-  authDomain: "roomserviceapk.firebaseapp.com",
-  databaseURL: "https://roomserviceapk-default-rtdb.firebaseio.com",
-  projectId: "roomserviceapk",
-  storageBucket: "roomserviceapk.firebasestorage.app",
-  messagingSenderId: "987842436715",
-  appId: "1:987842436715:web:04d22839d4ca52c61e1b2e",
-  measurementId: "G-8B9P993Z3Z"
+    apiKey: "AIzaSyBw6jDr8wRKeMMR7TiX8YiB0kO1wIfEmbE",
+    authDomain: "roomserviceapk.firebaseapp.com",
+    databaseURL: "https://roomserviceapk-default-rtdb.firebaseio.com",
+    projectId: "roomserviceapk",
+    storageBucket: "roomserviceapk.firebasestorage.app",
+    messagingSenderId: "987842436715",
+    appId: "1:987842436715:web:04d22839d4ca52c61e1b2e",
+    measurementId: "G-8B9P993Z3Z"
 };
 
 // Initialize Firebase
@@ -36,7 +36,38 @@ const roomsGridEl = document.getElementById('rooms-grid');
 function init() {
     syncBusinessDetails();
     syncRooms();
+    syncRecentBookings();
     setDefaultDates();
+}
+
+function syncRecentBookings() {
+    const container = document.getElementById('recent-bookings-list');
+    if (!container) return;
+
+    const ref = db.ref('hotels').child(hotelId).child('bookings').orderByChild('timestamp').limitToLast(5);
+    ref.on('value', snap => {
+        const items = [];
+        if (snap.exists()) {
+            const arr = [];
+            snap.forEach(c => arr.push(c.val()));
+            // Sort descending by timestamp
+            arr.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            arr.forEach(b => {
+                const cin = b.checkInDate ? new Date(b.checkInDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '-';
+                const cout = b.checkOutDate ? new Date(b.checkOutDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '-';
+                items.push(`
+                    <div class="recent-booking-item">
+                        <div class="rb-left"><strong>${b.guestName}</strong><div class="muted">#${b.bookingNumber || b.id}</div></div>
+                        <div class="rb-middle">${b.roomNumber || ''}</div>
+                        <div class="rb-right">${cin} → ${cout}</div>
+                    </div>
+                `);
+            });
+        }
+
+        container.innerHTML = items.join('') || '<div class="muted">No recent bookings</div>';
+    });
 }
 
 function syncBusinessDetails() {
