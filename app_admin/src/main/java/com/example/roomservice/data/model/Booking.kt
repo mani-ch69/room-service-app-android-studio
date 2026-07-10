@@ -7,6 +7,8 @@ data class Booking(
     val bookingNumber: String = "",
     val hotelId: String = "",
     val roomNumber: String = "",
+    val roomType: String = "",
+    val roomQuantity: Int = 1, // NEW: Number of rooms booked in this entry
     val guestName: String = "",
     val guestPhone: String = "",
     val checkInDate: Long = 0L,
@@ -22,6 +24,10 @@ data class Booking(
     val discount: Double = 0.0,
     val isFullPay: Boolean = false,
     val upiTransactionId: String = "",
+    val receiptNumber: String = "",
+    val receivedBy: String = "",
+    val paymentType: String = "Advance",
+    val paymentDate: Long = System.currentTimeMillis(),
     val timestamp: Long = System.currentTimeMillis()
 )
 

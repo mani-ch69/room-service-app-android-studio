@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,7 +29,7 @@ class AdminActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             RoomServiceTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0F172A)) {
                     AdminNavigation()
                 }
             }
@@ -271,7 +272,9 @@ fun AdminNavigation() {
         composable("settings") {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
-                onSecuritySettingsClick = { navController.navigate("security_settings") }
+                onGeneralSettingsClick = { navController.navigate("general_settings") },
+                onSecuritySettingsClick = { navController.navigate("security_settings") },
+                onInboxClick = { /* Not used from main activity nav */ }
             )
         }
         composable("business_details") {

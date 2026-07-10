@@ -1,5 +1,6 @@
 package com.example.roomservice.ui.waiter
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,9 +37,7 @@ fun CalendarManagementScreen(
     rooms: List<Room>,
     bookings: List<Booking>
 ) {
-    var selectedTab by remember { mutableStateOf("List") }
     var calendarMonth by remember { mutableStateOf(Calendar.getInstance()) }
-    val sdfMonth = remember { SimpleDateFormat("MMMM", Locale.getDefault()) }
     
     var showFullCalendarForType by remember { mutableStateOf<String?>(null) }
 
@@ -46,51 +46,7 @@ fun CalendarManagementScreen(
             .fillMaxSize()
             .background(Color(0xFFF1F5F9))
     ) {
-        // Tab Header
-        TabRow(
-            selectedTabIndex = if (selectedTab == "List") 0 else 1,
-            containerColor = Color.White,
-            contentColor = Color(0xFF1976D2),
-            divider = {}
-        ) {
-            Tab(selected = selectedTab == "List", onClick = { selectedTab = "List" }) {
-                Text("List", modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold)
-            }
-            Tab(selected = selectedTab == "Calendar", onClick = { selectedTab = "Calendar" }) {
-                Text("Calendar", modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold)
-            }
-        }
-
-        // Month Navigation
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(vertical = 8.dp, horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = {
-                calendarMonth = (calendarMonth.clone() as Calendar).apply { add(Calendar.MONTH, -1) }
-            }) { Icon(Icons.Default.ChevronLeft, null, tint = Color(0xFF1976D2)) }
-            
-            Text(
-                text = sdfMonth.format(calendarMonth.time),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-
-            IconButton(onClick = {
-                calendarMonth = (calendarMonth.clone() as Calendar).apply { add(Calendar.MONTH, 1) }
-            }) { Icon(Icons.Default.ChevronRight, null, tint = Color(0xFF1976D2)) }
-        }
-
-        if (selectedTab == "List") {
-            CalendarListContent(calendarMonth, rooms, bookings)
-        } else {
-            CalendarGridContent(calendarMonth, rooms, bookings) { showFullCalendarForType = it }
-        }
+        CalendarGridContent(calendarMonth, rooms, bookings) { showFullCalendarForType = it }
     }
     
     if (showFullCalendarForType != null) {
@@ -100,100 +56,6 @@ fun CalendarManagementScreen(
             bookings = bookings,
             initialMonth = calendarMonth,
             onDismiss = { showFullCalendarForType = null }
-        )
-    }
-}
-
-@Composable
-fun CalendarListContent(month: Calendar, rooms: List<Room>, bookings: List<Booking>) {
-    val sdfDate = remember { SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()) }
-    val daysInMonth = month.getActualMaximum(Calendar.DAY_OF_MONTH)
-    val roomTypes = rooms.map { it.roomType }.distinct().sorted()
-
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items((1..daysInMonth).toList()) { day ->
-            val dateCal = (month.clone() as Calendar).apply { set(Calendar.DAY_OF_MONTH, day) }
-            
-            Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-                Text(
-                    text = sdfDate.format(dateCal.time),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Black,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(0.dp)
-                ) {
-                    Column {
-                        roomTypes.forEach { type ->
-                            val roomsOfType = rooms.filter { it.roomType == type }
-                            val bookedCount = bookings.count { b ->
-                                b.status != BookingStatus.CANCELLED &&
-                                roomsOfType.any { it.roomNumber == b.roomNumber } &&
-                                dateCal.timeInMillis >= startOfDay(b.checkInDate) &&
-                                dateCal.timeInMillis < startOfDay(b.checkOutDate)
-                            }
-                            val availableCount = (roomsOfType.size - bookedCount).coerceAtLeast(0)
-                            val isClosed = !roomsOfType.any { it.isAvailable } // Simplified for now
-
-                            RoomTypeListItem(type, isClosed, availableCount, bookedCount)
-                            HorizontalDivider(thickness = 0.5.dp, color = Color(0xFFF1F5F9))
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun RoomTypeListItem(type: String, isClosed: Boolean, available: Int, booked: Int) {
-    var closedState by remember { mutableStateOf(isClosed) }
-    var availableState by remember { mutableIntStateOf(available) }
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Column {
-                Text(text = type, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                Surface(
-                    color = if(closedState) Color(0xFFC62828).copy(alpha = 0.1f) else Color(0xFF2E7D32).copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text(
-                        text = if(closedState) "Closed" else "Bookable",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if(closedState) Color(0xFFC62828) else Color(0xFF2E7D32)
-                    )
-                }
-            }
-            Switch(checked = !closedState, onCheckedChange = { closedState = !it })
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Available", fontSize = 13.sp, color = Color.Gray)
-                Text("Booked: $booked", fontSize = 11.sp, color = Color.Gray)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { if(availableState > 0) availableState-- }) { Icon(Icons.Default.Remove, null, tint = Color(0xFF1976D2)) }
-                Text("$availableState", fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp))
-                IconButton(onClick = { availableState++ }) { Icon(Icons.Default.Add, null, tint = Color(0xFF1976D2)) }
-            }
-        }
-        
-        Text(
-            "Rates & restrictions", 
-            fontSize = 13.sp, 
-            color = Color(0xFF1976D2), 
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 8.dp).clickable { }
         )
     }
 }
@@ -283,10 +145,12 @@ fun FullCalendarViewDialog(
     onDismiss: () -> Unit
 ) {
     var currentMonth by remember { mutableStateOf(initialMonth) }
-    val sdfMonth = remember { SimpleDateFormat("MMMM", Locale.getDefault()) }
+    val sdfMonth = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
     val roomsOfType = rooms.filter { it.roomType == roomType }
 
+    var selectedDate by remember { mutableStateOf<Date?>(null) }
     var showBulkEditForType by remember { mutableStateOf<String?>(null) }
+    var showRatePlanEdit by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
@@ -323,6 +187,8 @@ fun FullCalendarViewDialog(
                                 if (date == null) Spacer(Modifier.weight(1f))
                                 else {
                                     val cal = Calendar.getInstance().apply { time = date }
+                                    val isSelected = selectedDate?.let { isSameDay(cal, Calendar.getInstance().apply { time = it }) } ?: false
+                                    
                                     val bookedCount = bookings.count { b ->
                                         b.status != BookingStatus.CANCELLED &&
                                         roomsOfType.any { it.roomNumber == b.roomNumber } &&
@@ -338,8 +204,12 @@ fun FullCalendarViewDialog(
                                             .aspectRatio(1f)
                                             .padding(2.dp)
                                             .border(
-                                                width = 1.dp,
-                                                color = if (isFullyBooked) Color(0xFFF57C00) else Color(0xFFE2E8F0),
+                                                width = if(isSelected) 2.dp else 1.dp,
+                                                color = when {
+                                                    isSelected -> Color(0xFF1976D2)
+                                                    isFullyBooked -> Color(0xFFF57C00)
+                                                    else -> Color(0xFFE2E8F0)
+                                                },
                                                 shape = RoundedCornerShape(4.dp)
                                             )
                                             .background(
@@ -348,14 +218,15 @@ fun FullCalendarViewDialog(
                                                     else -> Color(0xFFF1FDF4)
                                                 },
                                                 RoundedCornerShape(4.dp)
-                                            ),
+                                            )
+                                            .clickable { selectedDate = date },
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = cal.get(Calendar.DAY_OF_MONTH).toString(),
                                             fontSize = 14.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if(isClosed) Color.Gray else Color.Black
+                                            fontWeight = if(isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                                            color = if(isClosed) Color.Gray else if(isSelected) Color(0xFF1976D2) else Color.Black
                                         )
                                     }
                                 }
@@ -364,22 +235,50 @@ fun FullCalendarViewDialog(
                         }
                     }
                 }
-                
-                // Legend
-                Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceAround) {
-                    LegendBox(Color(0xFFF1FDF4), Color(0xFFE2E8F0), "Bookable")
-                    LegendBox(Color(0xFFF1FDF4), Color(0xFFF57C00), "Sold out")
-                    LegendBox(Color(0xFFE0E0E0), Color(0xFFE2E8F0), "Closed")
-                }
-                
-                Spacer(Modifier.height(40.dp))
-                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.GridOn, null, modifier = Modifier.size(100.dp).alpha(0.1f), tint = Color(0xFF1976D2))
-                    Spacer(Modifier.height(16.dp))
-                    Text("Select dates to make changes", fontWeight = FontWeight.Black, fontSize = 20.sp)
+
+                if (selectedDate == null) {
+                    // Legend
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceAround) {
+                        LegendBox(Color(0xFFF1FDF4), Color(0xFFE2E8F0), "Bookable")
+                        LegendBox(Color(0xFFF1FDF4), Color(0xFFF57C00), "Sold out")
+                        LegendBox(Color(0xFFE0E0E0), Color(0xFFE2E8F0), "Closed")
+                    }
+                    
+                    Spacer(Modifier.height(40.dp))
+                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.GridOn, null, modifier = Modifier.size(100.dp).alpha(0.1f), tint = Color(0xFF1976D2))
+                        Spacer(Modifier.height(16.dp))
+                        Text("Select dates to make changes", fontWeight = FontWeight.Black, fontSize = 20.sp)
+                    }
+                } else {
+                    // MANAGEMENT PANEL
+                    val cal = Calendar.getInstance().apply { time = selectedDate!! }
+                    val bookedCount = bookings.count { b ->
+                        b.status != BookingStatus.CANCELLED &&
+                        roomsOfType.any { it.roomNumber == b.roomNumber } &&
+                        cal.timeInMillis >= startOfDay(b.checkInDate) &&
+                        cal.timeInMillis < startOfDay(b.checkOutDate)
+                    }
+                    
+                    DateManagementPanel(
+                        date = selectedDate!!,
+                        bookedCount = bookedCount,
+                        totalCount = roomsOfType.size,
+                        onDismiss = { selectedDate = null },
+                        onSave = { selectedDate = null },
+                        onEditRatePlan = { showRatePlanEdit = true }
+                    )
                 }
             }
         }
+    }
+
+    if (showRatePlanEdit && selectedDate != null) {
+        RatePlanEditDialog(
+            date = selectedDate!!,
+            onDismiss = { showRatePlanEdit = false },
+            onSave = { showRatePlanEdit = false }
+        )
     }
 
     if (showBulkEditForType != null) {
@@ -388,6 +287,303 @@ fun FullCalendarViewDialog(
             rooms = rooms.filter { it.roomType == showBulkEditForType },
             onDismiss = { showBulkEditForType = null }
         )
+    }
+}
+
+@Composable
+fun DateManagementPanel(
+    date: Date,
+    bookedCount: Int,
+    totalCount: Int,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
+    onEditRatePlan: () -> Unit
+) {
+    var isOpen by remember { mutableStateOf(true) }
+    var roomsToSell by remember { mutableIntStateOf(totalCount - bookedCount) }
+    val sdfFull = remember { SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()) }
+    val context = LocalContext.current
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // AVAILABILITY SECTION
+        item {
+            Column {
+                Text("Availability", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
+                Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(12.dp)) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { isOpen = true }.padding(12.dp)) {
+                            Text("Open", modifier = Modifier.weight(1f))
+                            RadioButton(selected = isOpen, onClick = { isOpen = true })
+                        }
+                        Divider(color = Color(0xFFF1F5F9))
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { isOpen = false }.padding(12.dp)) {
+                            Text("Close", modifier = Modifier.weight(1f))
+                            RadioButton(selected = !isOpen, onClick = { isOpen = false })
+                        }
+                    }
+                }
+            }
+        }
+
+        // INVENTORY SECTION
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(12.dp)) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Booked/Total", color = Color.Gray)
+                        Text("$bookedCount / $totalCount", fontWeight = FontWeight.Bold)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("Rooms to sell", color = Color.Gray)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 4.dp)
+                        ) {
+                            IconButton(onClick = { if(roomsToSell > 0) roomsToSell-- }, modifier = Modifier.size(32.dp)) { Icon(Icons.Default.Remove, null, modifier = Modifier.size(16.dp)) }
+                            Text("$roomsToSell room", fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 8.dp))
+                            IconButton(onClick = { if(roomsToSell < totalCount) roomsToSell++ }, modifier = Modifier.size(32.dp)) { Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp)) }
+                        }
+                    }
+                }
+            }
+        }
+
+        // RATE PLANS SECTION
+        item {
+            Column {
+                Text("Rate plans", fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(bottom = 8.dp))
+                Card(colors = CardDefaults.cardColors(containerColor = Color.White), shape = RoundedCornerShape(12.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Standard rate", fontWeight = FontWeight.Bold)
+                            Text("Edit", color = Color(0xFF1976D2), fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onEditRatePlan() })
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Person, null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+                            Text(" x2", fontSize = 14.sp, color = Color.Gray)
+                            Spacer(Modifier.weight(1f))
+                            Text("Rs.700", fontWeight = FontWeight.Black, fontSize = 18.sp)
+                        }
+                        Text("Minimum length of stay: 1 night", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+            }
+        }
+
+        // BOTTOM ACTIONS
+        item {
+            Spacer(Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(sdfFull.format(date), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Selected", fontSize = 12.sp, color = Color.Gray)
+                }
+                
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(0.7f).height(48.dp),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Clear", color = Color(0xFF1976D2))
+                }
+                
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "Availability saved for ${sdfFull.format(date)}", Toast.LENGTH_SHORT).show()
+                        onSave()
+                    },
+                    modifier = Modifier.weight(0.7f).height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))
+                ) {
+                    Text("Save", fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RatePlanEditDialog(
+    date: Date,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    var isActive by remember { mutableStateOf(true) }
+    var priceX2 by remember { mutableStateOf("700") }
+    var priceX3 by remember { mutableStateOf("840") }
+    var priceX4 by remember { mutableStateOf("875") }
+    var minStay by remember { mutableStateOf("1 night") }
+    var minAdvance by remember { mutableStateOf("None") }
+    
+    val sdfFull = remember { SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()) }
+    val context = LocalContext.current
+
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+            Column {
+                CenterAlignedTopAppBar(
+                    title = { Text("Standard rate", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                    navigationIcon = { IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, null) } },
+                    actions = { 
+                        TextButton(onClick = { 
+                            isActive = true
+                            priceX2 = "700"
+                            priceX3 = "840"
+                            priceX4 = "875"
+                            minStay = "1 night"
+                            minAdvance = "None"
+                        }) { Text("Reset", color = Color.Gray) } 
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color.White)
+                )
+
+                LazyColumn(
+                    modifier = Modifier.weight(1f).padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Active", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            Switch(checked = isActive, onCheckedChange = { isActive = it }, colors = SwitchDefaults.colors(checkedTrackColor = Color(0xFF1976D2)))
+                        }
+                        Divider(modifier = Modifier.padding(top = 16.dp), color = Color(0xFFF1F5F9))
+                    }
+
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            OccupancyPriceRow("x2", "Base", priceX2, true) { priceX2 = it }
+                            OccupancyPriceRow("x4", null, priceX4, isActive) { priceX4 = it }
+                            OccupancyPriceRow("x3", null, priceX3, isActive) { priceX3 = it }
+                        }
+                    }
+
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            RestrictionRow("Minimum length of stay", minStay) { 
+                                // Simplified: Cycle through options
+                                minStay = when(minStay) {
+                                    "1 night" -> "2 nights"
+                                    "2 nights" -> "3 nights"
+                                    else -> "1 night"
+                                }
+                            }
+                            RestrictionRow("Minimum advance reservation", minAdvance) { 
+                                minAdvance = when(minAdvance) {
+                                    "None" -> "1 day"
+                                    "1 day" -> "2 days"
+                                    else -> "None"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // BOTTOM ACTION BAR
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shadowElevation = 8.dp,
+                    color = Color.White
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(sdfFull.format(date), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text("Selected", fontSize = 12.sp, color = Color.Gray)
+                        }
+                        
+                        Button(
+                            onClick = {
+                                Toast.makeText(context, "Rate plan updated", Toast.LENGTH_SHORT).show()
+                                onSave()
+                            },
+                            modifier = Modifier.width(120.dp).height(48.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isActive) Color(0xFF1976D2) else Color(0xFFE0E0E0),
+                                contentColor = if (isActive) Color.White else Color.Gray
+                            )
+                        ) {
+                            Text("Save", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OccupancyPriceRow(occupancy: String, label: String?, price: String, enabled: Boolean, onPriceChange: (String) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Person, null, modifier = Modifier.size(20.dp), tint = Color.Gray)
+            Text(occupancy, modifier = Modifier.padding(start = 4.dp), fontWeight = FontWeight.Medium)
+            if (label != null) {
+                Surface(
+                    color = Color(0xFFF1F5F9),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(label, fontSize = 10.sp, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), color = Color.Gray)
+                }
+            }
+            Icon(Icons.Default.KeyboardArrowUp, null, tint = Color(0xFF1976D2), modifier = Modifier.padding(start = 8.dp).size(20.dp))
+        }
+
+        OutlinedTextField(
+            value = price,
+            onValueChange = { if (it.all { char -> char.isDigit() }) onPriceChange(it) },
+            modifier = Modifier.width(150.dp),
+            prefix = { Text("Rs. ", fontSize = 14.sp, color = Color.Gray) },
+            enabled = enabled,
+            shape = RoundedCornerShape(4.dp),
+            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledContainerColor = Color(0xFFF8F9FA),
+                disabledBorderColor = Color(0xFFE2E8F0)
+            )
+        )
+    }
+}
+
+@Composable
+fun RestrictionRow(label: String, value: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(value, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Icon(Icons.Default.UnfoldMore, null, modifier = Modifier.padding(start = 8.dp).size(18.dp), tint = Color.Gray)
+        }
     }
 }
 

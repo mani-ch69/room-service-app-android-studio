@@ -1,8 +1,7 @@
 package com.example.roomservice.ui.util
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -15,17 +14,19 @@ import androidx.compose.ui.draw.scale
 @Composable
 fun Modifier.zoomClick(
     enabled: Boolean = true,
+    scaleDown: Float = 0.96f,
     onClick: () -> Unit
 ): Modifier {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.90f else 1f,
+        targetValue = if (isPressed) scaleDown else 1f,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMediumLow
         ),
-        label = "zoom"
+        label = "zoomClick"
     )
 
     return this
@@ -36,4 +37,21 @@ fun Modifier.zoomClick(
             enabled = enabled,
             onClick = onClick
         )
+}
+
+/**
+ * Common zoom-in entry transition for dialogs or components
+ */
+@Composable
+fun ZoomInContent(
+    visible: Boolean,
+    content: @Composable () -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = scaleIn(initialScale = 0.8f, animationSpec = spring(Spring.DampingRatioMediumBouncy)) + fadeIn(),
+        exit = scaleOut(targetScale = 0.8f) + fadeOut()
+    ) {
+        content()
+    }
 }

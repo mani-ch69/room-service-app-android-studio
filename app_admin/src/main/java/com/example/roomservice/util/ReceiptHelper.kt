@@ -24,7 +24,14 @@ object ReceiptHelper {
             val intent = Intent(Intent.ACTION_VIEW)
             val url = "https://api.whatsapp.com/send?phone=$phoneNumber&text=${Uri.encode(message)}"
             intent.data = Uri.parse(url)
-            intent.setPackage("com.whatsapp")
+            
+            // Try WhatsApp Business first, then personal
+            if (isPackageInstalled(context, "com.whatsapp.w4b")) {
+                intent.setPackage("com.whatsapp.w4b")
+            } else if (isPackageInstalled(context, "com.whatsapp")) {
+                intent.setPackage("com.whatsapp")
+            }
+            
             context.startActivity(intent)
         } catch (e: Exception) {
             // Fallback to generic share if WhatsApp is not installed
@@ -35,11 +42,20 @@ object ReceiptHelper {
         }
     }
 
+    private fun isPackageInstalled(context: Context, packageName: String): Boolean {
+        return try {
+            context.packageManager.getPackageInfo(packageName, 0)
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     private fun generateWhatsAppMessage(booking: Booking, business: BusinessDetails, roomType: String): String {
         val df = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         val dateStr = df.format(Date())
-        val checkIn = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkInDate))
-        val checkOut = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkOutDate))
+        val checkIn = SimpleDateFormat("dd/MM/yyyy '12:00 PM'", Locale.getDefault()).format(Date(booking.checkInDate))
+        val checkOut = SimpleDateFormat("dd/MM/yyyy '12:00 PM'", Locale.getDefault()).format(Date(booking.checkOutDate))
 
         val gst = (booking.totalAmount + booking.discount) * 0.05
         val subtotal = (booking.totalAmount + booking.discount) - gst
@@ -101,8 +117,8 @@ object ReceiptHelper {
     private fun generateReceiptHtml(booking: Booking, business: BusinessDetails, roomType: String): String {
         val df = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
         val dateStr = df.format(Date())
-        val checkIn = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkInDate))
-        val checkOut = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(booking.checkOutDate))
+        val checkIn = SimpleDateFormat("dd/MM/yyyy '12:00 PM'", Locale.getDefault()).format(Date(booking.checkInDate))
+        val checkOut = SimpleDateFormat("dd/MM/yyyy '12:00 PM'", Locale.getDefault()).format(Date(booking.checkOutDate))
 
         val gst = (booking.totalAmount + booking.discount) * 0.05 // Simulation: 5% GST
         val subtotal = (booking.totalAmount + booking.discount) - gst

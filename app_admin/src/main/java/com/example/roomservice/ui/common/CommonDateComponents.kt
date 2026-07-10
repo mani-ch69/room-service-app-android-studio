@@ -85,4 +85,14 @@ object DateRangeUtils {
         }.timeInMillis
         return utcTimeMillis >= today
     }
+
+    fun getNoonTimestamp(timestamp: Long): Long {
+        return Calendar.getInstance().apply {
+            timeInMillis = timestamp
+            set(Calendar.HOUR_OF_DAY, 12)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    }
 }

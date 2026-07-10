@@ -1,5 +1,6 @@
 package com.example.roomservice.data
 
+import android.content.Context
 import com.example.roomservice.data.model.Booking
 import com.example.roomservice.data.model.BookingStatus
 import com.google.firebase.database.DataSnapshot
@@ -40,7 +41,7 @@ object BookingRepository {
         listener = null
     }
 
-    fun addBooking(booking: Booking) {
+    fun addBooking(booking: Booking, context: Context? = null) {
         if (booking.id.isEmpty()) return
         
         // Generate a 10-digit booking number if not already present
@@ -52,10 +53,17 @@ object BookingRepository {
         }
         
         db.child(finalBooking.id).setValue(finalBooking)
+        context?.let { com.example.roomservice.util.GoogleSheetsHelper.syncBookingToSheet(it, finalBooking) }
     }
 
-    fun updateBookingStatus(id: String, status: BookingStatus) {
+    fun updateBookingStatus(id: String, status: BookingStatus, context: Context? = null) {
         db.child(id).child("status").setValue(status)
+        // Trigger sync on status update
+        val booking = _bookings.value.find { it.id == id }
+        booking?.let {
+            val updated = it.copy(status = status)
+            context?.let { ctx -> com.example.roomservice.util.GoogleSheetsHelper.syncBookingToSheet(ctx, updated) }
+        }
     }
 
     fun checkInGuest(bookingId: String, idPhotoUrl: String) {

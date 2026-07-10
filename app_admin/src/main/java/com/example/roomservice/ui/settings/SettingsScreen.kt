@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -23,13 +24,31 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
-    onSecuritySettingsClick: () -> Unit
+    onGeneralSettingsClick: () -> Unit,
+    onSecuritySettingsClick: () -> Unit,
+    onInboxClick: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        item {
+            SettingsCardItem(
+                title = "Inbox",
+                subtitle = "Messages and Notifications",
+                icon = Icons.Default.Email,
+                onClick = onInboxClick
+            )
+        }
+        item {
+            SettingsCardItem(
+                title = "General Setting",
+                subtitle = "App Sync, Profile and Business details",
+                icon = Icons.Default.Settings,
+                onClick = onGeneralSettingsClick
+            )
+        }
         item {
             SettingsCardItem(
                 title = "App Security",

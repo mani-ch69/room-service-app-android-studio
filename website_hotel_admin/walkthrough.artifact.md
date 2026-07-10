@@ -1,32 +1,28 @@
-# Walkthrough - High-Fidelity Dashboard & Smart Manual Booking
+# Walkthrough - Property Menu Restoration
 
-I have transformed the Hotel Admin Dashboard into a professional, high-fidelity property management center and implemented an intelligent Manual Booking system.
+I have restored the full suite of management options to the **Property** dropdown menu while maintaining the clean, tab-free layout inside the page.
 
-## 1. High-Fidelity Dashboard
-Matched the reference image precisely with:
-- **8 Dynamic Stat Cards**: Real-time insights into Check-ins, Check-outs, Occupancy, Vacant rooms, Pending payments, etc., complete with icons and trend indicators.
-- **Header Actions**: Added a localized "Good Morning, Manish" greeting and a new prominent **"+ New Manual Booking"** button.
-- **Management Panels**:
-    - **Recent Bookings**: A clean table showing the latest 5 bookings synced from Firebase.
-    - **Guest Requests & Tasks**: Dedicated cards for tracking operations.
-    - **Revenue Summary**: A visual line chart and color-coded revenue breakdown.
+## Key Restoration Actions
 
-## 2. Smart Manual Booking System
-A highly automated form designed for speed and accuracy:
-- **Date Range Sync**: Integrated Flatpickr in range mode. Selecting dates automatically updates the **Night Count**.
-- **Contextual Selection**: The Room Type and Room Number dropdowns are linked to ensure only vacant rooms can be booked.
-- **Intelligent Payment Logic**:
-    - Calculates **Total Amount** based on (Rent * Nights) - Discount.
-    - Real-time **Remaining Balance** tracking as advance payments are entered.
-    - **"Full Pay" Checkbox**: Instantly marks the balance as 0 and disables the advance field for paid-in-full scenarios.
+### 1. Dropdown Menu Rebuilt
+Restored direct links in the main navigation for:
+- **General info & property status**
+- **Photos**
+- **Amenities**
+- **Room Details**
+- **Your Profile**
 
-## Technical Improvements
-- **Firebase Realtime Sync**: Manual bookings are saved directly to the database and reflect across the dashboard and reservations instantly.
-- **Responsive Layout**: Optimized CSS grid systems for the complex dashboard structure.
+### 2. Tab-Free Interface
+- The inner sub-tab navigation bar (the line with General Info, Photos, etc.) remains **hidden** as requested.
+- Clicking an item in the main dropdown now takes you **directly** to that specific section within the Property Detail view.
+
+### 3. Structural Re-integration
+- Re-added the container panes (`sub-pane`) for all restored sections in `index.html`.
+- Updated the JavaScript `switchSubTab` logic to correctly trigger data rendering (like Amenities and Room Details) upon selection.
 
 ## Verification
-- Verified all 8 stat cards render correctly with appropriate icons.
-- Verified manual booking form calculates nights and totals accurately.
-- Confirmed bi-directional sync with Firebase (Dashboard updates as soon as a booking is saved).
+- **Navigation**: Confirmed that selecting "Photos" from the dropdown opens the Gallery section directly.
+- **Visuals**: Verified that the page remains clean and focused, with no redundant tab bar at the top of the content area.
+- **Firebase**: All sections remain correctly synchronized with the real-time database and your Android Admin App.
 
-Your Property Management System is now much more powerful and visually professional! 🚀📈
+Your portal is now both powerful (with all options available) and clean (with no cluttered inner tabs). 🚀💎✅

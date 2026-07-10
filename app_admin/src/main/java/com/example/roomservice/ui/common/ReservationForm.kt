@@ -61,8 +61,9 @@ fun ReservationFormContent(
     // --- FORM STATE ---
     var guestName by remember { mutableStateOf(initialBooking?.guestName ?: "") }
     var guestPhone by remember { mutableStateOf(initialBooking?.guestPhone ?: "") }
-    var checkInDate by remember { mutableLongStateOf(initialBooking?.checkInDate ?: System.currentTimeMillis()) }
-    var checkOutDate by remember { mutableLongStateOf(initialBooking?.checkOutDate ?: (System.currentTimeMillis() + 86400000L)) }
+    var bookingDate by remember { mutableLongStateOf(initialBooking?.timestamp ?: System.currentTimeMillis()) }
+    var checkInDate by remember { mutableLongStateOf(initialBooking?.checkInDate ?: DateRangeUtils.getNoonTimestamp(System.currentTimeMillis())) }
+    var checkOutDate by remember { mutableLongStateOf(initialBooking?.checkOutDate ?: (DateRangeUtils.getNoonTimestamp(System.currentTimeMillis()) + 86400000L)) }
     
     // --- AVAILABILITY LOGIC ---
     val availabilityMap = remember(checkInDate, checkOutDate, allBookings, rooms, initialBooking) {
@@ -87,6 +88,8 @@ fun ReservationFormContent(
         ) 
     }
     
+    var roomQuantity by remember { mutableIntStateOf(initialBooking?.roomQuantity ?: 1) }
+    
     val selectedRoom = remember(selectedType, rooms) { rooms.find { it.roomType == selectedType } }
     val maxAdultsLimit = selectedRoom?.maxAdults ?: 5
     val maxChildrenLimit = selectedRoom?.maxChildren ?: 5
@@ -97,7 +100,6 @@ fun ReservationFormContent(
     var roomRent by remember { mutableStateOf(initialBooking?.roomRent?.toInt()?.toString() ?: "") }
     var advancePaid by remember { mutableStateOf(initialBooking?.advancePaid?.toInt()?.toString() ?: "") }
     var discount by remember { mutableStateOf(initialBooking?.discount?.toInt()?.toString() ?: "") }
-    var isFullPay by remember { mutableStateOf(initialBooking?.isFullPay ?: false) }
     var paymentMode by remember { mutableStateOf(initialBooking?.paymentMode ?: "UPI") }
     
     var idType by remember { mutableStateOf(initialBooking?.guestIdentities?.firstOrNull()?.idType ?: "Aadhar Card") }
@@ -122,16 +124,17 @@ fun ReservationFormContent(
     }
     val pricePerNight = roomRent.toDoubleOrNull() ?: 0.0
     val discountVal = discount.toDoubleOrNull() ?: 0.0
-    val totalAmount = (pricePerNight * nights) - discountVal
-    val advanceVal = if (isFullPay) totalAmount else (advancePaid.toDoubleOrNull() ?: 0.0)
+    val totalAmount = (pricePerNight * nights * roomQuantity) - discountVal
+    val advanceVal = (advancePaid.toDoubleOrNull() ?: 0.0)
     val remaining = totalAmount - advanceVal
 
     // --- UI STATE ---
     var expandedSection by remember { mutableStateOf("stay") }
     var showRangePicker by remember { mutableStateOf(false) }
+    var showBookingDatePicker by remember { mutableStateOf(false) }
 
     // Notify parent on any change
-    LaunchedEffect(guestName, guestPhone, checkInDate, checkOutDate, selectedType, adults, children, roomRent, advancePaid, discount, isFullPay, paymentMode, idType, idNumber, specialRequests, selectedAgent) {
+    LaunchedEffect(guestName, guestPhone, bookingDate, checkInDate, checkOutDate, selectedType, roomQuantity, adults, children, roomRent, advancePaid, discount, paymentMode, idType, idNumber, specialRequests, selectedAgent) {
         val bookedRoomNumbers = allBookings.filter { b ->
             if (b.status == BookingStatus.CANCELLED || b.id == initialBooking?.id) return@filter false
             b.checkInDate < checkOutDate && b.checkOutDate > checkInDate
@@ -144,6 +147,8 @@ fun ReservationFormContent(
             bookingNumber = initialBooking?.bookingNumber ?: "",
             hotelId = hotelId ?: "",
             roomNumber = assignedRoom,
+            roomType = selectedType,
+            roomQuantity = roomQuantity,
             guestName = guestName,
             guestPhone = guestPhone,
             checkInDate = checkInDate,
@@ -153,15 +158,60 @@ fun ReservationFormContent(
             advancePaid = advanceVal,
             paymentMode = paymentMode,
             discount = discountVal,
-            isFullPay = isFullPay,
+            isFullPay = false,
             numberOfGuests = adults + children,
             guestIdentities = listOf(GuestIdentity(idType = idType, idNumber = idNumber)),
             status = initialBooking?.status ?: BookingStatus.BOOKED,
-            bookingAgent = selectedAgent
+            bookingAgent = selectedAgent,
+            timestamp = bookingDate
         ))
     }
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // BOOKING DATE (Editable Card with Shadow)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showBookingDatePicker = true },
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    modifier = Modifier.size(40.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFF1F5F9)
+                ) {
+                    Icon(
+                        Icons.Default.Event, 
+                        contentDescription = null, 
+                        tint = Color(0xFF1976D2), 
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                Spacer(Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Booking Date (Click to Change)", 
+                        fontSize = 12.sp, 
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = df.format(Date(bookingDate)),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 16.sp,
+                        color = Color(0xFF1E293B)
+                    )
+                }
+                Icon(Icons.Default.Edit, null, tint = Color.LightGray, modifier = Modifier.size(18.dp))
+            }
+        }
+
         // STAY DETAILS
         BookingAccordionSection("Stay Details", Icons.Default.CalendarMonth, expandedSection == "stay", { expandedSection = if(expandedSection == "stay") "" else "stay" }) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -192,6 +242,26 @@ fun ReservationFormContent(
                         }
                     }
                 }
+
+                // Room Quantity (Unit) Selection
+                val maxUnitsAvailable = availabilityMap[selectedType] ?: 1
+                Column {
+                    Text("Room Quantity (Units) *", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    SimpleCounter(
+                        value = roomQuantity,
+                        maxValue = maxUnitsAvailable,
+                        onValueChange = { roomQuantity = it }
+                    )
+                    if (maxUnitsAvailable > 0) {
+                        Text("Available for selected dates: $maxUnitsAvailable", fontSize = 11.sp, color = Color.Gray)
+                    }
+                }
+
+                // ADULTS & CHILDREN MOVED HERE
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f)) { Text("Adults", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(adults, maxAdultsLimit) { adults = it } }
+                    Column(Modifier.weight(1f)) { Text("Children", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(children, maxChildrenLimit) { children = it } }
+                }
             }
         }
 
@@ -200,10 +270,6 @@ fun ReservationFormContent(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(value = guestName, onValueChange = { guestName = it }, label = { Text("Guest Name *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp))
                 OutlinedTextField(value = guestPhone, onValueChange = { guestPhone = it }, label = { Text("Mobile Number *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(Modifier.weight(1f)) { Text("Adults", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(adults, maxAdultsLimit) { adults = it } }
-                    Column(Modifier.weight(1f)) { Text("Children", fontSize = 12.sp, fontWeight = FontWeight.Bold); SimpleCounter(children, maxChildrenLimit) { children = it } }
-                }
             }
         }
 
@@ -212,8 +278,7 @@ fun ReservationFormContent(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(value = roomRent, onValueChange = { roomRent = it }, label = { Text("Room Rent / Night *") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                 OutlinedTextField(value = discount, onValueChange = { discount = it }, label = { Text("Discount") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { isFullPay = !isFullPay }) { Checkbox(checked = isFullPay, onCheckedChange = { isFullPay = it }); Text("Full Pay", fontWeight = FontWeight.Medium) }
-                if (!isFullPay) OutlinedTextField(value = advancePaid, onValueChange = { advancePaid = it }, label = { Text("Advance Paid") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                OutlinedTextField(value = advancePaid, onValueChange = { advancePaid = it }, label = { Text("Advance Paid") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), prefix = { Text("₹ ") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                 
                 Box(Modifier.fillMaxWidth().background(Color(0xFFFFF9C4), RoundedCornerShape(8.dp)).padding(16.dp)) {
                     Column {
@@ -249,10 +314,31 @@ fun ReservationFormContent(
     // RANGE PICKER DIALOG
     if (showRangePicker) {
         val dateRangePickerState = rememberDateRangePickerState(initialSelectedStartDateMillis = checkInDate, initialSelectedEndDateMillis = checkOutDate)
-        com.example.roomservice.ui.common.CommonDateRangePicker(state = dateRangePickerState, onDismiss = { showRangePicker = false }, onConfirm = { start, end -> start?.let { checkInDate = it }; end?.let { checkOutDate = it } })
+        com.example.roomservice.ui.common.CommonDateRangePicker(state = dateRangePickerState, onDismiss = { showRangePicker = false }, onConfirm = { start, end -> 
+            start?.let { checkInDate = DateRangeUtils.getNoonTimestamp(it) }
+            end?.let { checkOutDate = DateRangeUtils.getNoonTimestamp(it) }
+        })
     }
 
     if (showPhotoOptions) {
         AlertDialog(onDismissRequest = { showPhotoOptions = false }, title = { Text("Select ID Photo") }, text = { Text("Choose a source for the photo") }, confirmButton = { TextButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) cameraImageUri?.let { cameraLauncher.launch(it) } else permissionLauncher.launch(Manifest.permission.CAMERA); showPhotoOptions = false }) { Text("CAMERA") } }, dismissButton = { TextButton(onClick = { galleryLauncher.launch("image/*"); showPhotoOptions = false }) { Text("GALLERY") } })
+    }
+
+    if (showBookingDatePicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = bookingDate)
+        DatePickerDialog(
+            onDismissRequest = { showBookingDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { bookingDate = it }
+                    showBookingDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBookingDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }

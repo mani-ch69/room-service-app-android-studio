@@ -1,10 +1,7 @@
 package com.example.roomservice.ui.waiter
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -38,6 +35,9 @@ import com.example.roomservice.ui.settings.GeneralSettingsScreen
 import com.example.roomservice.ui.settings.SecuritySettingsScreen
 import com.example.roomservice.ui.settings.AppLockSettingsScreen
 import androidx.activity.compose.BackHandler
+import com.example.roomservice.ui.util.AuroraBackground
+import com.example.roomservice.ui.util.GlassCard
+import com.example.roomservice.ui.util.GlassTextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +61,7 @@ fun AdminMenuScreen(
     BackHandler {
         if (selectedBottomTab == "settings" && moreTabSubScreen != "main") {
             moreTabSubScreen = when(moreTabSubScreen) {
-                "general_settings", "security_settings" -> "settings_details"
+                "general_settings", "security_settings", "inbox" -> "settings_details"
                 "app_lock" -> "security_settings"
                 "hotel_stays" -> "main"
                 "hotel_rooms_list", "hotel_bookings", "hotel_rates_menu", "hotel_property_detail", "hotel_availability", "pricing_guest" -> "hotel_stays"
@@ -79,14 +79,14 @@ fun AdminMenuScreen(
     var showAddRoomDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Color(0xFFF1F5F9),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { 
                     val title = when (selectedBottomTab) {
                         "home" -> "DASHBOARD"
-                        "orders" -> "ORDERS"
-                        "inbox" -> "INBOX"
+                        "reservations" -> "RESERVATIONS"
+                        "payments" -> "PAYMENTS"
                         else -> {
                             when(moreTabSubScreen) {
                                 "hotel_stays" -> "Hotel & Stay's"
@@ -101,73 +101,79 @@ fun AdminMenuScreen(
                                 "hotel_prop_amenities" -> "Room Amenities"
                                 "hotel_prop_profile" -> "Your Profile"
                                 "hotel_prop_messaging" -> "Messaging Preferences"
-                                "hotel_restriction_rules" -> "Dynamic Restriction Rules"
-                                "hotel_sync_calendars" -> "Sync Calendars"
-                                "hotel_rate_plans" -> "Rate Plans"
-                                "hotel_value_adds" -> "Value Adds"
-                                "hotel_availability" -> "Availability Planner"
+                                "hotel_availability" -> "Calendar"
                                 "pricing_guest" -> "Pricing per guest"
                                 "settings_details" -> "Settings"
                                 "general_settings" -> "General Setting"
                                 "security_settings" -> "App Security"
                                 "app_lock" -> "App Lock"
+                                "inbox" -> "INBOX"
                                 else -> "MORE"
                             }
                         }
                     }
-                    Text(text = title, fontWeight = FontWeight.Black)
+                    Text(
+                        text = title, 
+                        fontWeight = FontWeight.Black, 
+                        color = Color.White,
+                        style = GlassTextStyle
+                    )
                 },
                 navigationIcon = {
                     if (selectedBottomTab == "settings" && moreTabSubScreen != "main") {
                         IconButton(onClick = {
                             moreTabSubScreen = when(moreTabSubScreen) {
-                                "general_settings", "security_settings" -> "settings_details"
+                                "general_settings", "security_settings", "inbox" -> "settings_details"
                                 "app_lock" -> "security_settings"
                                 "hotel_stays" -> "main"
                                 "hotel_rooms_list", "hotel_bookings", "hotel_rates_menu", "hotel_property_detail", "hotel_availability", "pricing_guest" -> "hotel_stays"
                                 "hotel_prop_general_info", "hotel_prop_vat_tax", "hotel_prop_photos", "hotel_prop_policies", "hotel_prop_res_policies", "hotel_prop_facilities", "hotel_prop_room_details", "hotel_prop_amenities", "hotel_prop_profile", "hotel_prop_descriptions", "hotel_prop_messaging", "hotel_prop_sustainability" -> "hotel_property_detail"
                                 else -> "main"
                             }
-                        }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) }
+                        }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White) }
                     }
                 },
                 actions = {
-                    if (moreTabSubScreen == "hotel_rooms_list") IconButton(onClick = { showAddRoomDialog = true }) { Icon(Icons.Default.Add, null) }
+                    if (moreTabSubScreen == "hotel_rooms_list") IconButton(onClick = { showAddRoomDialog = true }) { Icon(Icons.Default.Add, null, tint = Color.White) }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White.copy(alpha = 0.05f))
             )
         },
         bottomBar = {
             Box {
-                NavigationBar(containerColor = Color.White) {
+                NavigationBar(containerColor = Color.White.copy(alpha = 0.05f)) {
                     NavigationBarItem(
                         selected = selectedBottomTab == "home", 
                         onClick = { selectedBottomTab = "home" }, 
                         icon = { Icon(Icons.Default.Dashboard, null) }, 
-                        label = { Text("Home", fontSize = 10.sp) }
+                        label = { Text("Home", fontSize = 10.sp) },
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Color.White, unselectedIconColor = Color.White.copy(alpha = 0.5f), selectedTextColor = Color.White, unselectedTextColor = Color.White.copy(alpha = 0.5f), indicatorColor = Color.White.copy(alpha = 0.1f))
                     )
                     
                     NavigationBarItem(
-                        selected = selectedBottomTab == "orders", 
-                        onClick = { selectedBottomTab = "orders" }, 
-                        icon = { Icon(Icons.Default.ReceiptLong, null) }, 
-                        label = { Text("Orders", fontSize = 10.sp) }
+                        selected = selectedBottomTab == "reservations", 
+                        onClick = { selectedBottomTab = "reservations" }, 
+                        icon = { Icon(Icons.Default.BookOnline, null) }, 
+                        label = { Text("Reservations", fontSize = 10.sp) },
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Color.White, unselectedIconColor = Color.White.copy(alpha = 0.5f), selectedTextColor = Color.White, unselectedTextColor = Color.White.copy(alpha = 0.5f), indicatorColor = Color.White.copy(alpha = 0.1f))
                     )
                     
                     Spacer(Modifier.weight(0.5f))
 
                     NavigationBarItem(
-                        selected = selectedBottomTab == "inbox", 
-                        onClick = { selectedBottomTab = "inbox" }, 
-                        icon = { Icon(Icons.Default.Email, null) }, 
-                        label = { Text("Inbox", fontSize = 10.sp) }
+                        selected = selectedBottomTab == "payments", 
+                        onClick = { selectedBottomTab = "payments" }, 
+                        icon = { Icon(Icons.Default.Payments, null) }, 
+                        label = { Text("Payments", fontSize = 10.sp) },
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Color.White, unselectedIconColor = Color.White.copy(alpha = 0.5f), selectedTextColor = Color.White, unselectedTextColor = Color.White.copy(alpha = 0.5f), indicatorColor = Color.White.copy(alpha = 0.1f))
                     )
 
                     NavigationBarItem(
                         selected = selectedBottomTab == "settings", 
                         onClick = { selectedBottomTab = "settings"; moreTabSubScreen = "main" }, 
                         icon = { Icon(Icons.Default.Menu, null) }, 
-                        label = { Text("More", fontSize = 10.sp) }
+                        label = { Text("More", fontSize = 10.sp) },
+                        colors = NavigationBarItemDefaults.colors(selectedIconColor = Color.White, unselectedIconColor = Color.White.copy(alpha = 0.5f), selectedTextColor = Color.White, unselectedTextColor = Color.White.copy(alpha = 0.5f), indicatorColor = Color.White.copy(alpha = 0.1f))
                     )
                 }
                 
@@ -187,11 +193,10 @@ fun AdminMenuScreen(
                 "home" -> AdminDashboardContent(
                     roomStatuses = roomStatuses, 
                     bookings = bookings, 
-                    onAddBooking = { viewModel.addBooking(it) },
                     onDeleteBooking = { viewModel.deleteBooking(it) }
                 )
-                "orders" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Orders Coming Soon", color = Color.Gray) }
-                "inbox" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Inbox Coming Soon", color = Color.Gray) }
+                "reservations" -> BookingManagementScreen(bookings, rooms) { viewModel.deleteBooking(it) }
+                "payments" -> PaymentsScreen(bookings = bookings, rooms = rooms)
                 "settings" -> {
                     when (moreTabSubScreen) {
                         "main" -> AdminMoreContent(
@@ -200,34 +205,25 @@ fun AdminMenuScreen(
                             onSettingsClick = { moreTabSubScreen = "settings_details" },
                             onLogoutClick = onLogoutClick
                         )
-                        "hotel_stays" -> HotelStaysMenu({ moreTabSubScreen = "hotel_bookings" }, { moreTabSubScreen = "hotel_rates_menu" }, { moreTabSubScreen = "hotel_property_detail" })
+                        "hotel_stays" -> HotelStaysMenu(
+                            onBookingsClick = { moreTabSubScreen = "hotel_bookings" },
+                            onRatesClick = { moreTabSubScreen = "hotel_rates_menu" },
+                            onPropertyClick = { moreTabSubScreen = "hotel_property_detail" }
+                        )
                         "hotel_bookings" -> {
                             BookingManagementScreen(bookings, rooms) { viewModel.deleteBooking(it) }
                         }
-                        "hotel_rates_menu" -> RatesAvailabilityMenu({ moreTabSubScreen = "hotel_availability" }, { 
-                            moreTabSubScreen = when(it) {
-                                "open_close" -> "hotel_open_close"
-                                "pricing_guest" -> "pricing_guest"
-                                "restriction_rules" -> "hotel_restriction_rules"
-                                "sync_calendars" -> "hotel_sync_calendars"
-                                "rate_plans" -> "hotel_rate_plans"
-                                "value_adds" -> "hotel_value_adds"
-                                "planner" -> "hotel_planner"
-                                else -> moreTabSubScreen
+                        "hotel_rates_menu" -> RatesAvailabilityMenu(
+                            onCalendarClick = { moreTabSubScreen = "hotel_availability" },
+                            onItemClick = { 
+                                moreTabSubScreen = when(it) {
+                                    "pricing_guest" -> "pricing_guest"
+                                    else -> moreTabSubScreen
+                                }
                             }
-                        })
-                        "hotel_open_close" -> OpenCloseRoomsScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" }, { from, to, days, types, status ->
-                            // TODO: Implement actual database update logic for bulk open/close
-                            moreTabSubScreen = "hotel_rates_menu"
-                        })
+                        )
                         "pricing_guest" -> PricingPerGuestScreen(rooms, { moreTabSubScreen = "hotel_rates_menu" })
                         "hotel_availability" -> CalendarManagementScreen(rooms, bookings)
-                        "hotel_planner" -> AvailabilityPlannerScreen()
-                        "hotel_restriction_rules" -> DynamicRestrictionsScreen()
-                        "hotel_sync_calendars" -> SyncCalendarsScreen()
-                        "hotel_sync_calendars" -> SyncCalendarsScreen()
-                        "hotel_rate_plans" -> RatePlansScreen { moreTabSubScreen = "hotel_rates_menu" }
-                        "hotel_value_adds" -> ValueAddsScreen()
                         "hotel_property_detail" -> PropertyDetailMenu({ moreTabSubScreen = "hotel_prop_general_info" }, { moreTabSubScreen = "hotel_prop_vat_tax" }, { moreTabSubScreen = "hotel_prop_photos" }, { moreTabSubScreen = "hotel_prop_policies" }, { moreTabSubScreen = "hotel_prop_res_policies" }, { moreTabSubScreen = "hotel_prop_facilities" }, { moreTabSubScreen = "hotel_rooms_list" }, { moreTabSubScreen = "hotel_prop_amenities" }, { moreTabSubScreen = "hotel_prop_profile" }, { moreTabSubScreen = "hotel_prop_descriptions" }, { moreTabSubScreen = "hotel_prop_messaging" }, { moreTabSubScreen = "hotel_prop_sustainability" })
                         "hotel_prop_general_info" -> GeneralInfoStatusScreen()
                         "hotel_prop_vat_tax" -> VatTaxChargesScreen()
@@ -235,17 +231,17 @@ fun AdminMenuScreen(
                         "hotel_prop_policies" -> PropertyPoliciesScreen()
                         "hotel_prop_res_policies" -> ReservationPoliciesScreen()
                         "hotel_prop_amenities" -> RoomAmenitiesScreen()
-                        "hotel_prop_amenities" -> RoomAmenitiesScreen()
                         "hotel_prop_profile" -> YourProfileScreen()
                         "hotel_prop_messaging" -> MessagingPreferencesScreen()
                         "hotel_rooms_list" -> {
                             RoomManagementScreen { moreTabSubScreen = "hotel_property_detail" }
                             if (showAddRoomDialog) AddEditRoomDialog(rooms, null, { showAddRoomDialog = false }, { com.example.roomservice.data.RoomRepository.addRoom(it); showAddRoomDialog = false })
                         }
-                        "settings_details" -> SettingsScreen({ moreTabSubScreen = "main" }, { moreTabSubScreen = "security_settings" })
+                        "settings_details" -> SettingsScreen({ moreTabSubScreen = "main" }, { moreTabSubScreen = "general_settings" }, { moreTabSubScreen = "security_settings" }, onInboxClick = { moreTabSubScreen = "inbox" })
                         "general_settings" -> GeneralSettingsScreen({ moreTabSubScreen = "settings_details" }, onProfileClick)
                         "security_settings" -> SecuritySettingsScreen({ moreTabSubScreen = "settings_details" }, { moreTabSubScreen = "app_lock" })
                         "app_lock" -> AppLockSettingsScreen { moreTabSubScreen = "security_settings" }
+                        "inbox" -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Inbox Coming Soon", color = Color.Gray) }
                         else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Coming Soon") }
                     }
                 }
@@ -256,7 +252,7 @@ fun AdminMenuScreen(
                     rooms = rooms,
                     onDismiss = { showAddBookingDialog = false },
                     onConfirm = { 
-                        viewModel.addBooking(it)
+                        viewModel.addBooking(it, context)
                         showAddBookingDialog = false 
                     }
                 )
@@ -269,60 +265,137 @@ fun AdminMenuScreen(
 fun AuroraManualBookingButton(onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = Modifier
-            .size(48.dp),
+        modifier = Modifier.size(56.dp),
         shape = CircleShape,
-        color = Color(0xFF1976D2), // Primary Blue
-        shadowElevation = 4.dp,
-        border = BorderStroke(2.dp, Color.White)
+        color = Color.White.copy(alpha = 0.15f),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
     ) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 Icons.Default.Add, 
                 contentDescription = null, 
                 tint = Color.White, 
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(32.dp)
             )
         }
     }
 }
 
 @Composable
-fun AdminMoreContent(staffName: String, staffIdLabel: String, staffPhoto: String?, onHotelStaysClick: () -> Unit, onSettingsClick: () -> Unit, onLogoutClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Card(modifier = Modifier.fillMaxWidth().padding(16.dp), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(modifier = Modifier.size(64.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
-                    if (staffPhoto != null) AsyncImage(model = staffPhoto, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                    else Icon(Icons.Default.Person, null, modifier = Modifier.padding(16.dp))
+fun AdminMoreContent(
+    staffName: String, 
+    staffIdLabel: String, 
+    staffPhoto: String?, 
+    onHotelStaysClick: () -> Unit, 
+    onSettingsClick: () -> Unit, 
+    onLogoutClick: () -> Unit
+) {
+    AuroraBackground {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // PROFILE CARD
+            GlassCard(
+                modifier = Modifier.fillMaxWidth(),
+                cornerRadius = 24.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        modifier = Modifier.size(72.dp),
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.1f)
+                    ) {
+                        if (staffPhoto != null) {
+                            AsyncImage(
+                                model = staffPhoto,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Person, 
+                                null, 
+                                modifier = Modifier.padding(16.dp),
+                                tint = Color.White
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(20.dp))
+                    Column {
+                        Text(
+                            staffName, 
+                            fontWeight = FontWeight.Black, 
+                            fontSize = 20.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            staffIdLabel, 
+                            fontSize = 13.sp, 
+                            color = Color.White.copy(alpha = 0.6f),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
-                Spacer(Modifier.width(16.dp))
-                Column { Text(staffName, fontWeight = FontWeight.Bold); Text(staffIdLabel, fontSize = 12.sp, color = Color.Gray) }
             }
+
+            // MENU GROUPS
+            GlassCard(
+                modifier = Modifier.fillMaxWidth(),
+                cornerRadius = 20.dp
+            ) {
+                Column {
+                    MoreMenuItem("Hotel & Stay's", Icons.Default.Hotel, onHotelStaysClick)
+                    MoreMenuItem("Settings", Icons.Default.Settings, onSettingsClick)
+                }
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // LOGOUT BUTTON
+            Button(
+                onClick = onLogoutClick,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F).copy(alpha = 0.2f),
+                    contentColor = Color(0xFFE57373)
+                ),
+                border = BorderStroke(1.dp, Color(0xFFE57373).copy(alpha = 0.3f))
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Logout, null)
+                Spacer(Modifier.width(12.dp))
+                Text("Logout", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+            
+            Spacer(Modifier.height(80.dp))
         }
-        MoreMenuItem("Hotel & Stay's", Icons.Default.Hotel, onHotelStaysClick)
-        MoreMenuItem("Settings", Icons.Default.Settings, onSettingsClick)
-        Spacer(Modifier.weight(1f))
-        MoreMenuItem("Logout", Icons.AutoMirrored.Filled.Logout, onLogoutClick, Color.Red)
     }
 }
 
 @Composable
-fun MoreMenuItem(label: String, icon: ImageVector, onClick: () -> Unit, tint: Color = Color.Black, isNew: Boolean = false) {
-    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.White) {
+fun MoreMenuItem(label: String, icon: ImageVector, onClick: () -> Unit, tint: Color = Color.White, isNew: Boolean = false) {
+    Surface(onClick = onClick, modifier = Modifier.fillMaxWidth(), color = Color.Transparent) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = if(tint == Color.Red) Color.Red else Color(0xFF1976D2))
+            Icon(icon, null, tint = if(tint == Color.Red || tint == Color(0xFFE57373)) Color(0xFFE57373) else Color(0xFF90CAF9))
             Spacer(Modifier.width(16.dp))
-            Text(label, color = tint, modifier = Modifier.weight(1f))
+            Text(label, color = tint, modifier = Modifier.weight(1f), fontWeight = FontWeight.Medium)
             if (isNew) {
                 Surface(
-                    color = Color(0xFF2E7D32),
+                    color = Color(0xFF81C784),
                     shape = RoundedCornerShape(4.dp),
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     Text(
                         "New",
-                        color = Color.White,
+                        color = Color.Black,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -331,7 +404,7 @@ fun MoreMenuItem(label: String, icon: ImageVector, onClick: () -> Unit, tint: Co
             }
         }
     }
-    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp)
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), thickness = 0.5.dp, color = Color.White.copy(alpha = 0.1f))
 }
 
 @Composable
@@ -347,10 +420,6 @@ fun HotelStaysMenu(onBookingsClick: () -> Unit, onRatesClick: () -> Unit, onProp
 fun RatesAvailabilityMenu(onCalendarClick: () -> Unit, onItemClick: (String) -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item { MoreMenuItem("Calendar", Icons.Default.CalendarMonth, onCalendarClick) }
-        item { MoreMenuItem("Open/close rooms", Icons.Default.DoorFront, { onItemClick("open_close") }) }
-        item { MoreMenuItem("Sync calendars", Icons.Default.Sync, { onItemClick("sync_calendars") }) }
-        item { MoreMenuItem("Value adds", Icons.Default.AddCircle, { onItemClick("value_adds") }, isNew = true) }
-        item { MoreMenuItem("Availability planner", Icons.Default.EventNote, { onItemClick("planner") }) }
         item { MoreMenuItem("Pricing per guest", Icons.Default.Groups, { onItemClick("pricing_guest") }) }
     }
 }
