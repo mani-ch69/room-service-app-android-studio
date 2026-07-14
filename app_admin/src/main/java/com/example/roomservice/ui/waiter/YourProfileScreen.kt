@@ -51,7 +51,7 @@ fun YourProfileScreen() {
             item {
                 Text("Your Profile", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
                 Text(
-                    "This info can be shown to potential guests on our website and is an opportunity to help your property stand out.",
+                    "This info can be shown to potential guests and is an opportunity to help your property stand out.",
                     fontSize = 12.sp, color = Color.Gray, modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -205,7 +205,7 @@ fun YourProfileScreen() {
 
             item {
                 Text(
-                    "By saving this content, I agree to let admin69 use my full profile on its website, mobile website, apps and in all other means of communication.",
+                    "By saving this content, I agree to let admin69 use my full profile in all means of communication.",
                     fontSize = 10.sp, color = Color.Gray
                 )
                 Spacer(Modifier.height(16.dp))

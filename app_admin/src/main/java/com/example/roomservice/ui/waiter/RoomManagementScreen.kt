@@ -16,6 +16,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -115,15 +116,17 @@ fun RoomManagementScreen(onBackClick: () -> Unit) {
                 color = Color(0xFF1F2937)
             )
 
-            LazyColumn(
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Individual Room Cards
                 items(rooms) { room ->
                     val roomsOfTypeCount = rooms.count { it.roomType == room.roomType }
-                    PropertyRoomCard(
+                    PropertyRoomGridCard(
                         room = room,
                         typeCount = roomsOfTypeCount,
                         onEdit = { selectedRoomForDetails = room },
@@ -137,10 +140,10 @@ fun RoomManagementScreen(onBackClick: () -> Unit) {
 
                 // Create New Room Card
                 item {
-                    CreateRoomCard(onClick = { showAddDialog = true })
+                    CreateRoomGridCard(onClick = { showAddDialog = true })
                 }
                 
-                item { Spacer(Modifier.height(80.dp)) }
+                item(span = { GridItemSpan(2) }) { Spacer(Modifier.height(80.dp)) }
             }
         }
 
@@ -220,98 +223,124 @@ fun RoomManagementScreen(onBackClick: () -> Unit) {
 }
 
 @Composable
-fun PropertyRoomCard(
+fun PropertyRoomGridCard(
     room: Room,
     typeCount: Int,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onUpload: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth().height(260.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(4.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
         border = BorderStroke(0.5.dp, Color.LightGray.copy(alpha = 0.5f))
     ) {
-        Column {
-            // Room Image with Header Overlay
-            Box(modifier = Modifier.fillMaxWidth().height(220.dp)) {
-                val img = if (room.imageUrl.isNotEmpty()) room.imageUrl 
-                          else "https://img.freepik.com/free-vector/interior-hotel-room-with-bed-window-sketch_107791-3048.jpg"
-                
-                AsyncImage(
-                    model = img, 
-                    contentDescription = null, 
-                    modifier = Modifier.fillMaxSize(), 
-                    contentScale = ContentScale.Crop
-                )
-                
-                // Overlay text at the bottom of the image
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth()
-                        .background(Color.Black.copy(alpha = 0.7f))
-                        .padding(12.dp)
-                ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column {
+                // Room Image
+                Box(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+                    val img = if (room.imageUrl.isNotEmpty()) room.imageUrl 
+                              else "https://img.freepik.com/free-vector/interior-hotel-room-with-bed-window-sketch_107791-3048.jpg"
+                    
+                    AsyncImage(
+                        model = img, 
+                        contentDescription = null, 
+                        modifier = Modifier.fillMaxSize(), 
+                        contentScale = ContentScale.Crop
+                    )
+                    
+                    // Status Badge (Optional, showing availability)
+                    Surface(
+                        modifier = Modifier.padding(8.dp).align(Alignment.TopStart),
+                        color = (if(room.isAvailable) Color(0xFF2E7D32) else Color(0xFFD32F2F)).copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            if(room.isAvailable) "Available" else "Occupied",
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
+                // Room Details
+                Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = room.roomType,
-                        color = Color.White,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 18.sp
+                        color = Color.Black,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1
+                    )
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Groups, null, modifier = Modifier.size(12.dp), tint = Color.Gray)
+                            Spacer(Modifier.width(4.dp))
+                            Text("${room.maxAdults}A, ${room.maxChildren}C", fontSize = 11.sp, color = Color.Gray)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Bed, null, modifier = Modifier.size(12.dp), tint = Color.Gray)
+                            Spacer(Modifier.width(4.dp))
+                            Text("${room.totalUnits} Units", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+
+                    HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.3f))
+
+                    Text(
+                        text = "Max Occupancy: ${room.maxGuests} Guests",
+                        fontSize = 11.sp,
+                        color = Color.DarkGray,
+                        fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Room ID: ${formatRoomId(room.roomNumber)}",
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
+                        text = "ID: ${formatRoomId(room.roomNumber)}",
+                        color = Color.Gray,
+                        fontSize = 10.sp
                     )
                 }
             }
 
-            // Room Details
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatLine("Maximum guests:", "${room.maxGuests} guests")
-                StatLine("Maximum adults:", "${room.maxAdults} adults")
-                StatLine("Maximum children:", "${room.maxChildren} children")
-                StatLine("Number of this type:", "${room.totalUnits}")
-
-                Spacer(Modifier.height(16.dp))
-
-                // Actions
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // More Menu Button
+            Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                IconButton(
+                    onClick = { showMenu = true },
+                    modifier = Modifier.size(32.dp).background(Color.Black.copy(alpha = 0.4f), CircleShape)
                 ) {
-                    OutlinedButton(
-                        onClick = onEdit,
-                        modifier = Modifier.weight(1f).height(40.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        border = BorderStroke(1.dp, Color.LightGray)
-                    ) {
-                        Text("Edit", fontSize = 13.sp, color = Color.Black, fontWeight = FontWeight.Bold)
-                    }
-                    Button(
-                        onClick = onUpload,
-                        modifier = Modifier.weight(1.2f).height(40.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF)),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Text("Photos", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                    OutlinedButton(
-                        onClick = onDelete,
-                        modifier = Modifier.weight(0.8f).height(40.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        border = BorderStroke(1.dp, Color.Red),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
-                    ) {
-                        Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp))
-                    }
+                    Icon(Icons.Default.MoreVert, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                }
+                
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit Details") },
+                        onClick = { onEdit(); showMenu = false },
+                        leadingIcon = { Icon(Icons.Default.Edit, null, modifier = Modifier.size(18.dp)) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Update Photo") },
+                        onClick = { onUpload(); showMenu = false },
+                        leadingIcon = { Icon(Icons.Default.AddPhotoAlternate, null, modifier = Modifier.size(18.dp)) }
+                    )
+                    Divider()
+                    DropdownMenuItem(
+                        text = { Text("Delete Room", color = Color.Red) },
+                        onClick = { onDelete(); showMenu = false },
+                        leadingIcon = { Icon(Icons.Default.Delete, null, modifier = Modifier.size(18.dp), tint = Color.Red) }
+                    )
                 }
             }
         }
@@ -319,40 +348,41 @@ fun PropertyRoomCard(
 }
 
 @Composable
-fun CreateRoomCard(onClick: () -> Unit) {
+fun CreateRoomGridCard(onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(260.dp)
             .clickable { onClick() },
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF335C91)), // Dark blue
-        elevation = CardDefaults.cardElevation(4.dp)
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(2.dp, Color(0xFFE2E8F0).copy(alpha = 0.8f))
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                "Create a new room",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-            Spacer(Modifier.height(16.dp))
             Surface(
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier.size(48.dp),
                 shape = CircleShape,
-                color = Color.White
+                color = Color(0xFF007BFF).copy(alpha = 0.1f)
             ) {
                 Icon(
                     Icons.Default.Add,
                     contentDescription = null,
-                    tint = Color(0xFF335C91),
-                    modifier = Modifier.padding(12.dp).size(32.dp)
+                    tint = Color(0xFF007BFF),
+                    modifier = Modifier.padding(12.dp).size(24.dp)
                 )
             }
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Add New Room",
+                color = Color(0xFF007BFF),
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
         }
     }
 }
@@ -694,7 +724,7 @@ private fun shareQRCode(context: Context, bitmap: Bitmap, roomNumber: String) {
 @Composable
 fun QRDialog(room: Room, onDismiss: () -> Unit, onShare: (Bitmap) -> Unit) {
     val qrBitmap = remember(room) { 
-        QRCodeGenerator.generate(room.generateWebPortalLink()) 
+        QRCodeGenerator.generate(room.generateAppSchemeLink())
     }
     Dialog(onDismissRequest = onDismiss) {
         Card(modifier = Modifier.fillMaxWidth().padding(16.dp), shape = RoundedCornerShape(24.dp)) {

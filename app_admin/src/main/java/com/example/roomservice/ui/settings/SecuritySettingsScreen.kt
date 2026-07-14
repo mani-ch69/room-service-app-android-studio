@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Lock
@@ -48,6 +49,17 @@ fun SecuritySettingsScreen(
                 subtitle = "Manage Mobile PIN and Biometric lock",
                 icon = Icons.Default.Lock,
                 onClick = onAppLockClick
+            )
+        }
+
+        item {
+            SettingsCardItem(
+                title = "Backup data",
+                subtitle = "Export your data for safety",
+                icon = Icons.Default.Backup,
+                onClick = { 
+                    android.widget.Toast.makeText(context, "Backup feature coming soon", android.widget.Toast.LENGTH_SHORT).show()
+                }
             )
         }
 

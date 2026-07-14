@@ -313,7 +313,15 @@ fun ReservationFormContent(
 
     // RANGE PICKER DIALOG
     if (showRangePicker) {
-        val dateRangePickerState = rememberDateRangePickerState(initialSelectedStartDateMillis = checkInDate, initialSelectedEndDateMillis = checkOutDate)
+        val dateRangePickerState = rememberDateRangePickerState(
+            initialSelectedStartDateMillis = checkInDate,
+            initialSelectedEndDateMillis = checkOutDate,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return DateRangeUtils.isSelectableFromToday(utcTimeMillis)
+                }
+            }
+        )
         com.example.roomservice.ui.common.CommonDateRangePicker(state = dateRangePickerState, onDismiss = { showRangePicker = false }, onConfirm = { start, end -> 
             start?.let { checkInDate = DateRangeUtils.getNoonTimestamp(it) }
             end?.let { checkOutDate = DateRangeUtils.getNoonTimestamp(it) }
@@ -325,7 +333,14 @@ fun ReservationFormContent(
     }
 
     if (showBookingDatePicker) {
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = bookingDate)
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = bookingDate,
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                    return DateRangeUtils.isSelectableFromToday(utcTimeMillis)
+                }
+            }
+        )
         DatePickerDialog(
             onDismissRequest = { showBookingDatePicker = false },
             confirmButton = {

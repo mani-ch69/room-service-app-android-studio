@@ -27,34 +27,35 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF1976D2), // Changed to a professional blue
+    primary = Color(0xFFC5A059),
     onPrimary = Color.White,
-    secondary = Color(0xFF2E7D32),
+    secondary = Color(0xFF9E7E45),
     onSecondary = Color.White,
     tertiary = Color(0xFFFFC107),
     onTertiary = Color.Black,
-    background = Color(0xFFE2E8F0), // Slightly darker gray to make white cards pop
-    onBackground = Color.Black,
-    surface = Color.White,
-    onSurface = Color.Black,
-    surfaceVariant = Color.White,
-    onSurfaceVariant = Color.Black,
-    surfaceTint = Color.White
+    background = BackgroundLight,
+    onBackground = TextBlack,
+    surface = SurfaceWhite,
+    onSurface = TextBlack,
+    surfaceVariant = SurfaceWhite,
+    onSurfaceVariant = TextGray,
+    surfaceTint = Color.White,
+    outline = BorderLight
 )
 
 @Composable
 fun RoomServiceTheme(
-    darkTheme: Boolean = false, // Set to false to force Light Theme
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = LightColorScheme // Force light theme
     val view = LocalView.current
     
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = Color.White.toArgb()
-            window.navigationBarColor = Color.White.toArgb()
+            window.statusBarColor = BackgroundLight.toArgb()
+            window.navigationBarColor = BackgroundLight.toArgb()
             
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = true

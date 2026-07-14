@@ -11,12 +11,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomservice.data.model.Booking
 import com.example.roomservice.data.model.Room
 import com.example.roomservice.ui.common.BookingCard
+import com.example.roomservice.ui.common.WhatsAppTemplateDialog
 import com.example.roomservice.ui.common.StatCard
 import com.example.roomservice.ui.util.AuroraBackground
 import java.util.*
@@ -48,8 +50,8 @@ fun PaymentsScreen(bookings: List<Booking>, rooms: List<Room>) {
         Column(modifier = Modifier.fillMaxSize()) {
             ScrollableTabRow(
                 selectedTabIndex = when(selectedRange) { "Today" -> 0; "Last 7 Days" -> 1; "Last 30 Days" -> 2; else -> 3 },
-                containerColor = Color.White.copy(alpha = 0.05f),
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
                 edgePadding = 16.dp,
                 divider = {}
             ) {
@@ -57,7 +59,7 @@ fun PaymentsScreen(bookings: List<Booking>, rooms: List<Room>) {
                     Tab(
                         selected = selectedRange == range,
                         onClick = { selectedRange = range },
-                        text = { Text(range, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedRange == range) Color.White else Color.White.copy(alpha = 0.5f)) }
+                        text = { Text(range, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (selectedRange == range) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
                     )
                 }
             }
@@ -83,7 +85,7 @@ fun PaymentsScreen(bookings: List<Booking>, rooms: List<Room>) {
                         text = "Recent Transactions", 
                         fontWeight = FontWeight.Black, 
                         fontSize = 18.sp, 
-                        color = Color.White, 
+                        color = MaterialTheme.colorScheme.onBackground, 
                         modifier = Modifier.padding(vertical = 8.dp),
                         style = com.example.roomservice.ui.util.GlassTextStyle
                     )
@@ -92,20 +94,25 @@ fun PaymentsScreen(bookings: List<Booking>, rooms: List<Room>) {
                 if (filteredBookings.isEmpty()) {
                     item {
                         Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("No transactions found", color = Color.White.copy(alpha = 0.5f))
+                            Text("No transactions found", color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 } else {
                     items(filteredBookings, key = { it.id }) { booking ->
+                        var showWhatsAppDialog by remember { mutableStateOf(false) }
+                        val businessDetails by com.example.roomservice.data.BusinessDetailsRepository.details.collectAsState()
+                        val context = LocalContext.current
+
                         BookingCard(
                             booking = booking,
                             rooms = rooms,
+                            onWhatsApp = { showWhatsAppDialog = true },
                             actionButton = {
                                 Button(
                                     onClick = { editingBooking = booking },
                                     modifier = Modifier.fillMaxWidth().height(44.dp),
                                     shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.1f), contentColor = Color(0xFF90CAF9))
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), contentColor = MaterialTheme.colorScheme.primary)
                                 ) {
                                     Icon(Icons.Default.Add, null, modifier = Modifier.size(20.dp))
                                     Spacer(Modifier.width(8.dp))
@@ -113,6 +120,18 @@ fun PaymentsScreen(bookings: List<Booking>, rooms: List<Room>) {
                                 }
                             }
                         )
+
+                        if (showWhatsAppDialog) {
+                            WhatsAppTemplateDialog(
+                                booking = booking,
+                                business = businessDetails,
+                                onDismiss = { showWhatsAppDialog = false },
+                                onSend = { message ->
+                                    com.example.roomservice.util.ReceiptHelper.sendWhatsAppMessage(context, booking.guestPhone, message)
+                                    showWhatsAppDialog = false
+                                }
+                            )
+                        }
                     }
                 }
                 

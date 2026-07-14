@@ -69,8 +69,19 @@ fun CommonDateRangePicker(
     ) {
         DateRangePicker(
             state = state,
-            modifier = Modifier.weight(1f).padding(16.dp),
-            title = { Text("Select Stay Dates", modifier = Modifier.padding(16.dp)) }
+            modifier = Modifier.fillMaxWidth().height(500.dp),
+            showModeToggle = false,
+            title = { Text("Select Stay Dates", modifier = Modifier.padding(16.dp), fontWeight = FontWeight.Bold) },
+            headline = {
+                val start = state.selectedStartDateMillis
+                val end = state.selectedEndDateMillis
+                val df = java.text.SimpleDateFormat("dd MMM", java.util.Locale.getDefault())
+                Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text(if (start != null) df.format(java.util.Date(start)) else "Start Date")
+                    Text(" - ")
+                    Text(if (end != null) df.format(java.util.Date(end)) else "End Date")
+                }
+            }
         )
     }
 }

@@ -18,7 +18,11 @@ object ReceiptHelper {
 
     fun shareReceiptOnWhatsApp(context: Context, booking: Booking, business: BusinessDetails, roomType: String) {
         val message = generateWhatsAppMessage(booking, business, roomType)
-        val phoneNumber = booking.guestPhone.replace(" ", "").replace("+", "")
+        sendWhatsAppMessage(context, booking.guestPhone, message)
+    }
+
+    fun sendWhatsAppMessage(context: Context, phone: String, message: String) {
+        val phoneNumber = phone.replace(" ", "").replace("+", "")
         
         try {
             val intent = Intent(Intent.ACTION_VIEW)
@@ -38,7 +42,7 @@ object ReceiptHelper {
             val intent = Intent(Intent.ACTION_SEND)
             intent.type = "text/plain"
             intent.putExtra(Intent.EXTRA_TEXT, message)
-            context.startActivity(Intent.createChooser(intent, "Share Receipt"))
+            context.startActivity(Intent.createChooser(intent, "Share Message"))
         }
     }
 

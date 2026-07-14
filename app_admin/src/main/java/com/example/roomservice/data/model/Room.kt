@@ -1,6 +1,5 @@
 package com.example.roomservice.data.model
 
-import java.net.URLEncoder
 import java.util.UUID
 
 data class Room(
@@ -26,14 +25,6 @@ data class Room(
     var imageUrl: String = "",
     var isAvailable: Boolean = true
 ) {
-    fun generateWebPortalLink(): String {
-        // Updated to match the actual Render project URL from your screenshot
-        val baseUrl = "https://room-service-portal.onrender.com"
-        val encodedHotel = URLEncoder.encode(hotelId, "UTF-8")
-        val encodedRoom = URLEncoder.encode(roomNumber, "UTF-8")
-        return "$baseUrl/?hotel=$encodedHotel&room=$encodedRoom"
-    }
-
     fun generateAppSchemeLink(): String {
         return "roomservice://scan?room=$roomNumber&hotel=$hotelId"
     }

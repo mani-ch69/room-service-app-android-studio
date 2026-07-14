@@ -1,20 +1,48 @@
-<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- New Bed/Sleeping Icon - Centered for adaptive masks -->
-    <group
-        android:translateX="18"
-        android:translateY="20"
-        android:scaleX="0.14"
-        android:scaleY="0.14">
+    <!-- Outer Circular Border (Safe Zone) -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,54m-44,0a44,44 0,1 1,88 0a44,44 0,1 1,-88 0"
+        android:strokeWidth="1"
+        android:strokeColor="#C5A059"/>
 
-        <path
-            android:fillColor="#C5A059"
-            android:pathData="M31.3,31.3h468.7v449.2h-468.7z M49.5,49.5v322.3l44.4,-0.2v39.5c0,13.1 10.6,23.7 23.7,23.7s23.7,-10.6 23.7,-23.7v-39.5h311.1v39.5c0,13.1 10.6,23.7 23.7,23.7s23.7,-10.6 23.7,-23.7v-143.5c0,-43.6 -35.4,-79.1 -79.1,-79.1H221.7v-23.7h11.8c13.1,0 23.7,-10.6 23.7,-23.7v-63.2c0,-13.1 -10.6,-23.7 -23.7,-23.7h-47.4c-13.1,0 -23.7,10.6 -23.7,23.7v63.2c0,13.1 10.6,23.7 23.7,23.7h11.8v23.7h-67v-35.4l44.4,-0.2v-274.6L49.5,49.5z M141.5,145.4c0,-26.1 -21.1,-47.4 -47.4,-47.4s-47.4,21.3 -47.4,47.4s21.1,47.4,47.4,47.4S141.5,171.6,141.5,145.4z" />
-    </group>
+    <!-- Shield Background -->
+    <path
+        android:fillColor="#C5A059"
+        android:pathData="M54,25 C45,25 35,28 32,32 L32,65 C32,75 45,85 54,88 C63,85 76,75 76,65 L76,32 C73,28 63,25 54,25 Z"/>
+
+    <!-- Crown on top -->
+    <path
+        android:fillColor="#C5A059"
+        android:pathData="M54,12 L58,18 L64,16 L62,22 L54,22 L46,22 L44,16 L50,18 Z"/>
+
+    <!-- Inside Shield: Letters 'GH' merged with House -->
+    <!-- 'G' -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,45 C45,45 42,47 41,50 C40,53 40,57 41,60 C42,63 45,65 48,65 L48,60 L45,60 L45,58 L50,58 L50,67 C48,68 46,68 44,67 C40,66 38,62 38,57 C38,52 40,48 44,45 C46,44 48,44 50,45 L50,47 C48,46 47,46 45,47 Z"/>
+
+    <!-- 'H' -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M58,45 L58,68 L61,68 L61,58 L68,58 L68,68 L71,68 L71,45 L68,45 L68,55 L61,55 L61,45 Z"/>
+
+    <!-- House Roof over GH -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,48 L54,38 L70,48 L68,50 L54,41 L40,50 Z"/>
+
+    <!-- Waves at bottom of shield -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,72 Q46,68 54,72 Q62,76 70,72 L70,74 Q62,78 54,74 Q46,70 38,74 Z"/>
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,76 Q46,72 54,76 Q62,80 70,76 L70,78 Q62,82 54,78 Q46,74 38,78 Z"/>
 
 </vector>

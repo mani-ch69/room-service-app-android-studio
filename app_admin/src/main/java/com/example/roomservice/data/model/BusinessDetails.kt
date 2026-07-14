@@ -7,7 +7,6 @@ data class BusinessDetails(
     var phone: String = "",
     var email: String = "",
     var logoUrl: String = "",
-    var website: String = "",
     var description: String = "",
     var propertyType: String = "Hotel",
     var starRating: String = "3",

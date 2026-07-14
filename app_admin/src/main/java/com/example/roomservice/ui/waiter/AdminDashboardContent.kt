@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,14 +33,16 @@ import com.example.roomservice.data.model.*
 import com.example.roomservice.ui.common.BookingCard
 import com.example.roomservice.ui.common.StatCard
 import com.example.roomservice.ui.common.isSameDay
+import com.example.roomservice.ui.common.WhatsAppTemplateDialog
 import com.example.roomservice.ui.util.AuroraBackground
 import com.example.roomservice.ui.util.GlassCard
 import com.example.roomservice.ui.util.GlassTextStyle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun AdminDashboardContent(
     roomStatuses: List<RoomLiveStatus>,
@@ -50,24 +54,8 @@ fun AdminDashboardContent(
     val stats by viewModel.dashboardStats.collectAsState()
     val context = LocalContext.current
     
+    var editingBooking by remember { mutableStateOf<Booking?>(null) }
     val pullToRefreshState = rememberPullToRefreshState()
-
-    // Auto-update status logic
-    LaunchedEffect(bookings) {
-        val now = Calendar.getInstance()
-        bookings.forEach { booking ->
-            if (booking.status == BookingStatus.BOOKED || booking.status == BookingStatus.CHECKED_IN) {
-                val checkOutCal = Calendar.getInstance().apply { 
-                    timeInMillis = booking.checkOutDate
-                    set(Calendar.HOUR_OF_DAY, 12)
-                    set(Calendar.MINUTE, 0)
-                }
-                if (now.after(checkOutCal)) {
-                    viewModel.updateBookingStatus(booking.id, BookingStatus.COMPLETED, context)
-                }
-            }
-        }
-    }
 
     if (pullToRefreshState.isRefreshing) {
         LaunchedEffect(true) {
@@ -86,15 +74,70 @@ fun AdminDashboardContent(
                 bookings = bookings, 
                 stats = stats,
                 onDeleteBooking = onDeleteBooking,
-                onStatusUpdate = { id, status -> viewModel.updateBookingStatus(id, status, context) }
+                onStatusUpdate = { id, status -> viewModel.updateBookingStatus(id, status, context) },
+                onAddPayment = { editingBooking = it }
             )
 
             PullToRefreshContainer(
                 state = pullToRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
-                containerColor = Color.White.copy(alpha = 0.1f),
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary
             )
+        }
+
+        if (editingBooking != null) {
+            AddPaymentDialog(
+                booking = editingBooking!!,
+                onDismiss = { editingBooking = null },
+                onConfirm = { updated ->
+                    com.google.firebase.database.FirebaseDatabase.getInstance().getReference("hotels")
+                        .child(updated.hotelId).child("bookings").child(updated.id).setValue(updated)
+                    editingBooking = null
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun LiveStatsSummary(bookings: List<Booking>, selectedDate: Long) {
+    val counts = remember(bookings, selectedDate) {
+        val checkIns = bookings.count { b -> b.status != BookingStatus.CANCELLED && isSameDay(Calendar.getInstance().apply { timeInMillis = b.checkInDate }, Calendar.getInstance().apply { timeInMillis = selectedDate }) }
+        val checkOuts = bookings.count { b -> b.status != BookingStatus.CANCELLED && isSameDay(Calendar.getInstance().apply { timeInMillis = b.checkOutDate }, Calendar.getInstance().apply { timeInMillis = selectedDate }) }
+        val stayOvers = bookings.count { b -> 
+            b.status != BookingStatus.CANCELLED && 
+            !isSameDay(Calendar.getInstance().apply { timeInMillis = b.checkInDate }, Calendar.getInstance().apply { timeInMillis = selectedDate }) && 
+            !isSameDay(Calendar.getInstance().apply { timeInMillis = b.checkOutDate }, Calendar.getInstance().apply { timeInMillis = selectedDate }) &&
+            selectedDate > b.checkInDate && selectedDate < b.checkOutDate 
+        }
+        Triple(checkIns, stayOvers, checkOuts)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        StatBadgeMini("Check-ins", counts.first, Color(0xFF1976D2), Modifier.weight(1f))
+        StatBadgeMini("Stay-overs", counts.second, Color(0xFF1976D2), Modifier.weight(1f))
+        StatBadgeMini("Check-outs", counts.third, Color(0xFF64748B), Modifier.weight(1f))
+    }
+}
+
+@Composable
+fun StatBadgeMini(label: String, count: Int, color: Color, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        color = color.copy(alpha = 0.05f),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.1f))
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(count.toString(), fontSize = 18.sp, fontWeight = FontWeight.Black, color = color)
+            Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = color.copy(alpha = 0.7f))
         }
     }
 }
@@ -117,7 +160,8 @@ fun DashboardCalendarView(
     bookings: List<Booking>,
     stats: DashboardStats,
     onDeleteBooking: (String) -> Unit,
-    onStatusUpdate: (String, BookingStatus) -> Unit
+    onStatusUpdate: (String, BookingStatus) -> Unit,
+    onAddPayment: (Booking) -> Unit
 ) {
     var selectedDate by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var calendarMonth by remember { mutableStateOf(Calendar.getInstance()) }
@@ -141,8 +185,6 @@ fun DashboardCalendarView(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item { DashboardStatsRow(stats) }
-
         item {
             GridCalendar(
                 calendarMonth = calendarMonth,
@@ -154,21 +196,18 @@ fun DashboardCalendarView(
         }
 
         item {
-            val isTodaySelected = isSameDay(Calendar.getInstance(), Calendar.getInstance().apply { timeInMillis = selectedDate })
-            Text(
-                text = if (isTodaySelected) "Today's Bookings" else "Bookings for ${SimpleDateFormat("dd MMM", Locale.getDefault()).format(Date(selectedDate))}",
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 16.sp,
-                color = Color.White,
-                modifier = Modifier.padding(top = 8.dp),
-                style = GlassTextStyle
-            )
+            LiveStatsSummary(bookings, selectedDate)
+        }
+
+        item {
+            // Space between stats and list
+            Spacer(Modifier.height(4.dp))
         }
 
         if (bookingsForDate.isEmpty()) {
             item {
                 Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                    Text("No bookings for this date", color = Color.Gray, fontSize = 14.sp)
+                    Text("No bookings for this date", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                 }
             }
         } else {
@@ -176,6 +215,7 @@ fun DashboardCalendarView(
                 var showStatusDialog by remember { mutableStateOf(false) }
                 var showDeleteConfirm by remember { mutableStateOf(false) }
                 var showEditDialog by remember { mutableStateOf(false) }
+                var showWhatsAppDialog by remember { mutableStateOf(false) }
                 
                 val roomType = rooms.find { it.roomNumber == booking.roomNumber }?.roomType ?: ""
 
@@ -186,7 +226,24 @@ fun DashboardCalendarView(
                     onEdit = { showEditDialog = true },
                     onStatusClick = { showStatusDialog = true },
                     onPrint = { com.example.roomservice.util.ReceiptHelper.printBookingReceipt(context, booking, businessDetails, roomType) },
-                    onWhatsApp = { com.example.roomservice.util.ReceiptHelper.shareReceiptOnWhatsApp(context, booking, businessDetails, roomType) }
+                    onWhatsApp = { showWhatsAppDialog = true },
+                    onWhatsAppReceipt = { com.example.roomservice.util.ReceiptHelper.shareReceiptOnWhatsApp(context, booking, businessDetails, roomType) },
+                    onWhatsAppContact = { com.example.roomservice.util.ReceiptHelper.sendWhatsAppMessage(context, booking.guestPhone, "Hello ${booking.guestName}, this is Ganga Homestays.") },
+                    actionButton = {
+                        Button(
+                            onClick = { onAddPayment(booking) },
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Icon(Icons.Default.AddCard, null, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Add Payment", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 )
 
                 if (showStatusDialog) {
@@ -228,6 +285,18 @@ fun DashboardCalendarView(
                         }
                     )
                 }
+
+                if (showWhatsAppDialog) {
+                    WhatsAppTemplateDialog(
+                        booking = booking,
+                        business = businessDetails,
+                        onDismiss = { showWhatsAppDialog = false },
+                        onSend = { message ->
+                            com.example.roomservice.util.ReceiptHelper.sendWhatsAppMessage(context, booking.guestPhone, message)
+                            showWhatsAppDialog = false
+                        }
+                    )
+                }
             }
         }
 
@@ -235,6 +304,7 @@ fun DashboardCalendarView(
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun GridCalendar(
     calendarMonth: Calendar,
@@ -245,6 +315,28 @@ fun GridCalendar(
 ) {
     val sdfMonth = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
     
+    // We use a large initial page to allow swiping left/right
+    val initialPage = 500
+    val pagerState = rememberPagerState(pageCount = { 1000 }, initialPage = initialPage)
+    val coroutineScope = rememberCoroutineScope()
+
+    // Sync month changes from pager swipes
+    LaunchedEffect(pagerState.currentPage) {
+        val diff = pagerState.currentPage - initialPage
+        val targetMonth = Calendar.getInstance().apply {
+            // Start from the current actual month
+            set(Calendar.DAY_OF_MONTH, 1)
+            add(Calendar.MONTH, diff)
+        }
+        
+        // Only update if it's actually a different month/year
+        if (targetMonth.get(Calendar.MONTH) != calendarMonth.get(Calendar.MONTH) ||
+            targetMonth.get(Calendar.YEAR) != calendarMonth.get(Calendar.YEAR)) {
+            onMonthChange(targetMonth)
+        }
+    }
+
+    // Handle button clicks to scroll the pager
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -252,30 +344,60 @@ fun GridCalendar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = {
-                val newMonth = calendarMonth.clone() as Calendar
-                newMonth.add(Calendar.MONTH, -1)
-                onMonthChange(newMonth)
+                coroutineScope.launch {
+                    pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                }
             }) {
-                Icon(Icons.Default.ChevronLeft, null, tint = Color.White, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.ChevronLeft, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(28.dp))
             }
             
             Text(
                 text = sdfMonth.format(calendarMonth.time),
                 fontWeight = FontWeight.Black,
                 fontSize = 20.sp,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             IconButton(onClick = {
-                val newMonth = calendarMonth.clone() as Calendar
-                newMonth.add(Calendar.MONTH, 1)
-                onMonthChange(newMonth)
+                coroutineScope.launch {
+                    pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                }
             }) {
-                Icon(Icons.Default.ChevronRight, null, tint = Color.White, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(28.dp))
             }
         }
 
         Spacer(Modifier.height(16.dp))
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth()
+        ) { page ->
+            val pageMonth = remember(page) {
+                Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_MONTH, 1)
+                    add(Calendar.MONTH, page - initialPage)
+                }
+            }
+            
+            CalendarMonthPage(
+                pageMonth = pageMonth,
+                selectedDate = selectedDate,
+                bookings = bookings,
+                onDateSelected = onDateSelected
+            )
+        }
+    }
+}
+
+@Composable
+fun CalendarMonthPage(
+    pageMonth: Calendar,
+    selectedDate: Long,
+    bookings: List<Booking>,
+    onDateSelected: (Long) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth()) {
             listOf("S", "M", "T", "W", "T", "F", "S").forEach { day ->
                 Text(
@@ -284,13 +406,13 @@ fun GridCalendar(
                     textAlign = TextAlign.Center,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
         Spacer(Modifier.height(8.dp))
 
-        val monthDates = remember(calendarMonth) { getDatesForMonth(calendarMonth) }
+        val monthDates = remember(pageMonth) { getDatesForMonth(pageMonth) }
         val today = Calendar.getInstance()
 
         monthDates.chunked(7).forEach { week ->
@@ -314,8 +436,8 @@ fun GridCalendar(
                                 .clip(CircleShape)
                                 .background(
                                     when {
-                                        isSelected -> Color(0xFF1976D2)
-                                        isToday -> Color.White.copy(alpha = 0.15f)
+                                        isSelected -> MaterialTheme.colorScheme.primary // Blue
+                                        isToday -> Color(0xFFF57C00) // Orange
                                         else -> Color.Transparent
                                     }
                                 )
@@ -327,14 +449,14 @@ fun GridCalendar(
                                     text = cal.get(Calendar.DAY_OF_MONTH).toString(),
                                     fontSize = 14.sp,
                                     fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.9f)
+                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
                                 )
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(3.dp),
                                     modifier = Modifier.padding(top = 2.dp)
                                 ) {
-                                    if (hasCheckIn) Box(Modifier.size(6.dp).background(Color(0xFF81C784), CircleShape))
-                                    if (hasCheckOut) Box(Modifier.size(6.dp).background(Color(0xFFE57373), CircleShape))
+                                    if (hasCheckIn) Box(Modifier.size(6.dp).background(Color(0xFF1976D2), CircleShape))
+                                    if (hasCheckOut) Box(Modifier.size(6.dp).background(Color(0xFF64748B), CircleShape))
                                 }
                             }
                         }
@@ -356,19 +478,19 @@ fun StatusSelectionDialog(
         Card(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Update Status", fontWeight = FontWeight.Black, fontSize = 20.sp)
+                Text("Update Status", fontWeight = FontWeight.Black, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(Modifier.height(24.dp))
                 StatusOptionRow("OK", Icons.Default.CheckCircle, Color(0xFF2E7D32), currentStatus == BookingStatus.COMPLETED) { onStatusSelected(BookingStatus.COMPLETED) }
                 Spacer(Modifier.height(12.dp))
-                StatusOptionRow("CANCELLED", Icons.Default.Cancel, Color.Red, currentStatus == BookingStatus.CANCELLED) { onStatusSelected(BookingStatus.CANCELLED) }
+                StatusOptionRow("CANCELLED", Icons.Default.Cancel, Color(0xFFD32F2F), currentStatus == BookingStatus.CANCELLED) { onStatusSelected(BookingStatus.CANCELLED) }
                 Spacer(Modifier.height(24.dp))
-                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("CLOSE", color = Color.Gray) }
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) { Text("CLOSE", color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
         }
     }
@@ -380,13 +502,13 @@ fun StatusOptionRow(label: String, icon: ImageVector, color: Color, isSelected: 
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) color.copy(alpha = 0.1f) else Color(0xFFF8FAFC),
+        color = if (isSelected) color.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
         border = if (isSelected) BorderStroke(2.dp, color) else null
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, null, tint = color, modifier = Modifier.size(24.dp))
             Spacer(Modifier.width(16.dp))
-            Text(text = label, fontWeight = FontWeight.Bold, color = if (isSelected) color else Color.Black, fontSize = 16.sp)
+            Text(text = label, fontWeight = FontWeight.Bold, color = if (isSelected) color else MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
             Spacer(Modifier.weight(1f))
             if (isSelected) Icon(Icons.Default.Check, null, tint = color, modifier = Modifier.size(20.dp))
         }
@@ -400,7 +522,7 @@ fun DeleteConfirmDialog(title: String, message: String, onDismiss: () -> Unit, o
         title = { Text(title, fontWeight = FontWeight.Bold) },
         text = { Text(message) },
         confirmButton = {
-            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color.Red), shape = RoundedCornerShape(8.dp)) { Text("DELETE") }
+            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)), shape = RoundedCornerShape(8.dp)) { Text("DELETE") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("CANCEL") }

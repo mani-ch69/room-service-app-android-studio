@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomservice.data.model.*
 import com.example.roomservice.ui.common.BookingCard
+import com.example.roomservice.ui.common.WhatsAppTemplateDialog
 import com.example.roomservice.ui.common.CommonDateRangePicker
 import com.example.roomservice.ui.util.AuroraBackground
 import com.example.roomservice.ui.util.GlassCard
@@ -32,18 +33,18 @@ fun BookingManagementScreen(
     rooms: List<Room>,
     onDeleteBooking: (String) -> Unit
 ) {
-    val startOfToday = remember { Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis }
-    val endOfToday = remember { Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999) }.timeInMillis }
+    val startOfRange = remember { Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -30); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis }
+    val endOfRange = remember { Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 90); set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999) }.timeInMillis }
 
     var activeDateOfType by remember { mutableStateOf("Check-in") }
-    var activeDateFrom by remember { mutableLongStateOf(startOfToday) }
-    var activeDateTo by remember { mutableLongStateOf(endOfToday) }
+    var activeDateFrom by remember { mutableLongStateOf(startOfRange) }
+    var activeDateTo by remember { mutableLongStateOf(endOfRange) }
     var activeSearchQuery by remember { mutableStateOf("") }
     val activeStatuses = remember { mutableStateListOf<String>() }
 
     var draftDateOfType by remember { mutableStateOf("Check-in") }
-    var draftDateFrom by remember { mutableLongStateOf(startOfToday) }
-    var draftDateTo by remember { mutableLongStateOf(endOfToday) }
+    var draftDateFrom by remember { mutableLongStateOf(startOfRange) }
+    var draftDateTo by remember { mutableLongStateOf(endOfRange) }
     var draftSearchQuery by remember { mutableStateOf("") }
     val draftStatuses = remember { mutableStateListOf<String>() }
 
@@ -62,9 +63,11 @@ fun BookingManagementScreen(
                 else -> b.checkInDate
             }
 
-            val inDateRange = dateToCompare in (activeDateFrom..activeDateTo)
+            val isInDateRange = dateToCompare in (activeDateFrom..activeDateTo)
+
             val matchesStatus = activeStatuses.isEmpty() || activeStatuses.any { s ->
                 when(s) {
+                    "Stay-over" -> b.status == BookingStatus.CHECKED_IN
                     "Ok" -> b.status == BookingStatus.COMPLETED
                     "Canceled" -> b.status == BookingStatus.CANCELLED
                     "No-show" -> b.status == BookingStatus.BOOKED 
@@ -75,8 +78,15 @@ fun BookingManagementScreen(
                              b.guestName.contains(activeSearchQuery, ignoreCase = true) || 
                              b.bookingNumber.contains(activeSearchQuery, ignoreCase = true)
 
-            inDateRange && matchesStatus && matchesSearch
-        }.sortedByDescending { it.checkInDate }
+            isInDateRange && matchesStatus && matchesSearch
+        }.sortedBy { b ->
+            when (activeDateOfType) {
+                "Check-in" -> b.checkInDate
+                "Check-out" -> b.checkOutDate
+                "Reservation" -> b.timestamp
+                else -> b.checkInDate
+            }
+        }
     }
 
     LaunchedEffect(bookings) { applyFilters() }
@@ -117,17 +127,42 @@ fun BookingManagementScreen(
                                     }
                                 }
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    OutlinedButton(onClick = { isMoreFiltersExpanded = !isMoreFiltersExpanded }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(36.dp), contentPadding = PaddingValues(horizontal = 8.dp), border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))) { Icon(Icons.Default.FilterAlt, null, modifier = Modifier.size(16.dp), tint = Color.White); Spacer(Modifier.width(4.dp)); Text("Filters", fontSize = 12.sp, color = Color.White) }
+                                    OutlinedButton(
+                                        onClick = { isMoreFiltersExpanded = !isMoreFiltersExpanded }, 
+                                        shape = RoundedCornerShape(8.dp), 
+                                        modifier = Modifier.weight(1f).height(36.dp), 
+                                        contentPadding = PaddingValues(horizontal = 8.dp), 
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                                    ) { 
+                                        Icon(Icons.Default.FilterAlt, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                                        Spacer(Modifier.width(4.dp))
+                                        Text("Filters", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface) 
+                                    }
                                     Button(onClick = { 
                                         activeDateOfType = draftDateOfType; activeDateFrom = draftDateFrom; activeDateTo = draftDateTo; activeSearchQuery = draftSearchQuery; activeStatuses.clear(); activeStatuses.addAll(draftStatuses); applyFilters() 
-                                    }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(0.6f).height(36.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1976D2))) { Text("Show", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                                    }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(0.6f).height(36.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) { Text("Show", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                                 }
                             }
                         }
                         AnimatedVisibility(visible = isMoreFiltersExpanded) {
                             Column(modifier = Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                OutlinedTextField(value = draftSearchQuery, onValueChange = { draftSearchQuery = it }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), placeholder = { Text("Search guest or booking #", fontSize = 13.sp, color = Color.White.copy(alpha = 0.5f)) }, leadingIcon = { Icon(Icons.Default.Search, null, tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(18.dp)) }, singleLine = true, colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color.White.copy(alpha = 0.05f), focusedTextColor = Color.White, unfocusedTextColor = Color.White, focusedBorderColor = Color.White.copy(alpha = 0.4f), unfocusedBorderColor = Color.White.copy(alpha = 0.2f)))
-                                FilterGroup("Status", listOf("Ok", "Canceled", "No-show"), draftStatuses)
+                                OutlinedTextField(
+                                    value = draftSearchQuery, 
+                                    onValueChange = { draftSearchQuery = it }, 
+                                    modifier = Modifier.fillMaxWidth(), 
+                                    shape = RoundedCornerShape(8.dp), 
+                                    placeholder = { Text("Search guest or booking #", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)) }, 
+                                    leadingIcon = { Icon(Icons.Default.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f), modifier = Modifier.size(18.dp)) }, 
+                                    singleLine = true, 
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f), 
+                                        focusedTextColor = MaterialTheme.colorScheme.onSurface, 
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface, 
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary, 
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                    )
+                                )
+                                FilterGroup("Status", listOf("Stay-over", "Ok", "Canceled", "No-show"), draftStatuses)
                             }
                         }
                     }
@@ -137,16 +172,17 @@ fun BookingManagementScreen(
             if (filteredBookings.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(64.dp), tint = Color.White.copy(alpha = 0.3f))
-                        Text("No results found", color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Medium)
+                        Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
+                        Text("No results found", color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
                     }
                 }
             } else {
                 LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    item { Text("Found ${filteredBookings.size} bookings", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.6f), modifier = Modifier.padding(bottom = 4.dp)) }
+                    item { Text("Found ${filteredBookings.size} bookings", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 4.dp)) }
                     items(filteredBookings, key = { it.id }) { booking ->
                         var showEditDialog by remember { mutableStateOf(false) }
                         var showDeleteConfirm by remember { mutableStateOf(false) }
+                        var showWhatsAppDialog by remember { mutableStateOf(false) }
                         val roomType = rooms.find { it.roomNumber == booking.roomNumber }?.roomType ?: ""
 
                         BookingCard(
@@ -154,8 +190,20 @@ fun BookingManagementScreen(
                             rooms = rooms,
                             onEdit = { showEditDialog = true },
                             onPrint = { com.example.roomservice.util.ReceiptHelper.printBookingReceipt(context, booking, businessDetails, roomType) },
-                            onWhatsApp = { com.example.roomservice.util.ReceiptHelper.shareReceiptOnWhatsApp(context, booking, businessDetails, roomType) }
+                            onWhatsApp = { showWhatsAppDialog = true }
                         )
+
+                        if (showWhatsAppDialog) {
+                            WhatsAppTemplateDialog(
+                                booking = booking,
+                                business = businessDetails,
+                                onDismiss = { showWhatsAppDialog = false },
+                                onSend = { message ->
+                                    com.example.roomservice.util.ReceiptHelper.sendWhatsAppMessage(context, booking.guestPhone, message)
+                                    showWhatsAppDialog = false
+                                }
+                            )
+                        }
 
                         if (showDeleteConfirm) {
                             DeleteConfirmDialog(title = "Delete Booking?", message = "Are you sure you want to permanently delete ${booking.guestName}\u0027s booking?", onDismiss = { showDeleteConfirm = false }, onConfirm = { onDeleteBooking(booking.id); showDeleteConfirm = false })
@@ -214,16 +262,32 @@ fun CompactDateBox(label: String, value: String, onClick: () -> Unit, modifier: 
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FilterGroup(title: String, options: List<String>, selectedList: MutableList<String>, modifier: Modifier = Modifier) {
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(title, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF334155))
+        Text(title, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
         Spacer(Modifier.height(4.dp))
         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             options.forEach { option ->
                 val isSelected = selectedList.contains(option)
-                FilterChip(selected = isSelected, onClick = { if (isSelected) selectedList.remove(option) else selectedList.add(option) }, label = { Text(option, fontSize = 11.sp) }, shape = RoundedCornerShape(6.dp), colors = FilterChipDefaults.filterChipColors(selectedContainerColor = Color(0xFF1976D2), selectedLabelColor = Color.White))
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { if (isSelected) selectedList.remove(option) else selectedList.add(option) },
+                    label = { Text(option, fontSize = 11.sp) },
+                    shape = RoundedCornerShape(6.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = Color.White,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        enabled = true,
+                        selected = isSelected
+                    )
+                )
             }
         }
     }

@@ -78,7 +78,12 @@ object AuthRepository {
         auth.signInWithEmailAndPassword(email, pass)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val uid = auth.currentUser?.uid ?: ""
+                    val uid = task.result?.user?.uid ?: auth.currentUser?.uid ?: ""
+                    if (uid.isBlank()) {
+                        onFailure("Login successful but user ID is missing.")
+                        return@addOnCompleteListener
+                    }
+                    
                     db.child(uid).get().addOnSuccessListener { snapshot ->
                         val data = snapshot.value as? Map<String, Any>
                         if (data != null) {
@@ -94,11 +99,16 @@ object AuthRepository {
                                 "role" to "ADMIN"
                             )
                             db.child(uid).setValue(fallbackData)
-                            com.example.roomservice.data.HotelSession.setHotelId(uid)
-                            onSuccess(fallbackData)
+                                .addOnSuccessListener {
+                                    com.example.roomservice.data.HotelSession.setHotelId(uid)
+                                    onSuccess(fallbackData)
+                                }
+                                .addOnFailureListener { e ->
+                                    onFailure("Failed to create profile: ${e.localizedMessage}")
+                                }
                         }
-                    }.addOnFailureListener {
-                        onFailure("Failed to restore profile data")
+                    }.addOnFailureListener { e ->
+                        onFailure("Failed to restore profile data: ${e.localizedMessage}")
                     }
                 } else {
                     onFailure(task.exception?.message ?: "Login Failed")
